@@ -1,0 +1,8 @@
+@import "./scss-utils/variables/index";
+
+:root {
+    @each $color,
+    $value in $colors {
+        --#{$color}: #{$value};
+    }
+}

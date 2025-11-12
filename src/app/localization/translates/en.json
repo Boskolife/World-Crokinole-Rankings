@@ -1,0 +1,32 @@
+{
+  "common": {
+    "logo": "World Crokinole Rankings",
+    "loading": "Loading...",
+    "error": "Error",
+    "notFound": "Page not found"
+  },
+  "navigation": {
+    "rankings": "Rankings",
+    "events": "Events",
+    "clubs": "Clubs",
+    "players": "Players",
+    "membershipPlans": "Membership plans",
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  },
+  "home": {
+    "title": "World Crokinole Rankings",
+    "description": "One world. One board. United by play.",
+    "getStarted": "To get started, edit the page.tsx file.",
+    "lookingFor": "Looking for a starting point or more instructions? Head over to",
+    "templates": "Templates",
+    "orThe": "or the",
+    "learning": "Learning",
+    "center": "center",
+    "deployNow": "Deploy Now",
+    "documentation": "Documentation"
+  },
+  "footer": {
+    "title": "Footer"
+  }
+}

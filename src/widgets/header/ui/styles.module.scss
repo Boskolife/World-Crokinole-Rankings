@@ -1,0 +1,41 @@
+.header {
+    padding: 16px 0;
+
+    &_content {
+        display: flex;
+        align-items: center;
+        gap: 60px;
+    }
+
+    &_inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 40px;
+        width: 100%;
+    }
+
+    &_nav {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+    }
+
+    &_nav_link {
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.5;
+        color: var(--black);
+        transition: color 0.3s ease;
+
+        &:hover {
+            color: var(--gold);
+        }
+    }
+
+    &_actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+}

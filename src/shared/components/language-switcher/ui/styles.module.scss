@@ -1,0 +1,105 @@
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown_button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    padding: 12px 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--black);
+    transition: color .3s ease;
+    outline: none;
+    border: none;
+
+    &:hover {
+        color: var(--gold);
+        transition: color .3s ease;
+    }
+}
+
+.dropdown_arrow {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+.dropdown_button[aria-expanded="true"] .dropdown_arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown_list {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 100%;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--white);
+    border: 1px solid var(--black);
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: dropdownFadeIn 0.3s ease forwards;
+}
+
+.dropdown_list_closing {
+    animation: dropdownFadeOut 0.3s ease forwards;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes dropdownFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.dropdown_item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--black);
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    &:focus {
+        outline: none;
+        background: rgba(0, 0, 0, 0.05);
+    }
+}
+
+.dropdown_item_active {
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.05);
+}
