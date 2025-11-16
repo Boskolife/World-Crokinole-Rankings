@@ -7,4 +7,5 @@ export interface IButtonProps
     > {
     className?: string;
     buttonType?: "primary" | "secondary";
+    icon?: string;
 }

@@ -1,8 +1,2 @@
-// SCSS utilizes entry point
-@import "./scss-utils/index";
-
-// Set css variables for root element
-@import "./root";
-
-// Styles configurations
-@import "./globals";
+@use "./root";
+@use "./globals";

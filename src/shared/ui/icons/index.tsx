@@ -10,15 +10,11 @@ const IconComponent: React.FC<IIconsProps> = ({ name, ...props }) => {
   return <SubComponent {...props} />
 }
 
-export const Icon: React.FC<IIconsProps> = ({ name, className, size = "md", ...props }) => {
+export const Icon: React.FC<IIconsProps> = ({ name, className, ...props }) => {
   return (
     <IconComponent
       name={name}
-      className={cn(css.icon, className, {
-        [css._sm]: size === "sm",
-        // [css._light]: color === "light",
-        // [css._dark]: color === "dark",
-      })}
+      className={cn(css.icon, className)}
       {...props}
     />
   )

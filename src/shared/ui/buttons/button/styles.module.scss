@@ -1,0 +1,50 @@
+.button {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 135%;
+    padding: 12px 24px;
+    border-radius: 120px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &_primary {
+        background-color: transparent;
+        border-color: var(--gold-dark);
+        color: var(--gold-dark);
+
+        &:hover {
+            color: var(--gold-light);
+            border-color: var(--gold-light);
+            transition: all 0.3s ease;
+        }
+
+        &:disabled {
+            color: var(--gray);
+            border-color: var(--gray);
+            background-color: transparent;
+            cursor: not-allowed;
+        }
+    }
+
+    &_secondary {
+        background-color: var(--gold);
+        border-color: var(--gold);
+        color: var(--white);
+
+        &:hover {
+            border-color: var(--gold-light);
+            background-color: var(--gold-light);
+            transition: all 0.3s ease;
+        }
+
+        &:disabled {
+            color: var(--gold-dark);
+            border-color: var(--gold-light);
+            background-color: var(--gold-light);
+            cursor: not-allowed;
+        }
+    }
+
+
+}

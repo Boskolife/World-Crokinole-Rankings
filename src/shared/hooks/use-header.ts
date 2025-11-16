@@ -1,0 +1,14 @@
+import { useState } from "react";
+
+export const useHeader = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const handleToggleMenu = () => {
+        setIsMenuOpen((prev) => !prev);
+    };
+
+    return {
+        isMenuOpen,
+        handleToggleMenu,
+    };
+};

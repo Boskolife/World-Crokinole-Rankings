@@ -1,10 +1,17 @@
+
 .header {
     padding: 16px 0;
+    position: relative;
 
     &_content {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 60px;
+
+        @include media-down(xl) {
+            gap: 20px;
+        }
     }
 
     &_inner {
@@ -13,23 +20,31 @@
         justify-content: space-between;
         gap: 40px;
         width: 100%;
-    }
 
-    &_nav {
-        display: flex;
-        align-items: center;
-        gap: 40px;
-    }
+        @include media-down(xl) {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            max-width: 400px;
+            width: 100%;
+            height: calc(100dvh - 86px);
+            background: var(--white);
+            z-index: 1000;
+            padding: 20px;
 
-    &_nav_link {
-        font-size: 16px;
-        font-weight: 400;
-        line-height: 1.5;
-        color: var(--black);
-        transition: color 0.3s ease;
+            transform: translateX(100%);
 
-        &:hover {
-            color: var(--gold);
+            border-top: 1px solid var(--gold-dark);
+
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        &.open {
+            transform: translateX(0);
+            transition: transform 0.3s ease;
         }
     }
 
@@ -37,5 +52,54 @@
         display: flex;
         align-items: center;
         gap: 20px;
+
+        @include media-down(xl) {
+            width: 100%;
+        }
+    }
+
+    &_buttons {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        @include media-down(xl) {
+            width: 100%;
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+
+    &_button {
+        @include adaptive-value("width", 180, 100, 1);
+
+        @include media-down(xl) {
+            width: 100%;
+        }
+    }
+
+    &_language_switcher_desktop {
+
+        @include media-down(xl) {
+            display: none !important;
+        }
+    }
+
+    &_language_switcher_mobile {
+        display: none !important;
+
+        @include media-down(xl) {
+            display: block !important;
+        }
+    }
+
+    &_actions_mobile {
+        display: none;
+
+        @include media-down(xl) {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
     }
 }

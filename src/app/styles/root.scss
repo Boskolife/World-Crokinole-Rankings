@@ -1,4 +1,4 @@
-@import "./scss-utils/variables/index";
+@use "./scss-utils/index" as *;
 
 :root {
     @each $color,

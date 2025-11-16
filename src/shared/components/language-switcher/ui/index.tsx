@@ -5,8 +5,16 @@ import { useParams } from "next/navigation";
 import { usePathname, useRouter } from "@/app/localization/routing";
 import { locales, defaultLocale } from "@/app/localization/config";
 import css from "./styles.module.scss";
+import { Icon } from "@/shared/ui/icons";
+import cn from "classnames";
 
-export const LanguageSwitcher: React.FC = () => {
+interface LanguageSwitcherProps {
+    className?: string;
+}
+
+export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
+    className,
+}) => {
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -75,7 +83,7 @@ export const LanguageSwitcher: React.FC = () => {
     const currentLocale = locale || "en";
 
     return (
-        <div className={css.dropdown} ref={dropdownRef}>
+        <div className={cn(css.dropdown, className)} ref={dropdownRef}>
             <button
                 className={css.dropdown_button}
                 onClick={handleToggle}
@@ -86,9 +94,7 @@ export const LanguageSwitcher: React.FC = () => {
                 <span className={css.dropdown_button_text}>
                     {currentLocale.toUpperCase()}
                 </span>
-                <span className={css.dropdown_arrow} aria-hidden="true">
-                    ▼
-                </span>
+                <Icon name="chevron_down" className={css.dropdown_arrow} />
             </button>
             {isOpen && (
                 <ul

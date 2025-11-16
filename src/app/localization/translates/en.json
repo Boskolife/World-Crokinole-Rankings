@@ -1,4 +1,8 @@
 {
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  },
   "common": {
     "logo": "World Crokinole Rankings",
     "loading": "Loading...",

@@ -1,33 +1,36 @@
 {
-  "common": {
-    "logo": "Classements Mondiaux de Crokinole",
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "notFound": "Page non trouvée"
-  },
-  "navigation": {
-    "rankings": "Classements",
-    "events": "Événements",
-    "clubs": "Clubs",
-    "players": "Joueurs",
-    "membershipPlans": "Plans d'adhésion",
-    "signIn": "Se connecter",
-    "signUp": "S'inscrire"
-  },
-  "home": {
-    "title": "Classements Mondiaux de Crokinole",
-    "description": "Un monde. Un plateau. Unis par le jeu.",
-    "getStarted": "Pour commencer, modifiez le fichier page.tsx.",
-    "lookingFor": "Vous cherchez un point de départ ou plus d'instructions ? Consultez",
-    "templates": "Modèles",
-    "orThe": "ou le",
-    "learning": "Apprentissage",
-    "center": "centre",
-    "deployNow": "Déployer maintenant",
-    "documentation": "Documentation"
-  },
-  "footer": {
-    "title": "Pied de page"
-  }
+    "auth": {
+        "signIn": "Se connecter",
+        "signUp": "S'inscrire"
+    },
+    "common": {
+        "logo": "Classements Mondiaux de Crokinole",
+        "loading": "Chargement...",
+        "error": "Erreur",
+        "notFound": "Page non trouvée"
+    },
+    "navigation": {
+        "rankings": "Classements",
+        "events": "Événements",
+        "clubs": "Clubs",
+        "players": "Joueurs",
+        "membershipPlans": "Plans d'adhésion",
+        "signIn": "Se connecter",
+        "signUp": "S'inscrire"
+    },
+    "home": {
+        "title": "Classements Mondiaux de Crokinole",
+        "description": "Un monde. Un plateau. Unis par le jeu.",
+        "getStarted": "Pour commencer, modifiez le fichier page.tsx.",
+        "lookingFor": "Vous cherchez un point de départ ou plus d'instructions ? Consultez",
+        "templates": "Modèles",
+        "orThe": "ou le",
+        "learning": "Apprentissage",
+        "center": "centre",
+        "deployNow": "Déployer maintenant",
+        "documentation": "Documentation"
+    },
+    "footer": {
+        "title": "Pied de page"
+    }
 }
-

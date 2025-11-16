@@ -1,0 +1,29 @@
+
+.footer {
+    background-color: var(--black);
+    @include adaptive-value("padding-top", 80, 40, 1);
+    @include adaptive-value("padding-bottom", 60, 40, 1);
+    position: relative;
+    overflow: hidden;
+
+    &_logo_bg {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+    }
+
+    &_content_left {
+
+        &_logo {
+            margin-bottom: 24px;
+        }
+
+        &_text {
+            font-size: 16px;
+            color: var(--gray);
+            max-width: 330px;
+            width: 100%;
+        }
+    }
+}

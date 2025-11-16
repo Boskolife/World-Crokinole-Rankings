@@ -2,56 +2,87 @@
 
 import React from "react";
 import css from "./styles.module.scss";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/app/localization/routing";
 import { LanguageSwitcher } from "@/shared/components/language-switcher";
 import { Button } from "@/shared/ui/buttons/button";
-import { RootLink } from "@/shared/ui/links/root-link";
+import { Logo } from "@/shared/components/logo";
+import { NavMenu } from "../components/nav-menu/NavMenu";
+import { BurgerMenu } from "../components/burger-menu/Burger";
+import { useHeader } from "@/shared/hooks/use-header";
+import cn from "classnames";
 
 export const Header: React.FC = () => {
-    const t = useTranslations("navigation");
+    const tNavigation = useTranslations("navigation");
+    const tAuth = useTranslations("auth");
+
+    const { isMenuOpen, handleToggleMenu } = useHeader();
+
+    const navMenuItems = [
+        {
+            href: "#",
+            label: tNavigation("rankings"),
+        },
+        {
+            href: "#",
+            label: tNavigation("events"),
+        },
+        {
+            href: "#",
+            label: tNavigation("clubs"),
+        },
+        {
+            href: "#",
+            label: tNavigation("players"),
+        },
+        {
+            href: "#",
+            label: tNavigation("membershipPlans"),
+        },
+    ];
 
     return (
         <header className={css.header}>
             <div className="container">
                 <div className={css.header_content}>
-                <Link href="/" className={css.header_logo}>
-                    <Image
-                        src="/images/logo-white.png"
-                        alt="Logo"
-                        width={127}
-                        height={50}
-                        className={css.header_logo_image}
-                        priority
-                    />
-                </Link>
-                <div className={css.header_inner}>
-                        <nav className={css.header_nav}>
-                            <RootLink href="#" className={css.header_nav_link}>
-                                {t("rankings")}
-                            </RootLink>
-                            <RootLink href="#" className={css.header_nav_link}>
-                                {t("events")}
-                            </RootLink>
-                            <RootLink href="#" className={css.header_nav_link}>
-                                {t("clubs")}
-                            </RootLink>
-                            <RootLink href="#" className={css.header_nav_link}>
-                                {t("players")}
-                            </RootLink>
-                            <RootLink href="#" className={css.header_nav_link}>
-                                {t("membershipPlans")}
-                            </RootLink>
-                    </nav>
-                    <div className={css.header_actions}>
-                        <LanguageSwitcher />
-                        <div className={css.header_buttons}>
-                                <Button>{t("signIn")}</Button>
-                                <Button buttonType="secondary">{t("signUp")}</Button>
+                    <Link href="/" className={css.header_logo}>
+                        <Logo colorInverted={false} />
+                    </Link>
+                    <div
+                        className={cn(css.header_inner, {
+                            [css.open]: isMenuOpen,
+                        })}
+                    >
+                        <NavMenu items={navMenuItems} />
+                        <div className={css.header_actions}>
+                            <LanguageSwitcher
+                                className={css.header_language_switcher_desktop}
+                            />
+                            <div className={css.header_buttons}>
+                                <Button
+                                    buttonType="primary"
+                                    className={css.header_button}
+                                >
+                                    {tAuth("signIn")}
+                                </Button>
+                                <Button
+                                    buttonType="secondary"
+                                    className={css.header_button}
+                                >
+                                    {tAuth("signUp")}
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div className={css.header_actions_mobile}>
+                        <LanguageSwitcher
+                            className={css.header_language_switcher_mobile}
+                        />
+                        <BurgerMenu
+                            isOpen={isMenuOpen}
+                            handleToggleMenu={handleToggleMenu}
+                        />
+                    </div>
                 </div>
             </div>
         </header>
