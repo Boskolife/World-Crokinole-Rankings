@@ -1,0 +1,52 @@
+.auth_form {
+    width: 100%;
+
+    &_title {
+        text-align: center;
+        @include adaptive-value("font-size", 18, 16, 1);
+        margin-bottom: 16px;
+    }
+
+    &_fields {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    &_button {
+        width: 100%;
+    }
+
+    &_button {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    &_sign_in_link {
+        text-decoration: underline;
+        transition: color 0.3s ease;
+
+        &:hover {
+            color: var(--gold);
+            transition: color 0.3s ease;
+        }
+    }
+
+    &_forgot_password_link {
+        display: inline-block;
+        text-align: start;
+        text-decoration: underline;
+        margin-bottom: 32px;
+        transition: color 0.3s ease;
+
+        &:hover {
+            color: var(--gold);
+            transition: color 0.3s ease;
+        }
+    }
+
+    &_sign_in {
+        text-align: center;
+    }
+}

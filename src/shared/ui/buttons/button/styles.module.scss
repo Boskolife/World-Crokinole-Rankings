@@ -8,6 +8,11 @@
     transition: all 0.3s ease;
     cursor: pointer;
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
     &_primary {
         background-color: transparent;
         border-color: var(--gold-dark);
@@ -55,8 +60,10 @@
             background-color: var(--gold);
             transition: all 0.3s ease;
         }
-
-
     }
 
+    &_transparent {
+        background-color: transparent;
+        border-color: var(--white);
+    }
 }

@@ -1,0 +1,22 @@
+.auth_switcher {
+    display: flex;
+    align-items: center;
+    border-radius: 100px;
+    padding: 4px;
+    margin-bottom: 24px;
+    background-color: var(--blue);
+}
+
+.auth_switcher_button {
+    @include adaptive-value("font-size", 18, 16, 1);
+    color: var(--black);
+    padding: 8px 30px;
+    border-radius: 108px;
+    transition: all 0.3s ease;
+
+    &.active {
+        background-color: var(--blue-grey);
+        color: var(--white);
+        transition: all 0.3s ease;
+    }
+}

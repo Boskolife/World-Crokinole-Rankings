@@ -1,0 +1,43 @@
+.form_field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: start;
+
+    &_input {
+        width: 100%;
+        padding: 16px 20px;
+        border: 1px solid var(--blue-dark);
+        border-radius: 8px;
+        font-size: 16px;
+        color: var(--black);
+        background: var(--white);
+        outline: none;
+        caret-color: var(--black-50);
+        transition: all 0.3s ease;
+
+        &::placeholder {
+            color: var(--black-50);
+        }
+
+        &:hover {
+            border-color: var(--blue-dark-2);
+            transition: border-color 0.3s ease;
+        }
+
+        &:focus {
+            border-color: var(--blue-grey);
+            transition: border-color 0.3s ease;
+        }
+
+        &.error {
+            border-color: var(--red);
+            transition: border-color 0.3s ease;
+        }
+    }
+
+    &_error {
+        color: var(--red);
+        font-size: 14px;
+    }
+}

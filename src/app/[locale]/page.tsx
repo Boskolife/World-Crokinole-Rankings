@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { defaultLocale } from "../localization/config";
+import { clientRoutes } from "@/shared/routes/client";
 
 export default function LocaleRootPage({
     params,
@@ -22,10 +23,10 @@ export default function LocaleRootPage({
             if (isLoggedIn) {
                 router.replace(`/${locale}/dashboard`);
             } else {
-                router.replace(`/${locale}/new-visitor`);
+                router.replace(`/${locale}${clientRoutes.steps(1)}`);
             }
         } catch {
-            router.replace(`/${locale}/new-visitor`);
+            router.replace(`/${locale}${clientRoutes.steps(1)}`);
         }
     }, [router, locale]);
 

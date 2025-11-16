@@ -21,6 +21,7 @@ import { Players } from "./svg/players"
 import { SinglePlayer } from "./svg/single-player"
 import { DoublesPlayers } from "./svg/doubles-players"
 import { Burger } from "./svg/burger"
+import { GoogleIcon } from "./svg/google-icon"
 
 export const icons = {
   eye: Eye,
@@ -45,4 +46,5 @@ export const icons = {
   single_player: SinglePlayer,
   doubles_players: DoublesPlayers,
   burger: Burger,
+  google_icon: GoogleIcon,
 }
