@@ -46,5 +46,17 @@
         }
     }
 
+    &_white {
+        background-color: var(--white);
+        color: var(--black);
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: var(--gold);
+            transition: all 0.3s ease;
+        }
+
+
+    }
 
 }

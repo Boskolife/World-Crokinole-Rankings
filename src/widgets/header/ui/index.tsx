@@ -42,7 +42,7 @@ export const Header: React.FC = () => {
     ];
 
     return (
-        <header className={css.header}>
+        <header className={cn(css.header, "header")}>
             <div className="container">
                 <div className={css.header_content}>
                     <Link href="/" className={css.header_logo}>

@@ -6,6 +6,6 @@ export interface IButtonProps
         HTMLButtonElement
     > {
     className?: string;
-    buttonType?: "primary" | "secondary";
+    buttonType?: "primary" | "secondary" | "white";
     icon?: string;
 }

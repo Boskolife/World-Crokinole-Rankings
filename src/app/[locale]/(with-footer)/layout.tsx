@@ -2,8 +2,10 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import "../styles/main.scss";
-import { locales, defaultLocale } from "../localization/config";
+import "../../styles/main.scss";
+import { Header } from "@/widgets/header";
+import { Footer } from "@/widgets/footer";
+import { locales, defaultLocale } from "../../localization/config";
 
 export function generateStaticParams() {
     return locales.map((locale) => ({ locale }));
@@ -28,7 +30,7 @@ export async function generateMetadata({
     };
 }
 
-export default async function LocaleLayout({
+export default async function LocaleLayoutWithFooter({
     children,
     params,
 }: {
@@ -37,7 +39,6 @@ export default async function LocaleLayout({
 }) {
     let { locale } = await params;
 
-    // Если locale пустой или не определен, используем дефолтный
     if (!locale || locale === "") {
         locale = defaultLocale;
     }
@@ -51,8 +52,12 @@ export default async function LocaleLayout({
     return (
         <>
             <NextIntlClientProvider messages={messages}>
+                <Header />
                 {children}
+                <Footer />
             </NextIntlClientProvider>
         </>
     );
 }
+
+

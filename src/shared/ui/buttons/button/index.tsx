@@ -18,6 +18,7 @@ export const Button: React.FC<IButtonProps> = ({
             className={cn(css.button, className, {
                 [css.button_primary]: buttonType === "primary",
                 [css.button_secondary]: buttonType === "secondary",
+                [css.button_white]: buttonType === "white",
             })}
             type={type ?? "button"}
             {...props}
