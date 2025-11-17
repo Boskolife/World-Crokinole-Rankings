@@ -1,0 +1,43 @@
+.subscribe_plans {
+    @include adaptive-value("padding-top", 80, 35, 1);
+    @include adaptive-value("padding-bottom", 80, 35, 1);
+
+    &_description {
+        @include adaptive-value("font-size", 18, 16, 1);
+        text-align: center;
+        margin-bottom: 24px;
+        color: var(--black-80);
+    }
+
+    &_cards {
+        display: flex;
+        align-items: stretch;
+        gap: 20px;
+        margin-bottom: 24px;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        opacity: 1;
+        transform: translateY(0);
+
+        &_fading_out {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        &_fading_in {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.3s ease forwards;
+        }
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

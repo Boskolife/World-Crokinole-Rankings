@@ -9,6 +9,7 @@
         bottom: -11px;
         right: 0;
         object-fit: contain;
+        aspect-ratio: 1/1;
     }
 
     &_container {
@@ -77,5 +78,9 @@
     &_form {
         max-width: 320px;
         width: 100%;
+    }
+
+    &_skip_link {
+        text-decoration: underline;
     }
 }

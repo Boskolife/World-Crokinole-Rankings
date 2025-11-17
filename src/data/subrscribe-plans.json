@@ -1,0 +1,94 @@
+{
+    "plansAnnual": [
+        {
+            "id": 1,
+            "name": "Standard Player (Free)",
+            "description": "For any player who is just getting started",
+            "features": [
+                "Access global rankings with a personal account",
+                "Sign up for events and tournaments",
+                "Host one unranked event at a time"
+            ],
+            "price": 0,
+            "currency": "$",
+            "buttonText": "Choose Standard"
+        },
+        {
+            "id": 2,
+            "name": "Premium Supporter",
+            "description": "For experienced players ready to host small events.</br><i>*Your support at this level helps to maintain the platform without ads</i>",
+            "features": [
+                "Host ranked and unranked events",
+                "Submit official ranked matches from your events",
+                "Stripe integration for paid events"
+            ],
+            "price": 3.99,
+            "currency": "$",
+            "duration": "per month billed yearly",
+            "buttonText": "Choose Premium",
+            "inverted": true
+        },
+        {
+            "id": 3,
+            "name": "Community Administrator",
+            "description": "For leaders ready to build a community and host tournaments.</br><i>*Your support at this level funds additional development and features</i>",
+            "features": [
+                "Create and manage your own club",
+                "Club leaderboard and rankings",
+                "Host ranked tournaments with post-event statistics",
+                "Players earn laurels for competing in your tournaments.",
+                "Unlock a 10% discount code for BrownCastle Games (5% club credit + 5% instant savings)"
+            ],
+            "price": 6.99,
+            "currency": "$",
+            "duration": "per month billed yearly",
+            "buttonText": "Choose Administrator"
+        }
+    ],
+    "plansMonthly": [
+        {
+            "id": 1,
+            "name": "Standard Player (Free)",
+            "description": "For any player who is just getting started",
+            "features": [
+                "Access global rankings with a personal account",
+                "Sign up for events and tournaments",
+                "Host one unranked event at a time"
+            ],
+            "price": 0,
+            "currency": "$",
+            "buttonText": "Choose Standard"
+        },
+        {
+            "id": 2,
+            "name": "Premium Supporter",
+            "description": "For experienced players ready to host small events.</br><i>*Your support at this level helps to maintain the platform without ads</i>",
+            "features": [
+                "Host ranked and unranked events",
+                "Submit official ranked matches from your events",
+                "Stripe integration for paid events"
+            ],
+            "price": 3.99,
+            "currency": "$",
+            "duration": "per month billed yearly",
+            "buttonText": "Choose Premium",
+            "inverted": true
+        },
+        {
+            "id": 3,
+            "name": "Community Administrator",
+            "description": "For leaders ready to build a community and host tournaments.</br><i>*Your support at this level funds additional development and features</i>",
+            "features": [
+                "Create and manage your own club",
+                "Club leaderboard and rankings",
+                "Host ranked tournaments with post-event statistics",
+                "Players earn laurels for competing in your tournaments.",
+                "Unlock a 10% discount code for BrownCastle Games (5% club credit + 5% instant savings)"
+            ],
+            "price": 6.99,
+            "currency": "$",
+            "duration": "per month billed yearly",
+            "buttonText": "Choose Administrator"
+        }
+    ]
+}

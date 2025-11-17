@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { usePathname, useRouter } from "@/app/localization/routing";
-import { locales, defaultLocale } from "@/app/localization/config";
+import { localeConfig } from "@/app/localization/config";
 import css from "./styles.module.scss";
 import { Icon } from "@/shared/ui/icons";
 import cn from "classnames";
@@ -24,7 +24,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Получаем локаль из URL параметров
-    const locale = (params?.locale as string) || defaultLocale;
+    const locale = (params?.locale as string) || (localeConfig.defaultLocale as string);
 
     const handleClose = () => {
         setIsClosing(true);
@@ -102,7 +102,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                         isClosing ? css.dropdown_list_closing : ""
                     }`}
                 >
-                    {locales.map((loc) => (
+                    {localeConfig.locales.map((loc) => (
                         <li key={loc}>
                             <button
                                 className={`${css.dropdown_item} ${

@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { defaultLocale } from "../localization/config";
+import { useRouter, useParams } from "next/navigation";
+import { localeConfig } from "../localization/config";
 import { clientRoutes } from "@/shared/routes/client";
 
-export default function LocaleRootPage({
-    params,
-}: {
-    params: { locale: string };
-}) {
+export default function LocaleRootPage() {
     const router = useRouter();
-    const locale = params?.locale || defaultLocale;
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale || (localeConfig.defaultLocale as string);
 
     useEffect(() => {
         try {

@@ -1,13 +1,16 @@
-.auth_switcher {
+.switcher_module {
     display: flex;
     align-items: center;
+    justify-content: center;
     border-radius: 100px;
     padding: 4px;
-    margin-bottom: 24px;
     background-color: var(--blue);
+    width: max-content;
+    margin: 0 auto;
+    margin-bottom: 24px;
 }
 
-.auth_switcher_button {
+.switcher_module_button {
     @include adaptive-value("font-size", 18, 16, 1);
     color: var(--black);
     padding: 8px 30px;

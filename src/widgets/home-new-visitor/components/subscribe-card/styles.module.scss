@@ -1,0 +1,80 @@
+.subscribe_card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background: var(--white);
+    border: 1px solid var(--blue-grey);
+    border-radius: 16px;
+    color: var(--black);
+    @include adaptive-value("padding", 32, 16, 1);
+
+    &_title {
+        @include adaptive-value("font-size", 24, 18, 1);
+        color: var(--blue-grey);
+        line-height: 125%;
+        @include adaptive-value("margin-bottom", 24, 16, 1);
+    }
+
+    &_description {
+        @include adaptive-value("font-size", 18, 16, 1);
+        margin-bottom: 24px;
+    }
+
+    &_list {
+        flex: 1;
+        @include adaptive-value("margin-bottom", 24, 16, 1);
+        list-style: none;
+
+        &_item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+
+            &::before {
+                content: "";
+                width: 5px;
+                height: 5px;
+                background-color: var(--black);
+                border-radius: 50%;
+                margin-top: 8px;
+            }
+        }
+    }
+
+    &_price {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+
+        span {
+            @include adaptive-value("font-size", 24, 18, 1);
+            line-height: 125%;
+            font-weight: 600;
+            color: var(--black);
+            font-family: "Aleo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    }
+
+
+    &.inverted {
+        background: linear-gradient(90deg, #00284B 0%, #00284B 1%, #2A5298 100%);
+
+        .subscribe_card_title,
+        .subscribe_card_description,
+        .subscribe_card_list {
+            color: var(--white);
+        }
+
+        .subscribe_card_list_item::before {
+            background-color: var(--white);
+        }
+
+        .subscribe_card_price {
+            span {
+                color: var(--white);
+            }
+        }
+
+    }
+}

@@ -1,14 +1,14 @@
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import "../../styles/main.scss";
 import { Header } from "@/widgets/header";
 import { Footer } from "@/widgets/footer";
-import { locales, defaultLocale } from "../../localization/config";
+import { localeConfig } from "../../localization/config";
+import { ServerProviders } from "../../localization/server";
 
 export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
+    return localeConfig.locales.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({
@@ -40,23 +40,19 @@ export default async function LocaleLayoutWithFooter({
     let { locale } = await params;
 
     if (!locale || locale === "") {
-        locale = defaultLocale;
+        locale = localeConfig.defaultLocale as string;
     }
 
-    if (!locales.includes(locale as (typeof locales)[number])) {
+    if (!localeConfig.locales.includes(locale as (typeof localeConfig.locales)[number])) {
         notFound();
     }
 
-    const messages = await getMessages({ locale });
-
     return (
-        <>
-            <NextIntlClientProvider messages={messages}>
-                <Header />
-                {children}
-                <Footer />
-            </NextIntlClientProvider>
-        </>
+        <ServerProviders locale={locale}>
+            <Header />
+            {children}
+            <Footer />
+        </ServerProviders>
     );
 }
 

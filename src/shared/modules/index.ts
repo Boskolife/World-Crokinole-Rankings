@@ -1,0 +1,1 @@
+export { SwitcherModule } from "./switcher/Switcher";

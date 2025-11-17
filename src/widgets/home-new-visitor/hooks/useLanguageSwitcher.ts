@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { locales, localeNames, defaultLocale } from "@/app/localization/config";
+import { localeConfig, localeNames } from "@/app/localization/config";
 import type { Locale } from "@/app/localization/config";
 import { usePathname, useRouter } from "@/app/localization/routing";
 import { useParams } from "next/navigation";
@@ -13,7 +13,7 @@ export const useLanguageSwitcher = () => {
     const router = useRouter();
     const pathname = usePathname();
     const params = useParams();
-    const currentLocale = (params?.locale as string) || (defaultLocale as string);
+    const currentLocale = (params?.locale as string) || (localeConfig.defaultLocale as string);
 
     const handleClose = () => {
         setIsClosing(true);
@@ -69,7 +69,7 @@ export const useLanguageSwitcher = () => {
         handleClose,
         handleSelect,
         // data
-        locales,
+        locales: localeConfig.locales,
         localeNames,
     };
 };

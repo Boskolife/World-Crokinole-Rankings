@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { defaultLocale } from "./localization/config";
+import { localeConfig } from "./localization/config";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,8 +12,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
-    <html lang={defaultLocale} suppressHydrationWarning>
-      <body>{children}</body>
+        <html
+            lang={localeConfig.defaultLocale as string}
+            suppressHydrationWarning
+        >
+            <body>{children}</body>
         </html>
     );
 }

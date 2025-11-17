@@ -3,15 +3,22 @@ import css from "./styles.module.scss";
 import { Button, FormField, RootLink } from "@/shared/ui";
 import { useForm } from "react-hook-form";
 import { ISignInFormData } from "@/shared/types";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 export const SignInForm: React.FC = () => {
+    const router = useRouter();
+    const locale = useLocale();
+
     const {
         register,
         formState: { errors },
         handleSubmit,
     } = useForm<ISignInFormData>();
+
     const onSubmit = (data: ISignInFormData) => {
         console.log(data);
+        router.push(`/${locale}/new-visitor/step-3`);
     };
     return (
         <form

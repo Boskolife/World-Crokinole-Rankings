@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { defaultLocale } from "./localization/config";
+import { localeConfig } from "./localization/config";
 
 export default function RootPage() {
-  redirect(`/${defaultLocale}`);
+  redirect(`/${localeConfig.defaultLocale as string}`);
 }
 

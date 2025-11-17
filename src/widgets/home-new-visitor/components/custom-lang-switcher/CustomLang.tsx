@@ -1,6 +1,6 @@
 import React from "react";
 import css from "./styles.module.scss";
-import { locales, localeNames } from "@/app/localization/config";
+import { localeConfig, localeNames } from "@/app/localization/config";
 import { useLanguageSwitcher } from "../../hooks/useLanguageSwitcher";
 import { Icon } from "@/shared/ui/icons";
 
@@ -34,7 +34,7 @@ export const CustomLangSwitcher: React.FC = () => {
                     role="listbox"
                     aria-label="Select language"
                 >
-                    {locales.map((loc) => (
+                    {localeConfig.locales.map((loc) => (
                         <li key={loc}>
                             <button
                                 className={css.language_switcher_item}

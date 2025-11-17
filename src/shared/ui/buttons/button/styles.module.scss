@@ -65,5 +65,12 @@
     &_transparent {
         background-color: transparent;
         border-color: var(--white);
+        color: var(--white);
+
+        &:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            transition: all 0.3s ease;
+        }
     }
 }

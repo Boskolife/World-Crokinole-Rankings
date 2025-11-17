@@ -1,31 +1,22 @@
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations } from "next-intl/server";
+
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import "../styles/main.scss";
-import { locales, defaultLocale } from "../localization/config";
+import { localeConfig } from "../localization/config";
+import { ServerProviders } from "../localization/server";
+
+export const metadata: Metadata = {
+    title: "World Crokinole Rankings",
+    description: "One world. One board. United by play.",
+    robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+    },
+};
 
 export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
-
-export async function generateMetadata({
-    params,
-}: {
-    params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-    const { locale } = await params;
-    const t = await getTranslations({ locale, namespace: "home" });
-
-    return {
-        title: t("title"),
-        description: t("description"),
-        robots: {
-            index: false,
-            follow: false,
-            nocache: true,
-        },
-    };
+    return localeConfig.locales.map((locale) => ({ locale }));
 }
 
 export default async function LocaleLayout({
@@ -37,22 +28,17 @@ export default async function LocaleLayout({
 }) {
     let { locale } = await params;
 
-    // Если locale пустой или не определен, используем дефолтный
     if (!locale || locale === "") {
-        locale = defaultLocale;
+        locale = localeConfig.defaultLocale as string;
     }
 
-    if (!locales.includes(locale as (typeof locales)[number])) {
+    if (
+        !localeConfig.locales.includes(
+            locale as (typeof localeConfig.locales)[number]
+        )
+    ) {
         notFound();
     }
 
-    const messages = await getMessages({ locale });
-
-    return (
-        <>
-            <NextIntlClientProvider messages={messages}>
-                {children}
-            </NextIntlClientProvider>
-        </>
-    );
+    return <ServerProviders locale={locale}>{children}</ServerProviders>;
 }

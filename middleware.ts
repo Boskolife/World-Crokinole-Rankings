@@ -1,8 +1,13 @@
 import createMiddleware from "next-intl/middleware";
-import { routing } from "./src/app/localization/routing";
+import { localeConfig } from "@/app/localization/config";
 import { NextRequest, NextResponse } from "next/server";
 
-const intlMiddleware = createMiddleware(routing);
+const intlMiddleware = createMiddleware({
+  locales: [...localeConfig.locales],
+  defaultLocale: localeConfig.defaultLocale,
+  localePrefix: localeConfig.localePrefix,
+  localeDetection: localeConfig.localeDetection,
+});
 
 export default function middleware(request: NextRequest) {
   // Обработка корневого пути для as-needed режима

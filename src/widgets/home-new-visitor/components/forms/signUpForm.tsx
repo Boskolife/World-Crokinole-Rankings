@@ -3,8 +3,13 @@ import css from "./styles.module.scss";
 import { Button, CustomCheckbox, FormField, RootLink } from "@/shared/ui";
 import { useForm } from "react-hook-form";
 import { ISignUpFormData } from "@/shared/types";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 export const SignUpForm: React.FC = () => {
+    const router = useRouter();
+    const locale = useLocale();
+    
     const {
         register,
         formState: { errors },
@@ -12,6 +17,7 @@ export const SignUpForm: React.FC = () => {
     } = useForm<ISignUpFormData>();
     const onSubmit = (data: ISignUpFormData) => {
         console.log(data);
+        router.push(`/${locale}/new-visitor/step-3`);
     };
     return (
         <form

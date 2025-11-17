@@ -1,0 +1,73 @@
+.button {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 135%;
+    padding: 6px 6px 6px 20px;
+    border-radius: 120px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    gap: 8px;
+    color: var(--white);
+    background-color: var(--gold);
+
+    &_icon_wrapper {
+        width: 40px;
+        height: 40px;
+        background-color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    &_icon {
+        color: var(--gold);
+        transition: all 0.3s ease;
+    }
+
+    &:hover {
+        background-color: var(--white);
+        color: var(--black);
+        border-color: var(--gold);
+        transition: all 0.3s ease;
+
+        .button_icon_wrapper {
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        &_icon {
+            background-color: var(--gold);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+    }
+
+
+    &.inverted {
+        background-color: var(--white);
+        color: var(--black);
+
+        .button_icon_wrapper {
+            background-color: var(--gold);
+        }
+
+        .button_icon {
+            color: var(--white);
+        }
+
+        &:hover {
+            background-color: var(--gold);
+            color: var(--white);
+            border-color: var(--gold);
+            transition: all 0.3s ease;
+        }
+    }
+}
