@@ -21,6 +21,9 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
         error,
         labelClassName,
         className,
+        maxLength,
+        minLength,
+        ...restProps
     } = props;
     
     const inputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +57,63 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setIsFilled(!!e.target.value && e.target.value.trim().length > 0);
         onChange?.(e);
+    };
+
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+        
+        if (type === "text" && props.inputMode === "numeric") {
+            value = value.replace(/\D/g, "");
+        }
+        
+        if (maxLength && value.length > maxLength) {
+            value = value.slice(0, maxLength);
+        }
+        
+        if (value !== e.target.value) {
+            e.target.value = value;
+        }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (type === "text" && props.inputMode === "numeric") {
+            if (!/^\d$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Tab") {
+                e.preventDefault();
+            }
+        }
+    };
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        if (type === "text" && props.inputMode === "numeric") {
+            e.preventDefault();
+            const paste = e.clipboardData.getData("text");
+            const numericOnly = paste.replace(/\D/g, "");
+            const maxValue = maxLength ? numericOnly.slice(0, maxLength) : numericOnly;
+            
+            if (inputRef.current) {
+                const start = inputRef.current.selectionStart || 0;
+                const end = inputRef.current.selectionEnd || 0;
+                const currentValue = inputRef.current.value;
+                const newValue = currentValue.slice(0, start) + maxValue + currentValue.slice(end);
+                const limitedValue = maxLength ? newValue.slice(0, maxLength) : newValue;
+                
+                inputRef.current.value = limitedValue;
+                const newCursorPos = start + maxValue.length;
+                inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
+                
+                const syntheticEvent = {
+                    target: inputRef.current,
+                    currentTarget: inputRef.current,
+                    bubbles: true,
+                    cancelable: false,
+                } as React.ChangeEvent<HTMLInputElement>;
+                
+                if (registration) {
+                    registration.onChange?.(syntheticEvent);
+                }
+                handleChange(syntheticEvent);
+            }
+        }
     };
     
     const registration = register
@@ -114,6 +174,12 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
                     type={type || "text"}
                     placeholder={placeholder}
                     aria-invalid={!!error}
+                    maxLength={maxLength}
+                    minLength={minLength}
+                    onInput={handleInput}
+                    onKeyPress={handleKeyPress}
+                    onPaste={handlePaste}
+                    {...restProps}
                     {...(registration
                         ? {
                               ...registration,

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from "react";
 
-export type PopupType = "verify" | string;
+export type PopupType = "verify" | "verify-code" | string;
 
 interface PopupContextType {
     openPopups: Set<PopupType>;

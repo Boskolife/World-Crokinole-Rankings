@@ -2,8 +2,10 @@
 
 import React, { useEffect } from "react";
 import { usePopup } from "@/shared/contexts/popup-context";
-import { VerifyPopup } from "./verify-popup";
 import css from "./styles.module.scss";
+import { VerifyPopup } from "./verify-popup";
+import { VerifyCodePopup } from "./verify-code-popup";
+import { LinkedPopup } from "./linked-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -40,6 +42,8 @@ export const PopupContainer: React.FC = () => {
         <div className={css.popup_backdrop} onClick={handleBackdropClick}>
             <div className={css.popup_container}>
                 {isPopupOpen("verify") && <VerifyPopup />}
+                {isPopupOpen("verify-code") && <VerifyCodePopup />}
+                {isPopupOpen("linked") && <LinkedPopup />}
             </div>
         </div>
     );

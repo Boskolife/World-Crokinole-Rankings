@@ -6,18 +6,29 @@ import { useForm } from "react-hook-form";
 import { usePopup } from "@/shared/contexts/popup-context";
 import cn from "classnames";
 
-export const VerifyPopup: React.FC = () => {
-    const { closePopup, openPopup, closeAllPopups } = usePopup();
+export const VerifyCodePopup: React.FC = () => {
+    const { closePopup, openPopup, getPopupData, closeAllPopups } = usePopup();
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<{ email: string }>();
+    } = useForm<{ code: string }>();
 
-    const onSubmit = (data: { email: string }) => {
+    const email = getPopupData("verify-code")?.email as string;
+
+    const handleSwitchToLinked = () => {
+        closePopup("verify-code");
+        openPopup("linked");
+    };
+
+    const handleSwitchToVerify = () => {
+        closePopup("verify-code");
+        openPopup("verify");
+    };
+
+    const onSubmit = (data: { code: string }) => {
         console.log("submit", data);
-        openPopup("verify-code", { email: data.email });
-        closePopup("verify");
+        handleSwitchToLinked();
         // Здесь будет логика отправки формы
     };
 
@@ -31,31 +42,33 @@ export const VerifyPopup: React.FC = () => {
                 />
             </div>
             <div className={css.popup_content}>
-                <h2>Verify your identity</h2>
-                <p>
-                    Enter the email previously used with your tournament
-                    records. We’ll send a 6-digit code.
-                </p>
+                <h2>Enter verification code</h2>
+                <p>We’ve sent a 6-digit code to {email}.</p>
                 <form
-                    noValidate
                     onSubmit={handleSubmit(onSubmit)}
                     className={css.popup_form}
                 >
                     <FormField
                         className={css.popup_form_field}
-                        id="email-verify"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
+                        id="code-verify"
+                        name="code"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="6-digit code"
                         register={register}
+                        maxLength={6}
                         rules={{
-                            required: "Email is required",
+                            required: "Code is required",
                             pattern: {
-                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                message: "Invalid email address",
+                                value: /^\d{6}$/,
+                                message: "Invalid code",
+                            },
+                            minLength: {
+                                value: 6,
+                                message: "Code must be 6 digits",
                             },
                         }}
-                        error={errors.email?.message}
+                        error={errors.code?.message}
                     />
                     <div className={css.popup_buttons}>
                         <Button
@@ -65,9 +78,9 @@ export const VerifyPopup: React.FC = () => {
                                 css.popup_buttons_cancel,
                                 css.popup_button
                             )}
-                            onClick={() => closePopup("verify")}
+                            onClick={handleSwitchToVerify}
                         >
-                            Cancel
+                            Back
                         </Button>
                         <Button
                             buttonType="secondary"
@@ -77,7 +90,7 @@ export const VerifyPopup: React.FC = () => {
                                 css.popup_button
                             )}
                         >
-                            Send code
+                            Verify
                         </Button>
                     </div>
                 </form>
