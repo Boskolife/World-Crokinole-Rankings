@@ -4,6 +4,12 @@
     gap: 8px;
     text-align: start;
 
+    &_input_wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
     &_input {
         width: 100%;
         padding: 16px 20px;
@@ -34,6 +40,55 @@
             border-color: var(--red);
             transition: border-color 0.3s ease;
         }
+
+        &.filled {
+            border-color: var(--blue-dark-2);
+        }
+
+        &.form_field_input_with_icon {
+            padding-right: 48px;
+        }
+    }
+
+    &_clear {
+        position: absolute;
+        right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        outline: none;
+        transition: opacity 0.3s ease;
+
+        &:hover {
+            opacity: 0.7;
+
+            .form_field_clear_icon {
+                color: var(--black);
+            }
+        }
+
+        &:active {
+            opacity: 0.5;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--blue-grey);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+    }
+
+    &_clear_icon {
+        width: 16px;
+        height: 16px;
+        color: var(--black-50);
+        transition: color 0.3s ease;
     }
 
     &_error {

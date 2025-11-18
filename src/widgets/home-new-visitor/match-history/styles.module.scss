@@ -1,0 +1,126 @@
+.match_history {
+    padding: 30px 0;
+    min-height: 50dvh;
+
+    &_head {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 30px;
+
+        @include media-down(lg) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        &_inputs {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+
+            @include media-down(md) {
+                width: 100%;
+            }
+
+            @include media-down(sm) {
+                flex-direction: column;
+            }
+        }
+
+        &_input {
+            width: 310px;
+
+            @include media-down(md) {
+                width: 50%;
+            }
+
+
+            @include media-down(sm) {
+                width: 100%;
+            }
+
+            &_label {
+                color: var(--black);
+            }
+        }
+
+        &_buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            @include media-down(md) {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        &_button {
+            @include media-down(sm) {
+                width: 100%;
+            }
+        }
+    }
+
+    &_list_wrapper {
+        position: relative;
+        overflow-x: auto;
+        max-width: 1332px;
+        width: 100vw;
+        margin: 0 auto;
+        padding: 0 20px;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        scrollbar-width: none;
+    }
+
+    &_table {
+        width: 100%;
+        min-width: max-content;
+        border-collapse: collapse;
+    }
+
+    &_list_head {
+        border-bottom: 1px solid var(--black-20);
+
+        &_item {
+            padding: 6px 15px 16px 15px;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--black);
+            text-align: left;
+            vertical-align: bottom;
+            white-space: nowrap;
+            min-width: fit-content;
+
+            &:first-child {
+                width: 44px;
+                min-width: 44px;
+                padding-left: 0;
+                text-align: right;
+            }
+
+            &:last-child {
+                width: 125px;
+                min-width: 125px;
+            }
+        }
+
+
+        &_checkbox {
+            margin-bottom: 0 !important;
+        }
+
+        &_checkbox_label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--black);
+        }
+    }
+}

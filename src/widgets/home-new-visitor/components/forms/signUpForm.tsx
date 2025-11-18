@@ -59,7 +59,15 @@ export const SignUpForm: React.FC = () => {
                     error={errors.password?.message as string}
                 />
             </div>
-            <CustomCheckbox label="I agree to the Terms of Use and Privacy Policy." />
+            <CustomCheckbox
+                name="agreeToTerms"
+                label="I agree to the Terms of Use and Privacy Policy."
+                register={register}
+                rules={{
+                    required: "You must agree to the Terms of Use and Privacy Policy",
+                }}
+                error={errors.agreeToTerms?.message as string}
+            />
             <Button
                 type="submit"
                 buttonType="white"

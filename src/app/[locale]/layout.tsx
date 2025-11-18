@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "../styles/main.scss";
 import { localeConfig } from "../localization/config";
 import { ServerProviders } from "../localization/server";
+import { PopupContainer } from "@/shared/popups/PopupContainer";
 
 export const metadata: Metadata = {
     title: "World Crokinole Rankings",
@@ -40,5 +41,10 @@ export default async function LocaleLayout({
         notFound();
     }
 
-    return <ServerProviders locale={locale}>{children}</ServerProviders>;
+    return (
+        <ServerProviders locale={locale}>
+            {children}
+            <PopupContainer />
+        </ServerProviders>
+    );
 }

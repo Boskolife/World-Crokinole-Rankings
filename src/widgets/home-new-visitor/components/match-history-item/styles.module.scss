@@ -1,0 +1,36 @@
+.match_history_item {
+
+    &:nth-child(even) {
+        background-color: var(--blue-light);
+    }
+
+    &_value {
+        padding: 15px;
+        font-size: 16px;
+        color: var(--black);
+        vertical-align: middle;
+        white-space: nowrap;
+
+        // &:first-child {
+        //     width: 44px;
+        //     min-width: 44px;
+        //     text-align: end;
+        //     padding-left: 0;
+        // }
+
+        // &:last-child {
+        //     width: 125px;
+        //     min-width: 125px;
+        // }
+    }
+
+    &_checkbox {
+        margin-bottom: 0 !important;
+    }
+
+    &_checkbox_label {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--black);
+    }
+}

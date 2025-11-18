@@ -67,7 +67,13 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
                     </span>
                 )}
             </div>
-            <CustomButton inverted={inverted} onClick={() => router.push(`/${locale}/new-visitor/step-4`)}>{buttonText}</CustomButton>
+            <CustomButton
+                inverted={inverted}
+                className={css.subscribe_card_button}
+                onClick={() => router.push(`/${locale}/new-visitor/step-4`)}
+            >
+                {buttonText}
+            </CustomButton>
         </div>
     );
 };

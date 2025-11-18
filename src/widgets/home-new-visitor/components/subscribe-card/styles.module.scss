@@ -7,6 +7,11 @@
     border-radius: 16px;
     color: var(--black);
     @include adaptive-value("padding", 32, 16, 1);
+    min-width: 400px;
+
+    @include media-down(sm) {
+        min-width: 100%;
+    }
 
     &_title {
         @include adaptive-value("font-size", 24, 18, 1);
@@ -53,6 +58,13 @@
             font-weight: 600;
             color: var(--black);
             font-family: "Aleo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    }
+
+    &_button {
+        @include media-down(sm) {
+            width: 100% !important;
+            justify-content: space-between !important;
         }
     }
 

@@ -42,7 +42,11 @@ export default async function LocaleLayoutNoFooter({
         locale = localeConfig.defaultLocale as string;
     }
 
-    if (!localeConfig.locales.includes(locale as (typeof localeConfig.locales)[number])) {
+    if (
+        !localeConfig.locales.includes(
+            locale as (typeof localeConfig.locales)[number]
+        )
+    ) {
         notFound();
     }
 
@@ -53,5 +57,3 @@ export default async function LocaleLayoutNoFooter({
         </ServerProviders>
     );
 }
-
-
