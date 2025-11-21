@@ -4,6 +4,7 @@
     gap: 8px;
     text-align: start;
     position: relative;
+    width: 100%;
 
     &_wrapper {
         position: relative;
@@ -50,7 +51,7 @@
         &.filled {
             border-color: var(--blue-dark-2);
 
-            .custom_dropdown_button_text{
+            .custom_dropdown_button_text {
                 color: var(--black);
             }
         }

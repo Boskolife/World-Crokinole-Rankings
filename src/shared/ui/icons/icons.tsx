@@ -22,6 +22,8 @@ import { DoublesPlayers } from "./svg/doubles-players";
 import { Burger } from "./svg/burger";
 import { GoogleIcon } from "./svg/google-icon";
 import { ArrowRight } from "./svg/arrow-right";
+import { Clubs } from "./svg/clubs";
+
 export const icons = {
     eye: Eye,
     edit: Edit,
@@ -47,4 +49,5 @@ export const icons = {
     burger: Burger,
     google_icon: GoogleIcon,
     arrow_right: ArrowRight,
+    clubs: Clubs,
 };

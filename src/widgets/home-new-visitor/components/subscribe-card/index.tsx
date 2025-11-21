@@ -4,6 +4,7 @@ import cn from "classnames";
 import { CustomButton } from "@/shared/ui/buttons/custom-button";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { clientRoutes } from "@/shared/routes/client";
 
 export interface ISubscribeCardProps {
     id: number;
@@ -70,7 +71,7 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
             <CustomButton
                 inverted={inverted}
                 className={css.subscribe_card_button}
-                onClick={() => router.push(`/${locale}/new-visitor/step-4`)}
+                onClick={() => router.push(`/${locale}${clientRoutes.steps(4)}`)}
             >
                 {buttonText}
             </CustomButton>

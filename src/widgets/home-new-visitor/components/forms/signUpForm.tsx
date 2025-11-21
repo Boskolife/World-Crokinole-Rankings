@@ -5,11 +5,12 @@ import { useForm } from "react-hook-form";
 import { ISignUpFormData } from "@/shared/types";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { clientRoutes } from "@/shared/routes/client";
 
 export const SignUpForm: React.FC = () => {
     const router = useRouter();
     const locale = useLocale();
-    
+
     const {
         register,
         formState: { errors },
@@ -17,7 +18,7 @@ export const SignUpForm: React.FC = () => {
     } = useForm<ISignUpFormData>();
     const onSubmit = (data: ISignUpFormData) => {
         console.log(data);
-        router.push(`/${locale}/new-visitor/step-3`);
+        router.push(`/${locale}${clientRoutes.steps(3)}`);
     };
     return (
         <form
@@ -64,7 +65,8 @@ export const SignUpForm: React.FC = () => {
                 label="I agree to the Terms of Use and Privacy Policy."
                 register={register}
                 rules={{
-                    required: "You must agree to the Terms of Use and Privacy Policy",
+                    required:
+                        "You must agree to the Terms of Use and Privacy Policy",
                 }}
                 error={errors.agreeToTerms?.message as string}
             />

@@ -1,7 +1,7 @@
 import React from "react";
 import css from "./styles.module.scss";
 import { localeConfig, localeNames } from "@/app/localization/config";
-import { useLanguageSwitcher } from "../../hooks/useLanguageSwitcher";
+import { useLanguageSwitcher } from "../../hooks/use-language-switcher";
 import { Icon } from "@/shared/ui/icons";
 
 export const CustomLangSwitcher: React.FC = () => {

@@ -31,7 +31,9 @@ export const Step1: React.FC = () => {
             <Button
                 buttonType="white"
                 className={css.home_new_visitor_continue_button}
-                onClick={() => router.push(`/${locale}${clientRoutes.steps(2)}`)}
+                onClick={() =>
+                    router.push(`/${locale}${clientRoutes.steps(2)}`)
+                }
             >
                 Continue
             </Button>

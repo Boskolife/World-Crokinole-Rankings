@@ -21,6 +21,12 @@ export const VerifyPopup: React.FC = () => {
         // Здесь будет логика отправки формы
     };
 
+    const handleManualReview = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        openPopup("manual-review");
+        e.preventDefault();
+        closePopup("verify");
+    };
+
     return (
         <div className={css.popup}>
             <div className={css.popup_close}>
@@ -83,7 +89,11 @@ export const VerifyPopup: React.FC = () => {
                 </form>
                 <p>
                     I don’t have access to that email{" "}
-                    <RootLink href="#" className={css.popup_link}>
+                    <RootLink
+                        href="#"
+                        className={css.popup_link}
+                        onClick={handleManualReview}
+                    >
                         Request manual review
                     </RootLink>
                 </p>

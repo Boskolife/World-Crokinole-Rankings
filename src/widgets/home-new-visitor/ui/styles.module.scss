@@ -51,12 +51,14 @@
         @include adaptive-value("font-size", 48, 24, 1);
         font-weight: 600;
         margin-bottom: 10px;
+        color: var(--white);
     }
 
     &_description {
         @include adaptive-value("font-size", 18, 16, 1);
         margin-bottom: 24px;
         text-align: center;
+        color: var(--white);
     }
 
 
@@ -66,9 +68,14 @@
         margin-bottom: 12px;
     }
 
+    &_sign_in {
+        color: var(--white);
+    }
+
     &_sign_in_link {
         text-decoration: underline;
         transition: color 0.3s ease;
+        color: var(--white);
 
         &:hover {
             color: var(--gold);
@@ -83,5 +90,6 @@
 
     &_skip_link {
         text-decoration: underline;
+        color: var(--white);
     }
 }

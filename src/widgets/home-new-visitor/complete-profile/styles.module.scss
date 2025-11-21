@@ -1,0 +1,10 @@
+.complete_profile {
+    padding: 30px 0 90px 0;
+    @include adaptive-value("padding-bottom", 90, 45, 1);
+
+    &_content {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+    }
+}

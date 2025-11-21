@@ -50,6 +50,7 @@
     padding: 10px 12px;
     font-size: 14px;
     border-radius: 4px;
+    color: var(--white);
     transition: background-color .2s ease, color .2s ease;
 
     &:hover {
@@ -57,6 +58,8 @@
         color: var(--gold);
     }
 }
+
+
 
 .language_switcher_list_closing {
     animation: homeDropdownOut .25s ease forwards;

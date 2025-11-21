@@ -37,7 +37,9 @@ export interface ISignInFormData {
     password: string;
 }
 
-export interface ICheckboxProps<TFieldValues extends FieldValues = FieldValues> {
+export interface ICheckboxProps<
+    TFieldValues extends FieldValues = FieldValues
+> {
     label: string;
     name: Path<TFieldValues> | string;
     checked?: boolean;
@@ -59,7 +61,9 @@ export interface IDropdownOption {
     label: string;
 }
 
-export interface ICustomDropdownProps<TFieldValues extends FieldValues = FieldValues> {
+export interface ICustomDropdownProps<
+    TFieldValues extends FieldValues = FieldValues
+> {
     id: string;
     name: string;
     label?: string;
@@ -73,4 +77,12 @@ export interface ICustomDropdownProps<TFieldValues extends FieldValues = FieldVa
     labelClassName?: string;
     className?: string;
     disabled?: boolean;
+}
+
+export interface IProfileEditFormData {
+    email: string;
+    password: string;
+    fullName: string;
+    country: string;
+    club: string;
 }

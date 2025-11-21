@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { ISignInFormData } from "@/shared/types";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { clientRoutes } from "@/shared/routes/client";
 
 export const SignInForm: React.FC = () => {
     const router = useRouter();
@@ -18,7 +19,7 @@ export const SignInForm: React.FC = () => {
 
     const onSubmit = (data: ISignInFormData) => {
         console.log(data);
-        router.push(`/${locale}/new-visitor/step-3`);
+        router.push(`/${locale}${clientRoutes.steps(3)}`);
     };
     return (
         <form

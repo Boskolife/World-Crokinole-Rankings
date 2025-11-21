@@ -6,6 +6,7 @@ import css from "./styles.module.scss";
 import { VerifyPopup } from "./verify-popup";
 import { VerifyCodePopup } from "./verify-code-popup";
 import { LinkedPopup } from "./linked-popup";
+import { ManualReviewPopup } from "./manual-review-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -44,6 +45,7 @@ export const PopupContainer: React.FC = () => {
                 {isPopupOpen("verify") && <VerifyPopup />}
                 {isPopupOpen("verify-code") && <VerifyCodePopup />}
                 {isPopupOpen("linked") && <LinkedPopup />}
+                {isPopupOpen("manual-review") && <ManualReviewPopup />}
             </div>
         </div>
     );

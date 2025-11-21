@@ -9,9 +9,13 @@ import matchHistoryData from "@/data/match-history.json";
 import { MatchHistoryItem } from "../components/match-history-item/MatchHistoryItem";
 import { CustomCheckbox } from "@/shared/ui/checkbox";
 import { usePopup } from "@/shared/contexts/popup-context";
-
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+import { clientRoutes } from "@/shared/routes/client";
 export const MatchHistory: React.FC = () => {
     const { openPopup } = usePopup();
+    const router = useRouter();
+    const locale = useLocale();
     const {
         register,
         formState: { errors },
@@ -100,6 +104,11 @@ export const MatchHistory: React.FC = () => {
                         <Button
                             buttonType="primary"
                             className={css.match_history_head_button}
+                            onClick={() =>
+                                router.push(
+                                    `/${locale}${clientRoutes.steps(5)}`
+                                )
+                            }
                         >
                             Skip for now
                         </Button>
