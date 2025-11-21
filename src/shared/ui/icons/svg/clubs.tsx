@@ -11,7 +11,7 @@ export const Clubs: React.FC<ISVGProps> = ({ className, ...props }) => (
         xmlns="http://www.w3.org/2000/svg"
         {...props}
     >
-        <g clip-path="url(#clip0_716_21699)">
+        <g clipPath="url(#clip0_716_21699)">
             <path
                 d="M2.35297 13.3096V16.2553L10 19.9938L17.6471 16.2553V13.3367L9.99905 17.0524L2.35297 13.3096Z"
                 fill="currentColor"

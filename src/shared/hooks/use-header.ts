@@ -20,6 +20,22 @@ export const useHeader = () => {
         return () => window.removeEventListener("resize", updateHeaderHeight);
     }, []);
 
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const body = document.documentElement;
+
+        if (isMenuOpen) {
+            body.classList.add("no-scroll");
+        } else {
+            body.classList.remove("no-scroll");
+        }
+
+        return () => {
+            body.classList.remove("no-scroll");
+        };
+    }, [isMenuOpen]);
+
     const handleToggleMenu = () => {
         setIsMenuOpen((prev) => !prev);
     };

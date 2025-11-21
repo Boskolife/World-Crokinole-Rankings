@@ -6,6 +6,12 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  &.no-scroll {
+    overflow: hidden;
+  }
+}
+
 body {
   color: var(--black);
   background-color: var(--white);
@@ -16,7 +22,7 @@ body {
   line-height: 135%;
 }
 
-button {
+body button {
   border: none;
   outline: none;
   background-color: transparent;
