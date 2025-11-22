@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useRef } from "react";
 import css from "./styles.module.scss";
 import { ICustomDropdownProps } from "@/shared/types";

@@ -1,0 +1,25 @@
+{
+    "news": [
+        {
+            "image": "/images/content-img-1.png",
+            "title": "New Feature: Player Titles",
+            "description": "Registration is open! Compete for the crown this August.",
+            "link": "#",
+            "linkText": "Register now"
+        },
+        {
+            "image": "/images/news-placeholder.png",
+            "title": "New Feature: Player Titles",
+            "description": "Registration is open! Compete for the crown this August.",
+            "link": "#",
+            "linkText": "Learn more"
+        },
+        {
+            "image": "/images/news-placeholder.png",
+            "title": "New Feature: Player Titles",
+            "description": "Registration is open! Compete for the crown this August.",
+            "link": "#",
+            "linkText": "Read more"
+        }
+    ]
+}

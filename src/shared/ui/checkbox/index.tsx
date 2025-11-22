@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import css from "./styles.module.scss";
 import { ICheckboxProps } from "@/shared/types/form.interface";

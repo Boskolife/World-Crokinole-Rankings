@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { IButtonProps } from "./props";
 import css from "./styles.module.scss";
