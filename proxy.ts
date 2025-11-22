@@ -1,6 +1,6 @@
 import createMiddleware from "next-intl/middleware";
 import { localeConfig } from "@/app/localization/config";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 const intlMiddleware = createMiddleware({
   locales: [...localeConfig.locales],
@@ -9,10 +9,8 @@ const intlMiddleware = createMiddleware({
   localeDetection: localeConfig.localeDetection,
 });
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   // Обработка корневого пути для as-needed режима
-  const { pathname } = request.nextUrl;
-  
   // Если это корневой путь, middleware автоматически обработает его
   return intlMiddleware(request);
 }
@@ -25,3 +23,4 @@ export const config = {
     "/((?!api|_next|_vercel|.*\\..*).*)",
   ],
 };
+

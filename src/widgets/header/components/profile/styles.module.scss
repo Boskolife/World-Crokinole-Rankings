@@ -1,0 +1,113 @@
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+
+    &_info {
+        display: flex;
+        flex-direction: column;
+        text-align: end;
+        gap: 2px;
+
+        &_name {
+            font-weight: 500;
+            font-size: 18px;
+        }
+
+        &_status {
+            font-weight: 400;
+            font-size: 14px;
+            color: var(--black-60);
+        }
+    }
+
+    &_avatar {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+
+        &_icon {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        &_icon_open {
+            transform: rotate(180deg);
+        }
+    }
+
+    &_dropdown {
+        position: absolute;
+        width: max-content;
+        min-width: 200px;
+        top: calc(100% + 12px);
+        right: 0;
+        background: var(--white);
+        border-radius: 4px;
+        box-shadow: 4px 4px 16px 0px #00213D1A;
+        padding: 12px;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: profileDropdownIn 0.25s ease forwards;
+        pointer-events: auto;
+
+        &_closing {
+            animation: profileDropdownOut 0.25s ease forwards;
+        }
+
+        &_menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid var(--black-10);
+            border-bottom: 1px solid var(--black-10);
+            padding: 8px 0;
+            margin-bottom: 16px;
+
+            &_item {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: color .3s ease;
+
+                &:hover {
+                    color: var(--gold);
+                    transition: color .3s ease;
+                }
+            }
+
+            &_icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    }
+}
+
+@keyframes profileDropdownIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes profileDropdownOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}

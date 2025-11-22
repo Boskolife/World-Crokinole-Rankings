@@ -1,2 +1,2 @@
 export { useAuth } from "./use-auth";
-export { useHeader } from "./use-header";
+export { useHeader, useProfileDropdown, useNotificationDropdown } from "./use-header";

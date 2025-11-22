@@ -23,6 +23,7 @@ import { Burger } from "./svg/burger";
 import { GoogleIcon } from "./svg/google-icon";
 import { ArrowRight } from "./svg/arrow-right";
 import { Clubs } from "./svg/clubs";
+import { BellRing } from "./svg/bell-ring";
 
 export const icons = {
     eye: Eye,
@@ -50,4 +51,5 @@ export const icons = {
     google_icon: GoogleIcon,
     arrow_right: ArrowRight,
     clubs: Clubs,
+    bell_ring: BellRing,
 };
