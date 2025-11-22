@@ -1,0 +1,46 @@
+.navigation {
+    padding: 40px 0;
+
+    &_title {
+        @include adaptive-value("margin-bottom", 32, 24, 1);
+    }
+
+    &_content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+
+
+    }
+
+    &_content_item {
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        @include adaptive-value("padding", 24, 16, 1);
+        border-radius: 12px;
+        background-color: var(--black-5);
+
+        &_icon {
+            @include adaptive-value("width", 36, 24, 1);
+            @include adaptive-value("height", 36, 24, 1);
+            color: var(--gold);
+        }
+
+        &_text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            b {
+                font-weight: 500;
+                @include adaptive-value("font-size", 22, 18, 1);
+            }
+
+            span {
+                font-size: 18px;
+                @include adaptive-value("font-size", 18, 16, 1);
+            }
+        }
+    }
+}

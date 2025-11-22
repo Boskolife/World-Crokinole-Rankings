@@ -1,0 +1,28 @@
+{
+    "navigation": [
+        {
+            "icon": "ranking",
+            "title": "Rankings",
+            "description": "See top players and track your climb.",
+            "href": "#"
+        },
+        {
+            "icon": "events",
+            "title": "Events",
+            "description": "Find tournaments and register to compete.",
+            "href": "#"
+        },
+        {
+            "icon": "players",
+            "title": "Players",
+            "description": "Explore player profiles and stats.",
+            "href": "#"
+        },
+        {
+            "icon": "clubs",
+            "title": "Clubs",
+            "description": "Join or manage your club community.",
+            "href": "#"
+        }
+    ]
+}

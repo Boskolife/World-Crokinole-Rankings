@@ -24,6 +24,8 @@ import { GoogleIcon } from "./svg/google-icon";
 import { ArrowRight } from "./svg/arrow-right";
 import { Clubs } from "./svg/clubs";
 import { BellRing } from "./svg/bell-ring";
+import { Events } from "./svg/events";
+import { Ranking } from "./svg/ranking";
 
 export const icons = {
     eye: Eye,
@@ -52,4 +54,6 @@ export const icons = {
     arrow_right: ArrowRight,
     clubs: Clubs,
     bell_ring: BellRing,
+    events: Events,
+    ranking: Ranking,
 };
