@@ -25,6 +25,7 @@ export const Profile: React.FC = () => {
                 className={css.profile_avatar}
                 onClick={handleDropdownOpen}
                 aria-expanded={isDropdownOpen}
+                aria-label={isDropdownOpen ? "Close profile menu" : "Open profile menu"}
             >
                 <Image
                     className={css.profile_avatar_image}

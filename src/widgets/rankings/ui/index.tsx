@@ -65,10 +65,12 @@ export const Rankings: React.FC = () => {
                         <input
                             type="search"
                             placeholder="Find player by name or club"
+                            aria-label="Find player by name or club"
                         />
                         <button
-                            type="submit"
+                            type="button"
                             className={css.rankings_head_search_button}
+                            aria-label="Search player"
                         >
                             <Icon
                                 name="search"

@@ -17,6 +17,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ isOpen, handleToggleMenu
                 [css.open]: isOpen,
             })}
             onClick={handleToggleMenu}
+            type="button"
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
         >

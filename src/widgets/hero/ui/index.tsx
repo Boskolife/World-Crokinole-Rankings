@@ -25,6 +25,7 @@ export const Hero: React.FC = () => {
                 height={650}
                 className={css.hero_crown}
                 priority
+                fetchPriority="high"
             />
             <div className={cn(css.hero_container, "container")}>
                 <div className={css.hero_content}>

@@ -53,7 +53,10 @@ export const ProfileEdit: React.FC = () => {
                             }}
                             error={errors?.email?.message as string}
                         />
-                        <button className={css.profile_edit_form_item_button}>
+                        <button
+                            className={css.profile_edit_form_item_button}
+                            type="button"
+                        >
                             Change email
                         </button>
                     </div>
@@ -75,7 +78,10 @@ export const ProfileEdit: React.FC = () => {
                             }}
                             error={errors?.password?.message as string}
                         />
-                        <button className={css.profile_edit_form_item_button}>
+                        <button
+                            className={css.profile_edit_form_item_button}
+                            type="button"
+                        >
                             Change password
                         </button>
                     </div>

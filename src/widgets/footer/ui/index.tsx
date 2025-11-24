@@ -126,6 +126,7 @@ export const Footer: React.FC = () => {
                                     <input
                                         type="email"
                                         placeholder="Your email"
+                                        aria-label="Email address"
                                         aria-invalid={
                                             !!errors.email || undefined
                                         }

@@ -24,11 +24,13 @@ export const ProfileInfo: React.FC = () => {
                         accept="image/*"
                         onChange={handleFileChange}
                         style={{ display: "none" }}
+                        aria-label="Profile photo file input"
                     />
                     <button
                         className={css.profile_info_head_button}
                         onClick={handleButtonClick}
                         type="button"
+                        aria-label="Upload new profile photo"
                     >
                         <Image
                             src="/svg/upload-icon.svg"

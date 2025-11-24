@@ -111,6 +111,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                                         : ""
                                 }`}
                                 onClick={() => handleLocaleChange(loc)}
+                                type="button"
                             >
                                 {loc.toUpperCase()}
                             </button>

@@ -82,6 +82,8 @@ export const Events: React.FC = () => {
                                     activeSwitcher === "list",
                             })}
                             onClick={() => handleSwitcherClick("list")}
+                            type="button"
+                            aria-label="Show events as list"
                         >
                             <Icon
                                 name="list"
@@ -94,6 +96,8 @@ export const Events: React.FC = () => {
                                     activeSwitcher === "map",
                             })}
                             onClick={() => handleSwitcherClick("map")}
+                            type="button"
+                            aria-label="Show events on map"
                         >
                             <Icon
                                 name="map"

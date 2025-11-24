@@ -46,6 +46,7 @@ export const Notification: React.FC = () => {
                 className={css.notification_button}
                 onClick={handleDropdownOpen}
                 aria-expanded={isDropdownOpen}
+                aria-label={isDropdownOpen ? "Close notifications" : "Open notifications"}
             >
                 <Icon
                     name="bell_ring"
