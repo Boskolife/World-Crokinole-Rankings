@@ -1,0 +1,70 @@
+{
+    "events": [
+        {
+            "id": 1,
+            "image": "/images/content-img-2.png",
+            "title": "Origins Game Fair",
+            "price": "$100",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": true
+        },
+        {
+            "id": 2,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "Free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": false,
+            "isRegistrationRequired": false
+        },
+        {
+            "id": 3,
+            "image": "/images/content-img-2.png",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": false
+        },
+        {
+            "id": 4,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": false
+        },
+        {
+            "id": 5,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": false,
+            "isRegistrationRequired": true
+        },
+        {
+            "id": 6,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": false
+        }
+    ]
+}

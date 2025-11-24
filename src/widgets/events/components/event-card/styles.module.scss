@@ -1,0 +1,136 @@
+.event_card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: start;
+
+    &_image {
+        position: relative;
+
+        width: 100%;
+        height: 240px;
+        border-radius: 8px;
+        overflow: hidden;
+
+        &_img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        &_placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(90deg, #00284B 0%, #00284B 1%, #2A5298 100%);
+
+        }
+    }
+
+    &_registration {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: var(--white);
+        color: var(--gold);
+        padding: 7px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+
+        &._required {
+            color: var(--blue-grey);
+        }
+    }
+
+    &_ranking {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        &_icon_wrapper {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background-color: var(--white);
+        }
+
+        &_icon {
+            width: 20px;
+            height: 22px;
+            color: var(--black-20);
+
+            &._ranked {
+                color: var(--blue-grey);
+            }
+        }
+
+        &_value_wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--blue-grey);
+            background-color: var(--white);
+            padding: 5px 12px;
+            border-radius: 4px;
+        }
+    }
+
+    &_title_wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    &_title {
+        &:hover {
+            color: var(--gold);
+            transition: all 0.3s ease;
+        }
+    }
+
+    &_price {
+        padding: 6px 12px;
+        border: 1px solid var(--gold);
+        border-radius: 111px;
+
+        &._free {
+            border-color: var(--blue-dark);
+        }
+    }
+
+    &_content_info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        span {
+            font-size: 18px;
+        }
+    }
+
+    &_location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &_icon {
+            width: 15px;
+            height: 24px;
+            color: var(--blue-grey);
+        }
+    }
+}

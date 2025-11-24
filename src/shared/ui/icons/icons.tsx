@@ -31,6 +31,8 @@ import { ArrowDown } from "./svg/arrow-down";
 import { ArrowUp } from "./svg/arrow-up";
 import { ChevronNext } from "./svg/chevron-next";
 import { ChevronPrev } from "./svg/chevron-prev";
+import { List } from "./svg/list";
+import { Location } from "./svg/location";
 
 export const icons = {
     eye: Eye,
@@ -66,4 +68,6 @@ export const icons = {
     arrow_up: ArrowUp,
     chevron_next: ChevronNext,
     chevron_prev: ChevronPrev,
+    list: List,
+    location: Location,
 };

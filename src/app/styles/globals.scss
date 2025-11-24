@@ -42,10 +42,17 @@ h5,
 h6 {
   line-height: 110%;
   font-family: "Aleo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  transition: all 0.3s ease;
 }
 
 h2 {
   @include adaptive-value("font-size", 48, 26, 1);
+  font-weight: 600;
+  color: var(--blue-grey);
+}
+
+h4 {
+  @include adaptive-value("font-size", 24, 18, 1);
   font-weight: 600;
   color: var(--blue-grey);
 }
