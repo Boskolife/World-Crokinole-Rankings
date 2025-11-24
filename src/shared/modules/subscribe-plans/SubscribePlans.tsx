@@ -1,10 +1,11 @@
+"use client";
 import React, { useState, useRef } from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
 import { SwitcherModule } from "@/shared/modules";
-import { SubscribeCard } from "../components/subscribe-card";
+import { SubscribeCard } from "../../../widgets/home-new-visitor/components/subscribe-card";
 import subrscribePlansData from "@/data/subrscribe-plans.json";
-import { ISubscribeCardProps } from "../components/subscribe-card";
+import { ISubscribeCardProps } from "../../../widgets/home-new-visitor/components/subscribe-card";
 import { SwitcherOption } from "@/shared/modules/switcher/Switcher";
 
 const switcherOptions = [
@@ -12,7 +13,13 @@ const switcherOptions = [
     { value: "annual", label: "Annual" },
 ];
 
-export const SubscribePlans: React.FC = () => {
+interface SubscribePlansProps {
+    className?: string;
+}
+
+export const SubscribePlans: React.FC<SubscribePlansProps> = ({
+    className,
+}) => {
     const [planMode, setPlanMode] = useState<"monthly" | "annual">("annual");
     const [isFadingOut, setIsFadingOut] = useState(false);
     const [isFadingIn, setIsFadingIn] = useState(false);
@@ -47,7 +54,7 @@ export const SubscribePlans: React.FC = () => {
             : subrscribePlansData.plansAnnual;
 
     return (
-        <section className={css.subscribe_plans}>
+        <section className={cn(css.subscribe_plans, className)}>
             <div className="container">
                 <SwitcherModule
                     className={css.subscribe_plans_switcher}

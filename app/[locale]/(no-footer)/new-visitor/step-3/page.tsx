@@ -2,7 +2,7 @@
 
 import { HomeNewVisitor } from "@/widgets/home-new-visitor";
 import { Step3 } from "@/widgets/home-new-visitor/Step-3";
-import { SubscribePlans } from "@/widgets/home-new-visitor/subscribe-plans/SubscribePlans";
+import { SubscribePlans } from "@/shared/modules/subscribe-plans/SubscribePlans";
 import css from "./styles.module.scss";
 export default function Page() {
     return (
