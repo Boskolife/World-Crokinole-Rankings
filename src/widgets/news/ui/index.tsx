@@ -24,7 +24,7 @@ export const News: React.FC = () => {
                                 />
                             </div>
                             <div className={css.news_content_item_text}>
-                                <h4>{item.title}</h4>
+                                <h3>{item.title}</h3>
                                 <p>{item.description}</p>
                             </div>
                             <RootLink

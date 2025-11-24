@@ -4,6 +4,7 @@ import { Navigation } from "@/widgets/navigation";
 import { News } from "@/widgets/news";
 import { Rankings } from "@/widgets/rankings";
 import { Events } from "@/widgets/events";
+import { Clubs } from "@/widgets/clubs";
 
 export function HomePage() {
     return (
@@ -14,6 +15,7 @@ export function HomePage() {
             <News />
             <Rankings />
             <Events />
+            <Clubs />
         </>
     );
 }

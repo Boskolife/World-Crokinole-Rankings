@@ -33,6 +33,8 @@ import { ChevronNext } from "./svg/chevron-next";
 import { ChevronPrev } from "./svg/chevron-prev";
 import { List } from "./svg/list";
 import { Location } from "./svg/location";
+import { Members } from "./svg/members";
+import { Lock } from "./svg/lock";
 
 export const icons = {
     eye: Eye,
@@ -70,4 +72,6 @@ export const icons = {
     chevron_prev: ChevronPrev,
     list: List,
     location: Location,
+    members: Members,
+    lock: Lock,
 };

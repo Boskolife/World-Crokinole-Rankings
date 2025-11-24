@@ -65,7 +65,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
             <div className={css.event_card_content}>
                 <div className={css.event_card_title_wrap}>
                     <RootLink href="#">
-                        <h4 className={css.event_card_title}>{title}</h4>
+                        <h3 className={css.event_card_title}>{title}</h3>
                     </RootLink>
                     <span
                         className={cn(css.event_card_price, {

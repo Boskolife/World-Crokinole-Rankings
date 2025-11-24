@@ -1,0 +1,89 @@
+{
+    "clubs": [
+        {
+            "id": 1,
+            "title": "GrandCon",
+            "image": "/images/content-img-2.png",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "members": 100,
+            "location": "USA",
+            "labels": "GrandCon, GrandCon, GrandCon, GrandCon",
+            "country": "/images/usa.png",
+            "labelItem1": "GrandCon",
+            "labelItem2": "Origins Game Fair",
+            "hosted": 10,
+            "veteranPlayers": 100,
+            "isLocked": true
+        },
+        {
+            "id": 2,
+            "title": "GrandCon",
+            "image": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "members": 100,
+            "location": "Canada",
+            "labels": "GrandCon, GrandCon, GrandCon, GrandCon",
+            "country": "/images/usa.png",
+            "labelItem1": "GrandCon",
+            "labelItem2": "Origins Game Fair",
+            "hosted": 10,
+            "veteranPlayers": 100
+        },
+        {
+            "id": 3,
+            "title": "GrandCon",
+            "image": "/images/content-img-2.png",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "members": 100,
+            "location": "Canada",
+            "labels": "GrandCon, GrandCon, GrandCon, GrandCon",
+            "country": "/images/usa.png",
+            "labelItem1": "GrandCon",
+            "labelItem2": "Origins Game Fair",
+            "hosted": 10,
+            "veteranPlayers": 100
+        },
+        {
+            "id": 4,
+            "title": "GrandCon",
+            "image": "/images/content-img-2.png",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "members": 100,
+            "location": "Canada",
+            "labels": "GrandCon, GrandCon, GrandCon, GrandCon",
+            "country": "/images/usa.png",
+            "labelItem1": "GrandCon",
+            "labelItem2": "Origins Game Fair",
+            "hosted": 10,
+            "veteranPlayers": 100
+        },
+        {
+            "id": 5,
+            "title": "GrandCon",
+            "image": "/images/content-img-2.png",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "members": 100,
+            "location": "Canada",
+            "labels": "GrandCon, GrandCon, GrandCon, GrandCon",
+            "country": "/images/usa.png",
+            "labelItem1": "GrandCon",
+            "labelItem2": "Origins Game Fair",
+            "hosted": 10,
+            "veteranPlayers": 100
+        },
+        {
+            "id": 6,
+            "title": "GrandCon",
+            "image": "/images/content-img-2.png",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "members": 100,
+            "location": "Canada",
+            "labels": "GrandCon, GrandCon, GrandCon, GrandCon",
+            "country": "/images/usa.png",
+            "labelItem1": "GrandCon",
+            "labelItem2": "Origins Game Fair",
+            "hosted": 10,
+            "veteranPlayers": 100
+        }
+    ]
+}

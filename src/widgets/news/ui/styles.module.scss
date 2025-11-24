@@ -39,7 +39,7 @@
                 flex-direction: column;
                 gap: 12px;
 
-                h4 {
+                h3 {
                     @include adaptive-value("font-size", 24, 18, 1);
                     font-weight: 600;
                     line-height: 125%;
