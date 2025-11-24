@@ -92,4 +92,10 @@
         text-decoration: underline;
         color: var(--white);
     }
+
+    &_switcher {
+        max-width: 250px;
+        width: 100% !important;
+        margin: 0;
+    }
 }

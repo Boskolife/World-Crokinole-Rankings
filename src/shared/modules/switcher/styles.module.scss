@@ -13,9 +13,10 @@
 .switcher_module_button {
     @include adaptive-value("font-size", 18, 16, 1);
     color: var(--black);
-    padding: 8px 30px;
+    padding: 8px 15px;
     border-radius: 108px;
     transition: all 0.3s ease;
+    flex: 1;
 
     &.active {
         background-color: var(--blue-grey);

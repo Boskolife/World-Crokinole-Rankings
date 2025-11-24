@@ -26,6 +26,11 @@ import { Clubs } from "./svg/clubs";
 import { BellRing } from "./svg/bell-ring";
 import { Events } from "./svg/events";
 import { Ranking } from "./svg/ranking";
+import { Search } from "./svg/search";
+import { ArrowDown } from "./svg/arrow-down";
+import { ArrowUp } from "./svg/arrow-up";
+import { ChevronNext } from "./svg/chevron-next";
+import { ChevronPrev } from "./svg/chevron-prev";
 
 export const icons = {
     eye: Eye,
@@ -56,4 +61,9 @@ export const icons = {
     bell_ring: BellRing,
     events: Events,
     ranking: Ranking,
+    search: Search,
+    arrow_down: ArrowDown,
+    arrow_up: ArrowUp,
+    chevron_next: ChevronNext,
+    chevron_prev: ChevronPrev,
 };

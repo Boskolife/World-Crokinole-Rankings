@@ -12,6 +12,16 @@ import { usePopup } from "@/shared/contexts/popup-context";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
+
+const kingdomOptions = [
+    { value: "United Kingdom", label: "United Kingdom" },
+    { value: "United States", label: "United States" },
+    { value: "Canada", label: "Canada" },
+    { value: "Australia", label: "Australia" },
+    { value: "New Zealand", label: "New Zealand" },
+    { value: "Other", label: "Other" },
+];
+
 export const MatchHistory: React.FC = () => {
     const { openPopup } = usePopup();
     const router = useRouter();
@@ -79,20 +89,7 @@ export const MatchHistory: React.FC = () => {
                             name="country"
                             label="Kingdom (Country)"
                             placeholder="Select state/country"
-                            options={[
-                                {
-                                    value: "United Kingdom",
-                                    label: "United Kingdom",
-                                },
-                                {
-                                    value: "United States",
-                                    label: "United States",
-                                },
-                                { value: "Canada", label: "Canada" },
-                                { value: "Australia", label: "Australia" },
-                                { value: "New Zealand", label: "New Zealand" },
-                                { value: "Other", label: "Other" },
-                            ]}
+                            options={kingdomOptions}
                             register={register}
                             rules={{ required: "Country is required" }}
                             error={errors.country?.message as string}

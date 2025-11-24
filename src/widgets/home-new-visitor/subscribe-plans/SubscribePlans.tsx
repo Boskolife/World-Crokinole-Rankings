@@ -5,10 +5,14 @@ import { SwitcherModule } from "@/shared/modules";
 import { SubscribeCard } from "../components/subscribe-card";
 import subrscribePlansData from "@/data/subrscribe-plans.json";
 import { ISubscribeCardProps } from "../components/subscribe-card";
+import { SwitcherOption } from "@/shared/modules/switcher/Switcher";
+
+const switcherOptions = [
+    { value: "monthly", label: "Monthly" },
+    { value: "annual", label: "Annual" },
+];
 
 export const SubscribePlans: React.FC = () => {
-
-
     const [planMode, setPlanMode] = useState<"monthly" | "annual">("annual");
     const [isFadingOut, setIsFadingOut] = useState(false);
     const [isFadingIn, setIsFadingIn] = useState(false);
@@ -42,15 +46,16 @@ export const SubscribePlans: React.FC = () => {
             ? subrscribePlansData.plansMonthly
             : subrscribePlansData.plansAnnual;
 
-
     return (
         <section className={css.subscribe_plans}>
             <div className="container">
                 <SwitcherModule
-                    options={[
-                        { value: "monthly", label: "Monthly" },
-                        { value: "annual", label: "Annual" },
-                    ]}
+                    className={css.subscribe_plans_switcher}
+                    options={
+                        switcherOptions as SwitcherOption<
+                            "monthly" | "annual"
+                        >[]
+                    }
                     value={planMode}
                     onChange={handleModeChange}
                 />

@@ -4,6 +4,11 @@ import { SwitcherModule } from "@/shared/modules";
 import { SignUpForm } from "../components/forms/signUpForm";
 import { SignInForm } from "../components/forms/signInForm";
 
+const switcherOptions = [
+    { value: "signUp", label: "Sign Up" },
+    { value: "signIn", label: "Sign In" },
+];
+
 export const Step2: React.FC = () => {
     const [mode, setMode] = useState<"signUp" | "signIn">("signUp");
     return (
@@ -18,12 +23,10 @@ export const Step2: React.FC = () => {
             </div>
             <h2 className={css.home_new_visitor_title}>Sign Up / Login</h2>
             <SwitcherModule
-                options={[
-                    { value: "signUp", label: "Sign Up" },
-                    { value: "signIn", label: "Sign In" },
-                ]}
+                className={css.home_new_visitor_switcher}
+                options={switcherOptions}
                 value={mode}
-                onChange={setMode}
+                onChange={(value) => setMode(value as "signUp" | "signIn")}
             />
             <div className={css.home_new_visitor_form}>
                 {mode === "signUp" ? <SignUpForm /> : <SignInForm />}

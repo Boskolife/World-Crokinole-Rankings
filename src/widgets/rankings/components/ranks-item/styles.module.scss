@@ -1,0 +1,46 @@
+.ranks_item {
+    width: 100%;
+
+    text-align: start;
+
+    &:nth-child(even) {
+        background-color: var(--blue-light);
+    }
+
+    &_value {
+        padding: 15px;
+        font-size: 16px;
+        color: var(--black);
+        vertical-align: middle;
+        white-space: nowrap;
+
+        &_trend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            &_icon {
+                width: 16px;
+                height: 16px;
+
+                &.up {
+                    color: var(--green);
+                }
+
+                &.down {
+                    color: var(--red);
+                }
+            }
+        }
+    }
+
+    &_checkbox {
+        margin-bottom: 0 !important;
+    }
+
+    &_checkbox_label {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--black);
+    }
+}

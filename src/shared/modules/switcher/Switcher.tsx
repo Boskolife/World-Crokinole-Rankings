@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
