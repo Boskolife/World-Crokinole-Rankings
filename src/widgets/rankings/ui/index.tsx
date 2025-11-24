@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
@@ -10,10 +10,7 @@ import { Pagination } from "@/shared/modules";
 
 import rankedListData from "@/data/ranked-list.json";
 import { CustomButton } from "@/shared/ui/buttons";
-import type { IRankList } from "@/shared/types/rank-list.interface";
-
-const INITIAL_VISIBLE_ITEMS = 8;
-const EXPANDED_VISIBLE_ITEMS = 20;
+import { useRankingsList } from "../hooks/useRankingsList";
 
 const worldOptions = [
     { value: "world", label: "World" },
@@ -39,58 +36,23 @@ const switcherOptions: { value: CategoryValue; label: string }[] = [
 ];
 
 export const Rankings: React.FC = () => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [activeCategory, setActiveCategory] = useState<CategoryValue>(
-        switcherOptions[0].value
-    );
-    const listRef = useRef<HTMLDivElement | null>(null);
-
-    const categoryLists = rankedListData
-        .rankedList as Record<CategoryValue, IRankList[]>;
-    const activeList = categoryLists[activeCategory] ?? [];
-
-    const totalItems = activeList.length;
-    const displayedList = !isExpanded
-        ? activeList.slice(0, INITIAL_VISIBLE_ITEMS)
-        : activeList.slice(
-              (currentPage - 1) * EXPANDED_VISIBLE_ITEMS,
-              (currentPage - 1) * EXPANDED_VISIBLE_ITEMS +
-                  EXPANDED_VISIBLE_ITEMS
-          );
-
-    const shouldShowButton = !isExpanded && totalItems > INITIAL_VISIBLE_ITEMS;
-    const shouldShowPagination =
-        isExpanded && totalItems > EXPANDED_VISIBLE_ITEMS;
-
-    const handleViewFullList = () => {
-        if (isExpanded) return;
-        setIsExpanded(true);
-        setCurrentPage(1);
-    };
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        if (typeof window !== "undefined") {
-            listRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-        }
-    };
-
-    const handleCategoryChange = (value: CategoryValue) => {
-        if (value === activeCategory) return;
-        setActiveCategory(value);
-        setIsExpanded(false);
-        setCurrentPage(1);
-        if (typeof window !== "undefined") {
-            listRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-        }
-    };
+    const {
+        listRef,
+        displayedList,
+        activeCategory,
+        totalItems,
+        pageSize,
+        currentPage,
+        shouldShowButton,
+        shouldShowPagination,
+        isExpanded,
+        handleCategoryChange,
+        handlePageChange,
+        handleViewFullList,
+    } = useRankingsList<CategoryValue>({
+        lists: rankedListData.rankedList,
+        initialCategory: switcherOptions[0].value,
+    });
 
     return (
         <div className={css.rankings}>
@@ -168,7 +130,7 @@ export const Rankings: React.FC = () => {
                     {shouldShowPagination && (
                         <Pagination
                             totalItems={totalItems}
-                            pageSize={EXPANDED_VISIBLE_ITEMS}
+                            pageSize={pageSize}
                             currentPage={currentPage}
                             onPageChange={handlePageChange}
                         />
