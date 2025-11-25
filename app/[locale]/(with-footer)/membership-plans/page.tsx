@@ -1,0 +1,1 @@
+export { MembershipPlansPage as default } from "@/_pages/membership-plans";

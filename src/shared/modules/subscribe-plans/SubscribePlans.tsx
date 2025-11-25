@@ -15,10 +15,12 @@ const switcherOptions = [
 
 interface SubscribePlansProps {
     className?: string;
+    title?: string;
 }
 
 export const SubscribePlans: React.FC<SubscribePlansProps> = ({
     className,
+    title,
 }) => {
     const [planMode, setPlanMode] = useState<"monthly" | "annual">("annual");
     const [isFadingOut, setIsFadingOut] = useState(false);
@@ -56,6 +58,9 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
     return (
         <section className={cn(css.subscribe_plans, className)}>
             <div className="container">
+                {title && (
+                    <h2 className={css.subscribe_plans_title}>{title}</h2>
+                )}
                 <SwitcherModule
                     className={css.subscribe_plans_switcher}
                     options={

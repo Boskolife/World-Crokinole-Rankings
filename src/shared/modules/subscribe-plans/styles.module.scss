@@ -2,6 +2,13 @@
     @include adaptive-value("padding-top", 80, 35, 1);
     @include adaptive-value("padding-bottom", 80, 35, 1);
 
+    &_title {
+        max-width: 1005px;
+        width: 100%;
+        margin: 0 auto 20px auto;
+        text-align: center;
+    }
+
     &_description {
         @include adaptive-value("font-size", 18, 16, 1);
         text-align: center;
@@ -37,6 +44,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

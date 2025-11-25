@@ -180,7 +180,8 @@ export const useHeader = () => {
             label: tNavigation("players"),
         },
         {
-            href: "#",
+            onClick: () => router.push(clientRoutes.membershipPlans),
+            href: clientRoutes.membershipPlans,
             label: tNavigation("membershipPlans"),
         },
     ];
