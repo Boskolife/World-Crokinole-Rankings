@@ -14,17 +14,7 @@ import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
 import { useClubs } from "@/shared/hooks";
-
-const kingdomOptions = [
-    { value: "kingdom-1", label: "Kingdom 1" },
-    { value: "kingdom-2", label: "Kingdom 2" },
-    { value: "kingdom-3", label: "Kingdom 3" },
-];
-
-const sortOptions = [
-    { value: "rank-asc", label: "Rank Ascending" },
-    { value: "rank-desc", label: "Rank Descending" },
-];
+import { exampleKingdomOptions, sortOrderOptions } from "@/shared/constants";
 
 export interface IClubsProps {
     title?: string;
@@ -84,14 +74,14 @@ export const Clubs: React.FC<IClubsProps> = ({
                     <div className={css.clubs_head_dropdowns}>
                         <CustomRoundedDropdown
                             id="club-dropdown"
-                            options={kingdomOptions}
+                            options={exampleKingdomOptions}
                             placeholder="Kingdom"
                             aria-label="Select Kingdom"
                             className={css.clubs_head_dropdown}
                         />
                         <CustomRoundedDropdown
                             id="sort-dropdown"
-                            options={sortOptions}
+                            options={sortOrderOptions}
                             placeholder="Sort by Rank"
                             aria-label="Select Sort by"
                             className={css.clubs_head_dropdown}

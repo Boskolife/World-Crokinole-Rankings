@@ -10,29 +10,15 @@ import { Pagination } from "@/shared/modules";
 import rankedListData from "@/data/ranked-list.json";
 import { CustomButton } from "@/shared/ui/buttons";
 import { useRankingsList } from "@/shared/hooks";
+import {
+    worldOptions,
+    kingdomFilterOptions,
+    clubFilterOptions,
+    rankingsSwitcherOptions,
+    RankingsCategoryValue,
+} from "@/shared/constants/dropdown-options";
 
-const worldOptions = [
-    { value: "world", label: "World" },
-    { value: "kingdom", label: "Kingdom" },
-    { value: "region", label: "Region" },
-];
-const kingdomOptions = [
-    { value: "kingdom", label: "Kingdom" },
-    { value: "region", label: "Region" },
-];
-
-const clubOptions = [
-    { value: "club", label: "Club" },
-    { value: "region", label: "Region" },
-];
-
-type CategoryValue = "laurels" | "singles" | "doubles";
-
-const switcherOptions: { value: CategoryValue; label: string }[] = [
-    { value: "laurels", label: "Laurels" },
-    { value: "singles", label: "Singles" },
-    { value: "doubles", label: "Doubles" },
-];
+type CategoryValue = RankingsCategoryValue;
 
 export const Rankings: React.FC = () => {
     const {
@@ -50,7 +36,7 @@ export const Rankings: React.FC = () => {
         handleViewFullList,
     } = useRankingsList<CategoryValue>({
         lists: rankedListData.rankedList,
-        initialCategory: switcherOptions[0].value,
+        initialCategory: rankingsSwitcherOptions[0].value,
     });
 
     return (
@@ -71,7 +57,7 @@ export const Rankings: React.FC = () => {
                 </p>
                 <div className={css.rankings_filters}>
                     <SwitcherModule
-                        options={switcherOptions}
+                        options={rankingsSwitcherOptions}
                         value={activeCategory}
                         onChange={handleCategoryChange}
                         className={css.rankings_filters_switcher}
@@ -87,13 +73,13 @@ export const Rankings: React.FC = () => {
                             className={css.rankings_filters_dropdown}
                             id="singles"
                             placeholder="Kingdom"
-                            options={kingdomOptions}
+                            options={kingdomFilterOptions}
                         />
                         <CustomRoundedDropdown
                             className={css.rankings_filters_dropdown}
                             id="doubles"
                             placeholder="Club"
-                            options={clubOptions}
+                            options={clubFilterOptions}
                         />
                     </div>
                 </div>

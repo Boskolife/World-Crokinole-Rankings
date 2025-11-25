@@ -3,16 +3,12 @@ import React from "react";
 import css from "./styles.module.scss";
 import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { Pagination } from "@/shared/modules";
-import { PlayerTable } from "../components/player-table/PlayerTable";
+import { PlayerTable } from "../../../shared/modules/player-table/PlayerTable";
 import { usePagination } from "@/shared/hooks";
 import playersList from "@/data/players-list.json";
 import { IPlayer } from "@/shared/types";
+import { exampleKingdomOptions } from "@/shared/constants";
 
-const kingdomOptions = [
-    { value: "kingdom-1", label: "Kingdom 1" },
-    { value: "kingdom-2", label: "Kingdom 2" },
-    { value: "kingdom-3", label: "Kingdom 3" },
-];
 const clubOptions = [
     { value: "club-1", label: "Club 1" },
     { value: "club-2", label: "Club 2" },
@@ -51,7 +47,7 @@ export const Players: React.FC = () => {
                     <div className={css.players_filters}>
                         <CustomRoundedDropdown
                             id="kingdom"
-                            options={kingdomOptions}
+                            options={exampleKingdomOptions}
                             placeholder="Kingdom"
                             className={css.players_filters_dropdown}
                         />

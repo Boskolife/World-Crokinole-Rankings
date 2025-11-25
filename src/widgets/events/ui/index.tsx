@@ -11,6 +11,7 @@ import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
 import { useEvents } from "@/shared/hooks";
+import { locationOptions, formatOptions } from "@/shared/constants/dropdown-options";
 
 const dateOptions = [
     { value: "today", label: "Today" },
@@ -19,17 +20,6 @@ const dateOptions = [
     { value: "next week", label: "Next week" },
     { value: "this month", label: "This month" },
     { value: "next month", label: "Next month" },
-];
-
-const locationOptions = [
-    { value: "world", label: "World" },
-    { value: "kingdom", label: "Kingdom" },
-    { value: "region", label: "Region" },
-];
-
-const formatOptions = [
-    { value: "singles", label: "Singles" },
-    { value: "doubles", label: "Doubles" },
 ];
 
 const typeOptions = [
