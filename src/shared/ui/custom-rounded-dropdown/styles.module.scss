@@ -21,6 +21,9 @@
         text-align: left;
         position: relative;
 
+        @include media-down(sm) {
+            padding: 8px 15px;
+        }
 
         &:hover:not(.disabled) {
             border-color: var(--blue-dark-2);

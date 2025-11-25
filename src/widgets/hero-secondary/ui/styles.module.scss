@@ -4,11 +4,21 @@
     @include adaptive-value("padding-top", 90, 50, 1);
     @include adaptive-value("padding-bottom", 90, 50, 1);
     overflow: hidden;
+    min-height: 320px;
 
     &_logo {
         position: absolute;
-        bottom: 0;
+        bottom: -8px;
         right: 0;
+        width: 300px;
+        height: 300px;
+        object-fit: contain;
+        object-position: center;
+
+        @include media-down(sm) {
+            width: 150px;
+            height: 150px;
+        }
     }
 
     &_content {

@@ -1,0 +1,1 @@
+export { ClubsPage as default } from "@/_pages/clubs";

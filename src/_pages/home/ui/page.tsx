@@ -24,7 +24,7 @@ export function HomePage() {
                 needViewAllButton={true}
                 totalItems={6}
             />
-            <Clubs />
+            <Clubs title="Clubs" needViewAllButton={true} />
             <SubscribePlans
                 title="Upgrade to Premium to create ranked events and unlock more
                 features"

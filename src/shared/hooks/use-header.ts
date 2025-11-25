@@ -172,7 +172,8 @@ export const useHeader = () => {
             label: tNavigation("events"),
         },
         {
-            href: "#",
+            href: clientRoutes.clubs,
+            onClick: () => router.push(clientRoutes.clubs),
             label: tNavigation("clubs"),
         },
         {

@@ -6,7 +6,12 @@ import React from "react";
 import cn from "classnames";
 import Image from "next/image";
 
-export const HeroSecondary: React.FC = () => {
+interface HeroSecondaryProps {
+    title: string;
+    description: string;
+}
+
+export const HeroSecondary: React.FC<HeroSecondaryProps> = ({ title, description }) => {
     return (
         <section className={css.hero_secondary}>
             <Image
@@ -20,14 +25,10 @@ export const HeroSecondary: React.FC = () => {
             <div className={cn(css.hero_secondary_container, "container")}>
                 <div className={css.hero_secondary_content}>
                     <h2 className={css.hero_secondary_title}>
-                        Discover BrownCastle Events
+                        {title}
                     </h2>
                     <p className={css.hero_secondary_description}>
-                        Discover a world of exciting tournaments and meetings.
-                        Find events near you or online, register in a few clicks
-                        and join competitions of various formats. Here you can
-                        test your strength, meet new opponents and gain valuable
-                        experience on the way to new victories.
+                        {description}
                     </p>
                 </div>
             </div>
