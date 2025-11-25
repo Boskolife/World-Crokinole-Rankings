@@ -34,6 +34,11 @@
         height: 24px;
         flex-shrink: 0;
 
+        @include media-down(md) {
+            width: 20px;
+            height: 20px;
+        }
+
         &:hover {
             .search_input_button_icon {
                 color: var(--gold);
@@ -49,4 +54,3 @@
         }
     }
 }
-

@@ -6,7 +6,8 @@
 
     @include media-down(xl) {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-end;
+        width: 100%;
         gap: 20px;
         flex-grow: 1;
     }

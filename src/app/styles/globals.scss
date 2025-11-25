@@ -8,6 +8,20 @@ body {
 
 html {
   scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--white);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--blue-grey);
+    border-radius: 10px;
+  }
+
   &.no-scroll {
     overflow: hidden;
   }
@@ -74,4 +88,14 @@ a {
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+#wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#main {
+  flex-grow: 1;
 }

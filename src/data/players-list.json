@@ -1,0 +1,165 @@
+{
+  "players": [
+    {
+      "id": "1",
+      "name": "Amelia Young",
+      "countryCode": "us",
+      "kingdom": "Pennsylvania",
+      "club": "Washington Stars",
+      "rating": 1421
+    },
+    {
+      "id": "2",
+      "name": "Ava Taylor",
+      "countryCode": "us",
+      "kingdom": "Illinois",
+      "club": "Illinois Wolves",
+      "rating": 1627
+    },
+    {
+      "id": "3",
+      "name": "Benjamin Scott",
+      "countryCode": "ca",
+      "kingdom": "Canada",
+      "club": "Toronto Bears",
+      "rating": 1200
+    },
+    {
+      "id": "4",
+      "name": "Charlotte Evans",
+      "countryCode": "fr",
+      "kingdom": "France",
+      "club": "Lyon Falcons",
+      "rating": 1610
+    },
+    {
+      "id": "5",
+      "name": "Daniel Lee",
+      "countryCode": "us",
+      "kingdom": "Texas",
+      "club": "Texas Longhorns",
+      "rating": 930
+    },
+    {
+      "id": "6",
+      "name": "Emily Johnson",
+      "countryCode": "us",
+      "kingdom": "New York",
+      "club": "New York Titans",
+      "rating": 1365
+    },
+    {
+      "id": "7",
+      "name": "Ethan Thomas",
+      "countryCode": "us",
+      "kingdom": "Florida",
+      "club": "Florida Sharks",
+      "rating": 1234
+    },
+    {
+      "id": "8",
+      "name": "Evelyn Walker",
+      "countryCode": "ge",
+      "kingdom": "Georgia",
+      "club": "Colorado Rams",
+      "rating": 1390
+    },
+    {
+      "id": "9",
+      "name": "Harper King",
+      "countryCode": "us",
+      "kingdom": "California",
+      "club": "California Eagles",
+      "rating": 1220
+    },
+    {
+      "id": "10",
+      "name": "Henry Lewis",
+      "countryCode": "us",
+      "kingdom": "Ohio",
+      "club": "Ohio Hawks",
+      "rating": 1080
+    },
+    {
+      "id": "11",
+      "name": "Isabella Martinez",
+      "countryCode": "us",
+      "kingdom": "Arizona",
+      "club": "Arizona Suns",
+      "rating": 1450
+    },
+    {
+      "id": "12",
+      "name": "James Wilson",
+      "countryCode": "us",
+      "kingdom": "Michigan",
+      "club": "Michigan Lions",
+      "rating": 1580
+    },
+    {
+      "id": "13",
+      "name": "Lily Anderson",
+      "countryCode": "us",
+      "kingdom": "North Carolina",
+      "club": "Carolina Panthers",
+      "rating": 1320
+    },
+    {
+      "id": "14",
+      "name": "Mason Brown",
+      "countryCode": "us",
+      "kingdom": "Tennessee",
+      "club": "Tennessee Volunteers",
+      "rating": 1175
+    },
+    {
+      "id": "15",
+      "name": "Olivia Davis",
+      "countryCode": "us",
+      "kingdom": "Washington",
+      "club": "Washington Stars",
+      "rating": 1490
+    },
+    {
+      "id": "16",
+      "name": "Sophia Garcia",
+      "countryCode": "us",
+      "kingdom": "Colorado",
+      "club": "Colorado Rams",
+      "rating": 1410
+    },
+    {
+      "id": "17",
+      "name": "William Rodriguez",
+      "countryCode": "us",
+      "kingdom": "Nevada",
+      "club": "Nevada Knights",
+      "rating": 1280
+    },
+    {
+      "id": "18",
+      "name": "Emma White",
+      "countryCode": "us",
+      "kingdom": "Oregon",
+      "club": "Oregon Ducks",
+      "rating": 1350
+    },
+    {
+      "id": "19",
+      "name": "Alexander Harris",
+      "countryCode": "us",
+      "kingdom": "Utah",
+      "club": "Utah Utes",
+      "rating": 1120
+    },
+    {
+      "id": "20",
+      "name": "Mia Clark",
+      "countryCode": "us",
+      "kingdom": "Wisconsin",
+      "club": "Wisconsin Badgers",
+      "rating": 1440
+    }
+  ]
+}
+

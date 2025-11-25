@@ -54,7 +54,7 @@ export default async function LocaleLayoutWithFooter({
     return (
         <ServerProviders locale={locale}>
             <Header />
-            {children}
+            <main id="main">{children}</main>
             <Footer />
         </ServerProviders>
     );

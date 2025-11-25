@@ -1,6 +1,12 @@
+"use client";
 import React from "react";
 import css from "./styles.module.scss";
 import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
+import { Pagination } from "@/shared/modules";
+import { PlayerTable } from "../components/player-table/PlayerTable";
+import { usePagination } from "@/shared/hooks";
+import playersList from "@/data/players-list.json";
+import { IPlayer } from "@/shared/types";
 
 const kingdomOptions = [
     { value: "kingdom-1", label: "Kingdom 1" },
@@ -14,8 +20,23 @@ const clubOptions = [
 ];
 
 export const Players: React.FC = () => {
+    const players: IPlayer[] = playersList.players;
+
+    const {
+        containerRef,
+        displayedItems: displayedPlayers,
+        effectiveTotalItems,
+        resolvedCurrentPage,
+        pageSize,
+        handlePageChange,
+    } = usePagination<IPlayer>({
+        items: players,
+        needPagination: true,
+        pageSize: 10,
+    });
+
     return (
-        <div className={css.players}>
+        <div className={css.players} ref={containerRef}>
             <div className="container">
                 <h2 className={css.players_title}>Players</h2>
                 <p className={css.players_description}>
@@ -41,6 +62,15 @@ export const Players: React.FC = () => {
                             className={css.players_filters_dropdown}
                         />
                     </div>
+                </div>
+                <PlayerTable players={displayedPlayers} />
+                <div className={css.players_pagination}>
+                    <Pagination
+                        totalItems={effectiveTotalItems}
+                        pageSize={pageSize}
+                        currentPage={resolvedCurrentPage}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
             </div>
         </div>

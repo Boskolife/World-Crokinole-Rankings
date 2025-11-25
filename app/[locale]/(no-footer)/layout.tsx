@@ -53,7 +53,7 @@ export default async function LocaleLayoutNoFooter({
     return (
         <ServerProviders locale={locale}>
             <Header />
-            {children}
+            <main id="main">{children}</main>
         </ServerProviders>
     );
 }

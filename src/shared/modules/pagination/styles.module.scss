@@ -38,6 +38,12 @@
     gap: 8px;
 }
 
+.pagination_ellipsis {
+    color: var(--blue-grey);
+    padding: 0 4px;
+    user-select: none;
+}
+
 .pagination_page {
     width: 32px;
     height: 32px;

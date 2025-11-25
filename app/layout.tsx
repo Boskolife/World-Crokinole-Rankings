@@ -18,7 +18,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             suppressHydrationWarning
         >
             <body>
-                <PopupProvider>{children}</PopupProvider>
+                <div id="wrapper">
+                    <PopupProvider>{children}</PopupProvider>
+                </div>
             </body>
         </html>
     );

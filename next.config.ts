@@ -6,7 +6,14 @@ import path from "path";
 const withNextIntl = createNextIntlPlugin("./src/app/localization/i18n.ts");
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "flagcdn.com",
+      },
+    ],
+  },
   sassOptions: {
     additionalData: (content: string, loaderContext: { resourcePath?: string }) => {
       const resourcePath: string = String(loaderContext.resourcePath || "");
