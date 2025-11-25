@@ -8,9 +8,30 @@
     color: var(--black);
     @include adaptive-value("padding", 32, 16, 1);
     min-width: 400px;
+    position: relative;
 
     @include media-down(sm) {
         min-width: 100%;
+    }
+
+    &_current_plan {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: var(--white);
+        color: var(--blue-grey);
+        padding: 8px 16px;
+        border-radius: 10px;
+        box-shadow: 4px 4px 16px 0px #00213D1A;
+        border: 1px solid var(--black-10);
+        @include adaptive-value("font-size", 16, 14, 1);
+        font-weight: 500;
+
+        @include media-down(sm) {
+            top: 4px;
+            right: 4px;
+            padding: 4px 8px;
+        }
     }
 
     &_title {

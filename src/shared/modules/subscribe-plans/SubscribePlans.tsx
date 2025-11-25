@@ -3,9 +3,9 @@ import React, { useState, useRef } from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
 import { SwitcherModule } from "@/shared/modules";
-import { SubscribeCard } from "../../../widgets/home-new-visitor/components/subscribe-card";
+import { SubscribeCard } from "../../ui/subscribe-card";
 import subrscribePlansData from "@/data/subrscribe-plans.json";
-import { ISubscribeCardProps } from "../../../widgets/home-new-visitor/components/subscribe-card";
+import { ISubscribeCardProps } from "../../ui/subscribe-card";
 import { SwitcherOption } from "@/shared/modules/switcher/Switcher";
 
 const switcherOptions = [

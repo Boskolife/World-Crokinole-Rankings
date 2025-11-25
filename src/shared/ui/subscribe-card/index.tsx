@@ -16,6 +16,7 @@ export interface ISubscribeCardProps {
     duration: string;
     buttonText: string;
     inverted?: boolean;
+    currentPlan?: boolean;
 }
 
 export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
@@ -28,6 +29,7 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
     duration,
     buttonText,
     inverted,
+    currentPlan,
 }) => {
     const router = useRouter();
     const locale = useLocale();
@@ -38,6 +40,9 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
                 [css.inverted]: inverted,
             })}
         >
+            {currentPlan && (
+                <span className={css.subscribe_card_current_plan}>NOW</span>
+            )}
             <h3 className={css.subscribe_card_title}>{name}</h3>
             <p className={css.subscribe_card_description}>
                 <span
@@ -71,7 +76,9 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
             <CustomButton
                 inverted={inverted}
                 className={css.subscribe_card_button}
-                onClick={() => router.push(`/${locale}${clientRoutes.steps(4)}`)}
+                onClick={() =>
+                    router.push(`/${locale}${clientRoutes.steps(4)}`)
+                }
             >
                 {buttonText}
             </CustomButton>

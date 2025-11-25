@@ -11,7 +11,8 @@
             ],
             "price": 0,
             "currency": "$",
-            "buttonText": "Choose Standard"
+            "buttonText": "Choose Standard",
+            "currentPlan": true
         },
         {
             "id": 2,
