@@ -1,8 +1,7 @@
 "use client";
 import React from "react";
 import css from "./styles.module.scss";
-import { Icon } from "@/shared/ui/icons";
-import { CustomButton, CustomRoundedDropdown } from "@/shared/ui";
+import { CustomButton, CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import clubsList from "@/data/clubs-list.json";
 import { IClub } from "@/shared/types";
 import { ClubCard } from "../components/club-card/ClubCard";
@@ -23,23 +22,11 @@ export const Clubs: React.FC = () => {
             <div className="container">
                 <h2 className={css.clubs_title}>Clubs</h2>
                 <div className={css.clubs_head}>
-                    <div className={css.clubs_head_search}>
-                        <input
-                            type="search"
-                            placeholder="Find player by name or club"
-                            aria-label="Find club by name"
-                        />
-                        <button
-                            type="button"
-                            className={css.rankings_head_search_button}
-                            aria-label="Search player"
-                        >
-                            <Icon
-                                name="search"
-                                className={css.rankings_head_search_button_icon}
-                            />
-                        </button>
-                    </div>
+                    <SearchInput
+                        placeholder="Find player by name or club"
+                        ariaLabel="Find club by name"
+                        className={css.clubs_head_search}
+                    />
                     <CustomRoundedDropdown
                         id="club-dropdown"
                         options={kingdomOptions}

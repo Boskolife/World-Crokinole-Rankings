@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import css from "./styles.module.scss";
 import { CustomRoundedDropdown } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
@@ -10,6 +10,7 @@ import { CustomButton } from "@/shared/ui/buttons";
 import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
+import { useEvents } from "../hooks/use-events";
 
 const dateOptions = [
     { value: "today", label: "Today" },
@@ -52,64 +53,20 @@ export const Events: React.FC<IEventsProps> = ({
     needPagination = false,
 }) => {
     const router = useRouter();
-    const eventsContainerRef = useRef<HTMLDivElement>(null);
-    const hasUserInteractedRef = useRef(false);
-    const [activeSwitcher, setActiveSwitcher] = useState<"list" | "map">(
-        "list"
-    );
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 6;
-    const effectiveTotalItems = totalItems ?? events.length;
-    const totalPages = needPagination
-        ? Math.max(1, Math.ceil(effectiveTotalItems / pageSize))
-        : 1;
-    const resolvedCurrentPage = needPagination
-        ? Math.min(currentPage, totalPages)
-        : 1;
-
-    const handleSwitcherClick = (switcher: "list" | "map") => {
-        setActiveSwitcher(switcher);
-    };
-
-    const handlePageChange = (page: number) => {
-        if (!needPagination) {
-            return;
-        }
-
-        hasUserInteractedRef.current = true;
-        const nextPage = Math.min(Math.max(page, 1), totalPages);
-        setCurrentPage(nextPage);
-    };
-
-    useEffect(() => {
-        if (!needPagination) {
-            hasUserInteractedRef.current = false;
-            return;
-        }
-
-        if (!hasUserInteractedRef.current) {
-            return;
-        }
-
-        const container = eventsContainerRef.current;
-        if (!container) {
-            return;
-        }
-
-        const scrollTarget =
-            container.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-            top: scrollTarget,
-            behavior: "smooth",
-        });
-    }, [resolvedCurrentPage, needPagination]);
-
-    const displayedEvents = needPagination
-        ? events.slice(
-              (resolvedCurrentPage - 1) * pageSize,
-              (resolvedCurrentPage - 1) * pageSize + pageSize
-          )
-        : events.slice(0, effectiveTotalItems);
+    const {
+        eventsContainerRef,
+        activeSwitcher,
+        displayedEvents,
+        effectiveTotalItems,
+        resolvedCurrentPage,
+        pageSize,
+        handleSwitcherClick,
+        handlePageChange,
+    } = useEvents({
+        events,
+        needPagination,
+        totalItems,
+    });
 
     return (
         <div className={css.events} ref={eventsContainerRef}>

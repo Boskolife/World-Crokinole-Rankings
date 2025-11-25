@@ -6,3 +6,4 @@ export { CustomDropdown } from "./custom-dropdown";
 export { TextareaField } from "./textarea";
 export { CustomRoundedDropdown } from "./custom-rounded-dropdown";
 export { Tooltip } from "./tooltip";
+export { SearchInput } from "./search-input";

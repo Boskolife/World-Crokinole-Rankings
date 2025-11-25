@@ -2,9 +2,8 @@
 import React from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
-import { Icon } from "@/shared/ui/icons";
 import { SwitcherModule } from "@/shared/modules";
-import { CustomRoundedDropdown } from "@/shared/ui";
+import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { RankingList } from "../components/ranking-list/RankingList";
 import { Pagination } from "@/shared/modules";
 
@@ -61,23 +60,11 @@ export const Rankings: React.FC = () => {
                     <h2 className={css.rankings_head_title}>
                         World Crokinole Rankings
                     </h2>
-                    <div className={css.rankings_head_search}>
-                        <input
-                            type="search"
-                            placeholder="Find player by name or club"
-                            aria-label="Find player by name or club"
-                        />
-                        <button
-                            type="button"
-                            className={css.rankings_head_search_button}
-                            aria-label="Search player"
-                        >
-                            <Icon
-                                name="search"
-                                className={css.rankings_head_search_button_icon}
-                            />
-                        </button>
-                    </div>
+                    <SearchInput
+                        placeholder="Find player by name or club"
+                        ariaLabel="Find player by name or club"
+                        className={css.rankings_head_search}
+                    />
                 </div>
                 <p className={css.rankings_description}>
                     See top players by rating & points
