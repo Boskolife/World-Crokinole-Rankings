@@ -1,0 +1,38 @@
+.hero_secondary {
+    background: linear-gradient(90deg, #00284B 0%, #00284B 1%, #2A5298 100%);
+    position: relative;
+    @include adaptive-value("padding-top", 90, 50, 1);
+    @include adaptive-value("padding-bottom", 90, 50, 1);
+    overflow: hidden;
+
+    &_logo {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+
+    &_content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+        max-width: 850px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    &_title {
+        color: var(--white);
+        line-height: 110%;
+        font-weight: 600;
+    }
+
+    &_description {
+        @include adaptive-value("font-size", 18, 16, 1);
+        color: var(--white);
+    }
+}

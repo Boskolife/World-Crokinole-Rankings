@@ -6,6 +6,9 @@ import { Rankings } from "@/widgets/rankings";
 import { Events } from "@/widgets/events";
 import { Clubs } from "@/widgets/clubs";
 import { Plans } from "@/widgets/plans";
+import eventsList from "@/data/events-list.json";
+
+const events = eventsList.events;
 
 export function HomePage() {
     return (
@@ -15,7 +18,12 @@ export function HomePage() {
             <Navigation />
             <News />
             <Rankings />
-            <Events />
+            <Events
+                title="Future events"
+                events={events}
+                needViewAllButton={true}
+                totalItems={6}
+            />
             <Clubs />
             <Plans />
         </>

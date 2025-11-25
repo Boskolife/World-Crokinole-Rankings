@@ -65,6 +65,61 @@
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
             "isRegistrationRequired": false
+        },
+        {
+            "id": 7,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "Free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": false,
+            "isRegistrationRequired": false
+        },
+        {
+            "id": 8,
+            "image": "/images/content-img-2.png",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": false
+        },
+        {
+            "id": 9,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": false
+        },
+        {
+            "id": 10,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": false,
+            "isRegistrationRequired": true
+        },
+        {
+            "id": 11,
+            "image": "",
+            "title": "Origins Game Fair",
+            "price": "free",
+            "date": "Sep 16, 10 AM - Sep 17, 5 PM",
+            "location": "Monroeville, PA",
+            "format": "Single Tournament / Round Robin",
+            "isRanked": true,
+            "isRegistrationRequired": false
         }
     ]
 }
