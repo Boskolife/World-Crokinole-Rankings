@@ -54,7 +54,7 @@ export const Rankings: React.FC = () => {
     });
 
     return (
-        <div className={css.rankings} ref={listRef}>
+        <div className={css.rankings} ref={listRef} id="rankings">
             <div className="container">
                 <div className={css.rankings_head}>
                     <h2 className={css.rankings_head_title}>

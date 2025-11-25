@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { clientRoutes } from "../routes/client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export const useProfileDropdown = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -121,6 +121,7 @@ export const useNotificationDropdown = () => {
 
 export const useHeader = () => {
     const router = useRouter();
+    const pathname = usePathname();
     const tNavigation = useTranslations("navigation");
     const tAuth = useTranslations("auth");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -161,9 +162,51 @@ export const useHeader = () => {
         setIsMenuOpen((prev) => !prev);
     };
 
+    const scrollToRankings = () => {
+        const rankingsElement = document.getElementById("rankings");
+        if (rankingsElement) {
+            const scrollTarget =
+                rankingsElement.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({
+                top: scrollTarget,
+                behavior: "smooth",
+            });
+            return true;
+        }
+        return false;
+    };
+
+    const handleRankingsClick = () => {
+        // Убираем локаль из pathname для сравнения (формат: /en/, /ru/, /fr/ и т.д.)
+        const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(\/|$)/, "/") || "/";
+        const isOnHomePage = pathWithoutLocale === "/" || pathWithoutLocale === clientRoutes.home;
+
+        if (isOnHomePage) {
+            // Если уже на главной странице, просто прокручиваем
+            scrollToRankings();
+        } else {
+            // Если не на главной, переходим на главную
+            router.push(clientRoutes.home);
+            // Ждем загрузки страницы и наличия элемента перед прокруткой
+            let attempts = 0;
+            const maxAttempts = 20; // Максимум 20 попыток (1 секунда)
+            const checkAndScroll = () => {
+                if (scrollToRankings() || attempts >= maxAttempts) {
+                    return;
+                }
+                attempts++;
+                // Если элемент еще не загружен, проверяем снова через небольшой интервал
+                setTimeout(checkAndScroll, 50);
+            };
+            // Начинаем проверку после небольшой задержки для начала рендера
+            setTimeout(checkAndScroll, 100);
+        }
+    };
+
     const navMenuItems = [
         {
-            href: "#",
+            href: clientRoutes.home,
+            onClick: handleRankingsClick,
             label: tNavigation("rankings"),
         },
         {
@@ -177,7 +220,8 @@ export const useHeader = () => {
             label: tNavigation("clubs"),
         },
         {
-            href: "#",
+            href: clientRoutes.players,
+            onClick: () => router.push(clientRoutes.players),
             label: tNavigation("players"),
         },
         {
