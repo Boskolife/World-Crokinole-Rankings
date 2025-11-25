@@ -54,7 +54,7 @@ export const Rankings: React.FC = () => {
     });
 
     return (
-        <div className={css.rankings}>
+        <div className={css.rankings} ref={listRef}>
             <div className="container">
                 <div className={css.rankings_head}>
                     <h2 className={css.rankings_head_title}>
@@ -98,14 +98,12 @@ export const Rankings: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <div ref={listRef}>
-                <RankingList
-                    rankedList={displayedList}
-                    className={cn(css.rankings_list, {
-                        [css.rankings_list_expanded]: isExpanded,
-                    })}
-                />
-            </div>
+            <RankingList
+                rankedList={displayedList}
+                className={cn(css.rankings_list, {
+                    [css.rankings_list_expanded]: isExpanded,
+                })}
+            />
             <div className="container">
                 <div className={css.rankings_footer}>
                     {shouldShowButton && (

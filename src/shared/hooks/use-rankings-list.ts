@@ -52,12 +52,21 @@ export function useRankingsList<Category extends string>({
         isExpanded && totalItems > EXPANDED_VISIBLE_ITEMS;
 
     const scrollToListTop = () => {
-        if (typeof window !== "undefined") {
-            listRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
+        if (typeof window === "undefined") {
+            return;
         }
+
+        const container = listRef.current;
+        if (!container) {
+            return;
+        }
+
+        const scrollTarget =
+            container.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({
+            top: scrollTarget,
+            behavior: "smooth",
+        });
     };
 
     const handleViewFullList = () => {
@@ -68,7 +77,10 @@ export function useRankingsList<Category extends string>({
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        scrollToListTop();
+        // Используем setTimeout для того, чтобы прокрутка происходила после обновления DOM
+        setTimeout(() => {
+            scrollToListTop();
+        }, 0);
     };
 
     const handleCategoryChange = (value: Category) => {
