@@ -85,7 +85,7 @@ export const Notification: React.FC = () => {
                     </button>
                     <button
                         type="button"
-                        className={css.notification_dropdown_button_unread}
+                        className={css.notification_dropdown_button_unread} 
                     >
                         <span>Mark all unread</span>
                     </button>

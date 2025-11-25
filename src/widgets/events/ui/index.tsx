@@ -53,6 +53,7 @@ export const Events: React.FC<IEventsProps> = ({
 }) => {
     const router = useRouter();
     const eventsContainerRef = useRef<HTMLDivElement>(null);
+    const hasUserInteractedRef = useRef(false);
     const [activeSwitcher, setActiveSwitcher] = useState<"list" | "map">(
         "list"
     );
@@ -75,12 +76,18 @@ export const Events: React.FC<IEventsProps> = ({
             return;
         }
 
+        hasUserInteractedRef.current = true;
         const nextPage = Math.min(Math.max(page, 1), totalPages);
         setCurrentPage(nextPage);
     };
 
     useEffect(() => {
         if (!needPagination) {
+            hasUserInteractedRef.current = false;
+            return;
+        }
+
+        if (!hasUserInteractedRef.current) {
             return;
         }
 

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { clientRoutes } from "../routes/client";
+import { useRouter } from "next/navigation";
 
 export const useProfileDropdown = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -118,6 +120,7 @@ export const useNotificationDropdown = () => {
 };
 
 export const useHeader = () => {
+    const router = useRouter();
     const tNavigation = useTranslations("navigation");
     const tAuth = useTranslations("auth");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -164,7 +167,8 @@ export const useHeader = () => {
             label: tNavigation("rankings"),
         },
         {
-            href: "#",
+            href: clientRoutes.events,
+            onClick: () => router.push(clientRoutes.events),
             label: tNavigation("events"),
         },
         {
