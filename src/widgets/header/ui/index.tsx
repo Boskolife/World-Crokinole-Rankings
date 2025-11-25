@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/buttons/button";
 import { Logo } from "@/shared/components/logo";
 import { NavMenu } from "../components/nav-menu/NavMenu";
 import { BurgerMenu } from "../components/burger-menu/Burger";
-import { useHeader } from "@/shared/hooks/use-header";
+import { useHeader } from "@/shared/hooks";
 import cn from "classnames";
 import { useAuth } from "@/shared/hooks";
 import { Profile } from "../components/profile/Profile";

@@ -1,7 +1,7 @@
 import React from "react";
 import css from "./styles.module.scss";
 import Image from "next/image";
-import { useProfileInfo } from "../hooks/use-profile-info";
+import { useProfileInfo } from "@/shared/hooks";
 export const ProfileInfo: React.FC = () => {
     const { imageSrc, fileInputRef, handleButtonClick, handleFileChange } =
         useProfileInfo();

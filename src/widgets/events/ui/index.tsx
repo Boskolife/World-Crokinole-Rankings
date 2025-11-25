@@ -10,7 +10,7 @@ import { CustomButton } from "@/shared/ui/buttons";
 import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
-import { useEvents } from "../hooks/use-events";
+import { useEvents } from "@/shared/hooks";
 
 const dateOptions = [
     { value: "today", label: "Today" },

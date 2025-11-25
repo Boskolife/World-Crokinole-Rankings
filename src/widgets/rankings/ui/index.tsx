@@ -9,7 +9,7 @@ import { Pagination } from "@/shared/modules";
 
 import rankedListData from "@/data/ranked-list.json";
 import { CustomButton } from "@/shared/ui/buttons";
-import { useRankingsList } from "../hooks/useRankingsList";
+import { useRankingsList } from "@/shared/hooks";
 
 const worldOptions = [
     { value: "world", label: "World" },

@@ -4,7 +4,7 @@ import css from "./styles.module.scss";
 import React from "react";
 import Image from "next/image";
 import cn from "classnames";
-import { useHeader } from "@/shared/hooks/use-header";
+import { useHeader } from "@/shared/hooks";
 
 interface HomeNewVisitorProps {
     children: React.ReactNode;

@@ -94,3 +94,4 @@ export function useRankingsList<Category extends string>({
         handleCategoryChange,
     };
 }
+

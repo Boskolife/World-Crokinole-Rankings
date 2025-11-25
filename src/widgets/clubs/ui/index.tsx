@@ -13,7 +13,7 @@ import { ClubCard } from "../components/club-card/ClubCard";
 import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
-import { useClubs } from "../hooks/use-clubs";
+import { useClubs } from "@/shared/hooks";
 
 const kingdomOptions = [
     { value: "kingdom-1", label: "Kingdom 1" },

@@ -3,7 +3,7 @@ import css from "./styles.module.scss";
 import { FormField } from "@/shared/ui/input";
 import { useForm } from "react-hook-form";
 import { Button, CustomDropdown } from "@/shared/ui";
-import { useProfileInfo } from "../hooks/use-profile-info";
+import { useProfileInfo } from "@/shared/hooks";
 import { IProfileEditFormData } from "@/shared/types";
 import { useAuth } from "@/shared/hooks";
 import { useRouter } from "next/navigation";

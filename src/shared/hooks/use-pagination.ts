@@ -1,49 +1,41 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { IEventCardProps } from "@/shared/types";
 
-interface UseEventsOptions {
-    events: IEventCardProps[];
+interface UsePaginationOptions<T> {
+    items: T[];
     needPagination?: boolean;
     totalItems?: number;
     pageSize?: number;
 }
 
-interface UseEventsResult {
-    eventsContainerRef: React.RefObject<HTMLDivElement | null>;
-    activeSwitcher: "list" | "map";
-    displayedEvents: IEventCardProps[];
+interface UsePaginationResult<T> {
+    containerRef: React.RefObject<HTMLDivElement | null>;
+    displayedItems: T[];
     effectiveTotalItems: number;
     totalPages: number;
     resolvedCurrentPage: number;
     pageSize: number;
-    handleSwitcherClick: (switcher: "list" | "map") => void;
     handlePageChange: (page: number) => void;
 }
 
-export const useEvents = ({
-    events,
+export const usePagination = <T,>({
+    items,
     needPagination = false,
     totalItems,
     pageSize = 6,
-}: UseEventsOptions): UseEventsResult => {
-    const eventsContainerRef = useRef<HTMLDivElement>(null);
+}: UsePaginationOptions<T>): UsePaginationResult<T> => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const hasUserInteractedRef = useRef(false);
-    const [activeSwitcher, setActiveSwitcher] = useState<"list" | "map">("list");
     const [currentPage, setCurrentPage] = useState(1);
 
-    const effectiveTotalItems = totalItems ?? events.length;
+    const effectiveTotalItems = totalItems ?? items.length;
     const totalPages = needPagination
         ? Math.max(1, Math.ceil(effectiveTotalItems / pageSize))
         : 1;
     const resolvedCurrentPage = needPagination
         ? Math.min(currentPage, totalPages)
         : 1;
-
-    const handleSwitcherClick = (switcher: "list" | "map") => {
-        setActiveSwitcher(switcher);
-    };
 
     const handlePageChange = (page: number) => {
         if (!needPagination) {
@@ -65,7 +57,7 @@ export const useEvents = ({
             return;
         }
 
-        const container = eventsContainerRef.current;
+        const container = containerRef.current;
         if (!container) {
             return;
         }
@@ -78,22 +70,20 @@ export const useEvents = ({
         });
     }, [resolvedCurrentPage, needPagination]);
 
-    const displayedEvents = needPagination
-        ? events.slice(
+    const displayedItems = needPagination
+        ? items.slice(
               (resolvedCurrentPage - 1) * pageSize,
               (resolvedCurrentPage - 1) * pageSize + pageSize
           )
-        : events.slice(0, effectiveTotalItems);
+        : items.slice(0, effectiveTotalItems);
 
     return {
-        eventsContainerRef,
-        activeSwitcher,
-        displayedEvents,
+        containerRef,
+        displayedItems,
         effectiveTotalItems,
         totalPages,
         resolvedCurrentPage,
         pageSize,
-        handleSwitcherClick,
         handlePageChange,
     };
 };
