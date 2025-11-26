@@ -6,7 +6,6 @@ import path from "path";
 const withNextIntl = createNextIntlPlugin("./src/app/localization/i18n.ts");
 
 const nextConfig: NextConfig = {
-  output: "export",
   images: {
     unoptimized: true,
     remotePatterns: [

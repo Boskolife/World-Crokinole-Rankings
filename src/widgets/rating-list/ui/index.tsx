@@ -34,6 +34,7 @@ export const RatingList: React.FC = () => {
                         onChange={(value) => setSelectedType(value)}
                     />
                     <CustomRoundedDropdown
+                        className={css.rating_list_dropdown}
                         options={ratingListDropdownOptions}
                         placeholder="Jan 2025 - Sep 2025"
                         id="rating-list-switcher"

@@ -1,0 +1,63 @@
+.badges {
+    padding: 30px 0 80px 0;
+    @include adaptive-value("padding-bottom", 80, 40, 1);
+
+    &_title {
+        @include adaptive-value("font-size", 32, 24, 1);
+        margin-bottom: 20px;
+    }
+
+    &_list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+
+        @include media-down(lg) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @include media-down(sm) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &_item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(90deg, #00284B 0%, #00284B 1%, #2A5298 100%);
+        border-radius: 8px;
+        position: relative;
+
+        &_archive {
+            background: var(--blue-dark-2);
+
+            .badges_item_status {
+                background: var(--gold-light);
+                color: var(--blue-dark-2)
+            }
+        }
+
+        &_text {
+            @include adaptive-value("font-size", 18, 16, 1);
+            font-weight: 500;
+            color: var(--white);
+            text-align: center;
+        }
+
+        &_status {
+            position: absolute;
+            top: -10px;
+            right: 9px;
+            @include adaptive-value("font-size", 14, 12, 1);
+            color: var(--white);
+            background: linear-gradient(180deg, #F4B44B 0%, #DF900F 100%);
+            border-radius: 111px;
+            padding: 4px 10px;
+            text-transform: capitalize;
+            line-height: 125%;
+        }
+    }
+}

@@ -2,6 +2,7 @@ import { Account } from "@/widgets/account";
 import { MatchHistory } from "@/widgets/match-history";
 import { Tournaments } from "@/widgets/tournaments";
 import { RatingList } from "@/widgets/rating-list";
+import { Badges } from "@/widgets/badges";
 
 export function ProfilePage() {
     return (
@@ -10,6 +11,7 @@ export function ProfilePage() {
             <Tournaments />
             <RatingList />
             <MatchHistory />
+            <Badges />
         </>
     );
 }
