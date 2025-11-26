@@ -10,8 +10,6 @@
     min-height: 400px;
     height: 100%;
 
-    @include adaptive-value("margin-bottom", 64, 32, 1);
-
     @include media-down(lg) {
         flex-direction: column;
     }

@@ -10,8 +10,8 @@ export const SaveContinue: React.FC = () => {
     const router = useRouter();
     return (
         <div className={css.save_continue}>
+            <ProfileDetails />
             <div className="container">
-                <ProfileDetails />
                 <CustomButton
                     className={css.save_continue_button}
                     onClick={() => router.push(clientRoutes.home)}

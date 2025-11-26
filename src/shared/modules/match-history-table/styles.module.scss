@@ -1,0 +1,71 @@
+@use "@/app/styles/scss-utils/index" as *;
+
+.match_history_table_wrapper {
+    overflow-x: auto;
+    margin-top: 30px;
+    border-radius: 8px;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    scrollbar-width: none;
+}
+
+.match_history_table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+    background-color: transparent;
+
+    &_header {
+        padding: 0 8px 12px 8px;
+        text-align: left;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--blue-dark);
+        background-color: transparent;
+
+        &_name {
+            font-weight: 500;
+            @include adaptive-value("font-size", 18, 16, 1);
+        }
+    }
+
+    &_row {
+        &_even {
+            background-color: var(--blue-light);
+        }
+    }
+
+    &_cell {
+        padding: 8px;
+
+        &:last-child {
+            text-align: end;
+        }
+
+        &_place {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        &_place_icon {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        &_link {
+            text-decoration: underline;
+            font-size: 14px;
+            transition: color 0.2s ease;
+
+            &:hover {
+                color: var(--gold);
+                transition: color 0.2s ease;
+            }
+        }
+    }
+}
+

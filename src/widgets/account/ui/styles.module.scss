@@ -1,0 +1,8 @@
+.account {
+    @include adaptive-value("padding-top", 80, 40, 1);
+    padding-bottom: 30px;
+
+    &_title {
+        margin-bottom: 20px;
+    }
+}

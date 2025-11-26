@@ -5,11 +5,18 @@ import { Icon } from "@/shared/ui/icons";
 import { RootLink } from "@/shared/ui/links/root-link";
 import cn from "classnames";
 import { useProfileDropdown } from "@/shared/hooks";
+import { clientRoutes } from "@/shared/routes/client";
+import { useRouter } from "next/navigation";
 
 export const Profile: React.FC = () => {
     const { isDropdownOpen, isClosing, dropdownRef, handleDropdownOpen } =
         useProfileDropdown();
-
+    const router = useRouter();
+    const handleProfileClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        router.push(clientRoutes.profile);
+    };
     return (
         <div className={css.profile} ref={dropdownRef}>
             <div className={css.profile_info}>
@@ -65,6 +72,7 @@ export const Profile: React.FC = () => {
                             </span>
                             <RootLink
                                 href="#"
+                                onClick={(event) => handleProfileClick(event)}
                                 className={css.profile_dropdown_info_name_link}
                             >
                                 View profile
