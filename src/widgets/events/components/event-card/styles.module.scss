@@ -133,4 +133,22 @@
             color: var(--blue-grey);
         }
     }
+
+    &_status {
+        display: flex;
+        gap: 4px;
+
+        &_link {
+            margin-top: 8px;
+            font-weight: 500;
+            color: var(--blue-grey);
+            text-decoration: underline;
+            transition: color 0.3s ease;
+
+            &:hover {
+                color: var(--gold);
+                transition: color 0.3s ease;
+            }
+        }
+    }
 }

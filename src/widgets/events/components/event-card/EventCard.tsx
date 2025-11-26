@@ -15,6 +15,8 @@ export const EventCard: React.FC<IEventCardProps> = ({
     format,
     isRanked,
     isRegistrationRequired,
+    isPastEvent,
+    winner,
 }) => {
     return (
         <div className={css.event_card}>
@@ -84,7 +86,17 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         />
                         {location}
                     </span>
-                    <span className={css.event_card_format}>{format}</span>
+                    {isPastEvent ? (
+                        <>
+                            <div className={css.event_card_status}>
+                                <b>Winner:</b>
+                                <span>{winner}</span>
+                            </div>
+                            <RootLink href="#" className={css.event_card_status_link}>Tournament Page</RootLink>
+                        </>
+                    ) : (
+                        <span className={css.event_card_format}>{format}</span>
+                    )}
                 </div>
             </div>
         </div>

@@ -18,7 +18,8 @@ export function EventPage() {
                 totalItems={events.length}
             />
             <Events
-                title="Past events"
+                isPastEvents
+                title="Past events" 
                 events={events}
                 needPagination
                 totalItems={events.length}

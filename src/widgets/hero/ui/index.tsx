@@ -19,10 +19,10 @@ export const Hero: React.FC = () => {
                 priority
             />
             <Image
-                src="/images/hero/crown.png"
+                src="/images/crown.png"
                 alt="Crown"
                 width={820}
-                height={650}
+                height={750}
                 className={css.hero_crown}
                 priority
                 fetchPriority="high"

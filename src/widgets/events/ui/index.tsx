@@ -33,6 +33,7 @@ interface IEventsProps {
     needViewAllButton?: boolean;
     needPagination?: boolean;
     totalItems?: number;
+    isPastEvents?: boolean;
 }
 
 export const Events: React.FC<IEventsProps> = ({
@@ -41,6 +42,7 @@ export const Events: React.FC<IEventsProps> = ({
     needViewAllButton = false,
     totalItems,
     needPagination = false,
+    isPastEvents = false,
 }) => {
     const router = useRouter();
     const {
@@ -129,7 +131,7 @@ export const Events: React.FC<IEventsProps> = ({
                 </div>
                 <div className={css.events_content}>
                     {displayedEvents.map((event) => (
-                        <EventCard key={event.id} {...event} />
+                        <EventCard key={event.id} {...event} isPastEvent={isPastEvents} />
                     ))}
                 </div>
                 {needViewAllButton && (

@@ -8,4 +8,6 @@ export interface IEventCardProps {
     format: string;
     isRanked?: boolean;
     isRegistrationRequired?: boolean;
+    isPastEvent?: boolean;
+    winner?: string;
 }

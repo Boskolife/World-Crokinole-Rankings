@@ -26,7 +26,7 @@ export const ProfileEdit: React.FC = () => {
     const onSubmit = (data: IProfileEditFormData) => {
         console.log(data);
         login();
-        router.push(`/${locale}/dashboard`);
+        router.push(`/${locale}/new-visitor/save-continue`);
     };
 
     return (

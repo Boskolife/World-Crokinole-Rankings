@@ -9,7 +9,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": true
+            "isRegistrationRequired": true,
+            "winner": "Ben Harding"
         },
         {
             "id": 2,
@@ -20,7 +21,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": false,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 3,
@@ -31,7 +33,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 4,
@@ -42,7 +45,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 5,
@@ -53,7 +57,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": false,
-            "isRegistrationRequired": true
+            "isRegistrationRequired": true,
+            "winner": "Ben Harding"
         },
         {
             "id": 6,
@@ -64,7 +69,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 7,
@@ -75,7 +81,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": false,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 8,
@@ -86,7 +93,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 9,
@@ -97,7 +105,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         },
         {
             "id": 10,
@@ -108,7 +117,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": false,
-            "isRegistrationRequired": true
+            "isRegistrationRequired": true,
+            "winner": "Ben Harding"
         },
         {
             "id": 11,
@@ -119,7 +129,8 @@
             "location": "Monroeville, PA",
             "format": "Single Tournament / Round Robin",
             "isRanked": true,
-            "isRegistrationRequired": false
+            "isRegistrationRequired": false,
+            "winner": "Ben Harding"
         }
     ]
 }
