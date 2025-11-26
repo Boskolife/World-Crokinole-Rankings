@@ -60,3 +60,12 @@ export const sortOrderOptions: DropdownOption[] = [
     { value: "rank-desc", label: "Rank Descending" },
 ];
 
+export const ratingListSwitcherOptions: DropdownOption[] = [
+    { value: "Singles", label: "Singles" },
+    { value: "Doubles", label: "Doubles" },
+];
+
+export const ratingListDropdownOptions: DropdownOption[] = [
+    { value: "Jan 2025 - Sep 2025 ", label: "Jan 2025 - Sep 2025 " },
+    { value: "Oct 2025 - Dec 2025", label: "Oct 2025 - Dec 2025" },
+];

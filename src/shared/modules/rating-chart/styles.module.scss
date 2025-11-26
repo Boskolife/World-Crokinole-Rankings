@@ -1,0 +1,109 @@
+@use "@/app/styles/scss-utils/index"as *;
+
+.rating_chart {
+    width: 100%;
+    @include adaptive-value("padding", 24, 16, 1);
+    background-color: var(--blue-light);
+    border-radius: 20px;
+    position: relative;
+
+    &_header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        gap: 16px;
+
+        &_value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        &_divider {
+            display: block;
+            width: 1px;
+            height: 20px;
+            background-color: var(--black-20);
+        }
+
+        &_number {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--black);
+            line-height: 1;
+            font-family: "Aleo", sans-serif;
+        }
+
+        &_legend {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+
+            &_item {
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+
+                &::before {
+                    content: "";
+                    display: block;
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                }
+
+                &:first-child {
+                    &::before {
+                        background-color: var(--black);
+                    }
+                }
+
+                &:last-child {
+                    &::before {
+                        background-color: var(--blue-dark-2);
+                    }
+                }
+            }
+        }
+
+        &_change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+
+            &_positive {
+                .rating_chart_header_arrow {
+                    color: var(--green);
+                }
+            }
+
+            &_negative {
+                .rating_chart_header_arrow {
+                    color: var(--red);
+                }
+            }
+
+            &_arrow {
+                font-size: 18px;
+                line-height: 1;
+            }
+        }
+    }
+
+    &_container {
+        border-radius: 8px;
+        width: 100%;
+        min-height: 270px;
+
+        &_chart {
+            width: 100%;
+            min-height: 270px;
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+  "singles": {
+    "ratingData": [
+      { "month": "Jan", "thisYear": 1000, "lastYear": 300 },
+      { "month": "Feb", "thisYear": 350, "lastYear": 1150 },
+      { "month": "Mar", "thisYear": 1850, "lastYear": 3000 },
+      { "month": "Apr", "thisYear": 3500, "lastYear": 550 },
+      { "month": "May", "thisYear": 4550, "lastYear": 2050 },
+      { "month": "Jun", "thisYear": 2850, "lastYear": 3550 },
+      { "month": "Jul", "thisYear": 3354, "lastYear": 5050 }
+    ],
+    "currentValue": 3354,
+    "change": "+16"
+  },
+  "doubles": {
+    "ratingData": [
+      { "month": "Jan", "thisYear": 1200, "lastYear": 400 },
+      { "month": "Feb", "thisYear": 450, "lastYear": 1250 },
+      { "month": "Mar", "thisYear": 1950, "lastYear": 3100 },
+      { "month": "Apr", "thisYear": 3600, "lastYear": 650 },
+      { "month": "May", "thisYear": 4650, "lastYear": 2150 },
+      { "month": "Jun", "thisYear": 2950, "lastYear": 3650 },
+      { "month": "Jul", "thisYear": 3454, "lastYear": 5150 }
+    ],
+    "currentValue": 3454,
+    "change": "+24"
+  }
+}

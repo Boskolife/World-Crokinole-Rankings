@@ -1,24 +1,16 @@
-@use "@/app/styles/scss-utils/index" as *;
+@use "@/app/styles/scss-utils/index"as *;
 
 .match_history {
     padding: 30px 0;
 
-    @include media-up(md) {
-        padding: 35px 0;
-    }
-
     &_title {
-        margin-bottom: 8px;
-    }
-
-    &_table {
-        margin-top: 30px;
+        @include adaptive-value("font-size", 32, 24, 1);
+        margin-bottom: 20px;
     }
 
     &_pagination {
         display: flex;
         justify-content: center;
-        margin-top: 40px;
+        margin-top: 30px;
     }
 }
-
