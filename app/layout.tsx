@@ -16,6 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <html
             lang={localeConfig.defaultLocale as string}
             suppressHydrationWarning
+            data-scroll-behavior="smooth"
         >
             <body>
                 <div id="wrapper">
