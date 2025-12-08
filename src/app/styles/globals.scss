@@ -1,4 +1,6 @@
 @use "./scss-utils/index"as *;
+@use "./scss-utils/compat-legacy";
+
 
 html,
 body {
