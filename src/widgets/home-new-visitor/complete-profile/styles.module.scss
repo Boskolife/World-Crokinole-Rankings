@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .complete_profile {
     padding: 30px 0 90px 0;
     @include adaptive-value("padding-bottom", 90, 45, 1);

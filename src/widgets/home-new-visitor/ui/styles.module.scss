@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .home_new_visitor {
     background: linear-gradient(90deg, #00284B 0%, #00284B 1%, #2A5298 100%);
     position: relative;

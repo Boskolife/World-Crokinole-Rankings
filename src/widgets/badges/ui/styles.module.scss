@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .badges {
     padding: 30px 0 80px 0;
     @include adaptive-value("padding-bottom", 80, 40, 1);

@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .club_card {
     border-radius: 12px;
     border: 1px solid var(--black-20);

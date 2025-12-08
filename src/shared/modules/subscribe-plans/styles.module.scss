@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .subscribe_plans {
     @include adaptive-value("padding-top", 80, 35, 1);
     @include adaptive-value("padding-bottom", 80, 35, 1);

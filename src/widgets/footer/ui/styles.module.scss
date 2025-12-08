@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .footer {
     background-color: var(--black);
     @include adaptive-value("padding-top", 80, 40, 1);

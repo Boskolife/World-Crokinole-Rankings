@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/index" as *;
+
 .account {
     @include adaptive-value("padding-top", 80, 40, 1);
     padding-bottom: 30px;
