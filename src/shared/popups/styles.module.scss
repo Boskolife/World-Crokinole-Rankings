@@ -31,7 +31,9 @@
     @include adaptive-value("padding", 40, 20, 1);
     padding-top: 40px;
 
-    &::webkit-scrollbar {
+    &::-webkit-scrollbar,
+    &::-webkit-scrollbar-track,
+    &::-webkit-scrollbar-thumb {
         display: none;
     }
 
