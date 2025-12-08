@@ -1,5 +1,5 @@
-@use "./variables/breakpoints";
-@use "./variables/colors";
-@use "./mixins/media";
-@use "./mixins/adaptive";
+@forward "./variables/breakpoints";
+@forward "./variables/colors";
+@forward "./mixins/media";
+@forward "./mixins/adaptive";
 
