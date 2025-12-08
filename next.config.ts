@@ -3,7 +3,9 @@ import createNextIntlPlugin from "next-intl/plugin";
 import path from "path";
 
 
-const withNextIntl = createNextIntlPlugin("./src/app/localization/i18n.ts");
+const withNextIntl = createNextIntlPlugin(
+    path.resolve(process.cwd(), "src/app/localization/i18n.ts")
+);
 
 const nextConfig: NextConfig = {
   images: {

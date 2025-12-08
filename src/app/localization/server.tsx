@@ -1,19 +1,19 @@
-import { NextIntlClientProvider, useMessages } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+import { setRequestLocale, getMessages } from "next-intl/server";
 
 interface ProvidersProps {
     children: React.ReactNode;
     locale: string;
 }
 
-export const ServerProviders: React.FC<ProvidersProps> = ({ children, locale }) => {
+export async function ServerProviders({ children, locale }: ProvidersProps) {
     setRequestLocale(locale);
-    const messages = useMessages();
+    const messages = await getMessages();
     return (
         <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
         </NextIntlClientProvider>
     );
-};
+}
 
 
