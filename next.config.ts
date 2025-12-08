@@ -4,7 +4,7 @@ import path from "path";
 
 
 const withNextIntl = createNextIntlPlugin(
-    path.resolve(process.cwd(), "src/app/localization/i18n.ts")
+    path.resolve(process.cwd(), "src/app/localization/request.ts")
 );
 
 const nextConfig: NextConfig = {
