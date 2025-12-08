@@ -6,6 +6,8 @@ import path from "path";
 const withNextIntl = createNextIntlPlugin("./src/app/localization/request.ts");
 
 const nextConfig: NextConfig = {
+  // Раскомментируйте следующую строку для статического экспорта (GitHub Pages, Netlify Static и т.д.)
+  // output: 'export',
   images: {
     unoptimized: true,
     remotePatterns: [
