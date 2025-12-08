@@ -1,4 +1,4 @@
-@use "@/app/styles/scss-utils/index" as *;
+@use "@/app/styles/scss-utils/compat-legacy" as *;
 
 .subscribe_plans {
     @include adaptive-value("padding-top", 80, 35, 1);
