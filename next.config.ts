@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
     ],
   },
   sassOptions: {
+    includePaths: [
+      path.resolve(process.cwd(), "src"),
+      path.resolve(process.cwd(), "."),
+    ],
     additionalData: (content: string, loaderContext: { resourcePath?: string }) => {
       const resourcePath: string = String(loaderContext.resourcePath || "");
       const normalized = resourcePath.replace(/\\/g, "/");

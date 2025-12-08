@@ -40,11 +40,11 @@
 
         .button_icon_wrapper {
             margin-left: 10px;
+            background-color: var(--gold);
             transition: all 0.3s ease;
         }
 
         .button_icon {
-            background-color: var(--gold);
             color: var(--white);
             transition: all 0.3s ease;
         }

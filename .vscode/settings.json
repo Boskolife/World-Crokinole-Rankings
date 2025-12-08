@@ -1,0 +1,11 @@
+{
+  "css.customData": [".vscode/css_custom_data.json"],
+  "scss.lint.unknownAtRules": "ignore",
+  "scss.validate": true,
+  "files.associations": {
+    "*.scss": "scss"
+  },
+  "path-intellisense.mappings": {
+    "@": "${workspaceFolder}/src"
+  }
+}
