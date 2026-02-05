@@ -52,4 +52,16 @@
     &_sign_in {
         text-align: center;
     }
+
+    &_error {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(255, 0, 0, 0.12);
+        border: 1px solid rgba(255, 0, 0, 0.35);
+        color: var(--white);
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.3;
+    }
 }

@@ -4,8 +4,11 @@ import css from "./styles.module.scss";
 import Image from "next/image";
 import { Button } from "@/shared/ui/buttons";
 import { RootLink } from "@/shared/ui";
+import { useUserProfile } from "@/shared/hooks";
 
 export const ProfileDetails: React.FC = () => {
+    const { fullName, email, profile } = useUserProfile();
+    const kingdom = profile?.country || "-";
     return (
         <div className="container">
             <div className={css.profile_details_content}>
@@ -24,14 +27,14 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_left_profile_name
                                 }
                             >
-                                John Smith
+                                {fullName}
                             </h4>
                             <span
                                 className={
                                     css.profile_details_left_profile_role
                                 }
                             >
-                                👑 King of Pennsylvania
+                                {kingdom === "-" ? "👑 King" : `👑 King of ${kingdom}`}
                             </span>
                         </div>
                     </div>
@@ -54,7 +57,7 @@ export const ProfileDetails: React.FC = () => {
                     <div className={css.profile_details_right_header}>
                         <p className={css.profile_details_right_header_email}>
                             <b>Email:</b>
-                            <span>johnsmith.business@gmail.com</span>
+                            <span>{email || "-"}</span>
                         </p>
                         <RootLink
                             href="#"
@@ -125,7 +128,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                Pittsburgh Crokinole Club
+                                {profile?.club || "-"}
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>
@@ -141,7 +144,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                Pennsylvania
+                                {kingdom}
                             </p>
                         </div>
                     </div>

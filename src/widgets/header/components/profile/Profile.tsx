@@ -4,23 +4,28 @@ import Image from "next/image";
 import { Icon } from "@/shared/ui/icons";
 import { RootLink } from "@/shared/ui/links/root-link";
 import cn from "classnames";
-import { useProfileDropdown } from "@/shared/hooks";
+import { useAuth, useProfileDropdown, useUserProfile } from "@/shared/hooks";
 import { clientRoutes } from "@/shared/routes/client";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { localeConfig } from "@/app/localization/config";
 
 export const Profile: React.FC = () => {
     const { isDropdownOpen, isClosing, dropdownRef, handleDropdownOpen } =
         useProfileDropdown();
+    const { logout } = useAuth();
+    const { fullName } = useUserProfile();
     const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale || (localeConfig.defaultLocale as string);
     const handleProfileClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
         event.stopPropagation();
-        router.push(clientRoutes.profile);
+        router.push(`/${locale}${clientRoutes.profile}`);
     };
     return (
         <div className={css.profile} ref={dropdownRef}>
             <div className={css.profile_info}>
-                <h3 className={css.profile_info_name}>John Smith</h3>
+                <h3 className={css.profile_info_name}>{fullName}</h3>
                 <p className={css.profile_info_status}>Player</p>
             </div>
             <button
@@ -68,7 +73,7 @@ export const Profile: React.FC = () => {
                             <span
                                 className={css.profile_dropdown_info_name_text}
                             >
-                                John Smith
+                                {fullName}
                             </span>
                             <RootLink
                                 href="#"
@@ -114,6 +119,10 @@ export const Profile: React.FC = () => {
                     <button
                         type="button"
                         className={css.profile_dropdown_menu_item}
+                        onClick={async () => {
+                            await logout();
+                            router.push(`/${locale}${clientRoutes.home}`);
+                        }}
                     >
                         <Icon
                             name="log_in"

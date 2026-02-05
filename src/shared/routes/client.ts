@@ -5,6 +5,8 @@ export const clientRoutes = {
     membershipPlans: "/membership-plans",
     players: "/players",
     profile: "/profile",
+    signIn: "/auth/sign-in",
+    signUp: "/auth/sign-up",
 
     steps: (step: number) => `/new-visitor/step-${step}`,
 };

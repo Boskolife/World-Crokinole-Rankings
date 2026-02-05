@@ -5,5 +5,6 @@ export { useEvents } from "./use-events";
 export { useClubs } from "./use-clubs";
 export { useRankingsList } from "./use-rankings-list";
 export { useProfileInfo } from "./use-profile-info";
+export { useUserProfile } from "./use-user-profile";
 export { useLanguageSwitcher } from "./use-language-switcher";
 export { useTableSort } from "./use-table-sort";

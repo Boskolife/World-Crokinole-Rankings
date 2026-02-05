@@ -13,10 +13,16 @@ import cn from "classnames";
 import { useAuth } from "@/shared/hooks";
 import { Profile } from "../components/profile/Profile";
 import { Notification } from "../components/notifications/Notification";
+import { clientRoutes } from "@/shared/routes/client";
+import { useParams, useRouter } from "next/navigation";
+import { localeConfig } from "@/app/localization/config";
 
 export const Header: React.FC = () => {
     const { isMenuOpen, handleToggleMenu, navMenuItems, tAuth } = useHeader();
     const { isAuth } = useAuth();
+    const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale || (localeConfig.defaultLocale as string);
     return (
         <header className={cn(css.header, "header")}>
             <div className="container">
@@ -61,12 +67,22 @@ export const Header: React.FC = () => {
                                     <Button
                                         buttonType="primary"
                                         className={css.header_button}
+                                        onClick={() =>
+                                            router.push(
+                                                `/${locale}${clientRoutes.signIn}`
+                                            )
+                                        }
                                     >
                                         {tAuth("signIn")}
                                     </Button>
                                     <Button
                                         buttonType="secondary"
                                         className={css.header_button}
+                                        onClick={() =>
+                                            router.push(
+                                                `/${locale}${clientRoutes.signUp}`
+                                            )
+                                        }
                                     >
                                         {tAuth("signUp")}
                                     </Button>

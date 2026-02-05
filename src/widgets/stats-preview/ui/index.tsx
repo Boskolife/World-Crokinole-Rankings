@@ -6,8 +6,12 @@ import cn from "classnames";
 import Image from "next/image";
 import { RootLink } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
+import { useUserProfile } from "@/shared/hooks";
 
 export const StatsPreview: React.FC = () => {
+    const { fullName, profile } = useUserProfile();
+    const kingdom = profile?.country || "-";
+    const club = profile?.club || "-";
     return (
         <section className={css.stats_preview}>
             <div className={cn(css.stats_preview_inner, "container")}>
@@ -25,7 +29,7 @@ export const StatsPreview: React.FC = () => {
                         </div>
                         <div className={css.stats_preview_profile_info}>
                             <h3 className={css.stats_preview_profile_name}>
-                                John Smith
+                                {fullName}
                             </h3>
                             <div className={css.stats_preview_profile_link}>
                                 <RootLink
@@ -41,7 +45,7 @@ export const StatsPreview: React.FC = () => {
                     </div>
                     <div className={css.stats_preview_rank}>
                         <p className={css.stats_preview_rank_label}>
-                            👑 King of Pennsylvania
+                            {kingdom === "-" ? "👑 King" : `👑 King of ${kingdom}`}
                         </p>
                         <div className={css.stats_preview_rank_body}>
                             <Icon
@@ -162,7 +166,7 @@ export const StatsPreview: React.FC = () => {
                                     css.stats_preview_content_item_body_label
                                 }
                             >
-                                <span>USA, Pennsylvania</span>
+                                <span>{kingdom}</span>
                             </div>
                         </div>
                     </div>
@@ -180,7 +184,7 @@ export const StatsPreview: React.FC = () => {
                                     css.stats_preview_content_item_body_label
                                 }
                             >
-                                <span>Pittsburgh Crokinole Club</span>
+                                <span>{club}</span>
                             </div>
                         </div>
                     </div>

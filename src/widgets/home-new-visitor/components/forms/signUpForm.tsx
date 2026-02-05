@@ -1,24 +1,59 @@
-import React from "react";
+import React, { useState } from "react";
 import css from "./styles.module.scss";
 import { Button, CustomCheckbox, FormField, RootLink } from "@/shared/ui";
 import { useForm } from "react-hook-form";
 import { ISignUpFormData } from "@/shared/types";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
+import {
+    supabase,
+    isSupabaseConfigured,
+    supabaseConfigError,
+} from "@/shared/supabase/client";
 
 export const SignUpForm: React.FC = () => {
     const router = useRouter();
+    const pathname = usePathname();
     const locale = useLocale();
+    const [formError, setFormError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const {
         register,
         formState: { errors },
         handleSubmit,
     } = useForm<ISignUpFormData>();
-    const onSubmit = (data: ISignUpFormData) => {
-        console.log(data);
-        router.push(`/${locale}${clientRoutes.steps(3)}`);
+
+    const onSubmit = async (data: ISignUpFormData) => {
+        if (!isSupabaseConfigured) {
+            setFormError(supabaseConfigError ?? "Supabase is not configured");
+            return;
+        }
+
+        setFormError(null);
+        setIsSubmitting(true);
+
+        try {
+            const { error, data: authData } = await supabase.auth.signUp({
+                email: data.email,
+                password: data.password,
+            });
+
+            if (error) {
+                setFormError(error.message);
+                return;
+            }
+
+            router.push(`/${locale}${clientRoutes.steps(3)}`);
+        } catch {
+            setFormError(
+                "Could not reach Supabase. Please check NEXT_PUBLIC_SUPABASE_URL and your DNS/Internet connection."
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     return (
         <form
@@ -27,6 +62,7 @@ export const SignUpForm: React.FC = () => {
             className={css.auth_form}
         >
             <p className={css.auth_form_title}>Join the rankings</p>
+            {formError && <div className={css.auth_form_error}>{formError}</div>}
             <div className={css.auth_form_fields}>
                 <FormField
                     id="email"
@@ -74,21 +110,54 @@ export const SignUpForm: React.FC = () => {
                 type="submit"
                 buttonType="white"
                 className={css.auth_form_button}
-                onClick={() => handleSubmit(onSubmit)}
+                disabled={isSubmitting}
             >
-                Continue
+                {isSubmitting ? "Loading..." : "Continue"}
             </Button>
             <Button
                 buttonType="transparent"
                 className={css.auth_form_button}
-                onClick={() => handleSubmit(onSubmit)}
+                disabled={isSubmitting || !isSupabaseConfigured}
+                onClick={async () => {
+                    if (!isSupabaseConfigured) {
+                        setFormError(
+                            supabaseConfigError ?? "Supabase is not configured"
+                        );
+                        return;
+                    }
+                    setFormError(null);
+                    setIsSubmitting(true);
+                    try {
+                        const redirectTo = `${window.location.origin}/${locale}${clientRoutes.steps(
+                            3
+                        )}`;
+                        const { error } = await supabase.auth.signInWithOAuth({
+                            provider: "google",
+                            options: { redirectTo },
+                        });
+                        if (error) setFormError(error.message);
+                    } catch {
+                        setFormError(
+                            "Could not reach Supabase. Please check NEXT_PUBLIC_SUPABASE_URL and your DNS/Internet connection."
+                        );
+                    } finally {
+                        setIsSubmitting(false);
+                    }
+                }}
                 icon="google_icon"
             >
                 Continue with Google
             </Button>
             <p className={css.auth_form_sign_in}>
                 Already have an account?{" "}
-                <RootLink href="#" className={css.auth_form_sign_in_link}>
+                <RootLink
+                    href={
+                        pathname.includes("/auth/")
+                            ? clientRoutes.signIn
+                            : `${clientRoutes.steps(2)}?mode=signIn`
+                    }
+                    className={css.auth_form_sign_in_link}
+                >
                     Sign in
                 </RootLink>
             </p>

@@ -40,7 +40,7 @@ export const Step1: React.FC = () => {
             <p className={css.home_new_visitor_sign_in}>
                 Already have an account?{" "}
                 <RootLink
-                    href="#"
+                    href={`${clientRoutes.steps(2)}?mode=signIn`}
                     className={css.home_new_visitor_sign_in_link}
                 >
                     Sign in

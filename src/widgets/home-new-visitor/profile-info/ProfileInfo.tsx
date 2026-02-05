@@ -1,10 +1,11 @@
 import React from "react";
 import css from "./styles.module.scss";
 import Image from "next/image";
-import { useProfileInfo } from "@/shared/hooks";
+import { useProfileInfo, useUserProfile } from "@/shared/hooks";
 export const ProfileInfo: React.FC = () => {
     const { imageSrc, fileInputRef, handleButtonClick, handleFileChange } =
         useProfileInfo();
+    const { fullName, profile } = useUserProfile();
 
     return (
         <div className={css.profile_info}>
@@ -40,7 +41,7 @@ export const ProfileInfo: React.FC = () => {
                         />
                     </button>
                 </div>
-                <h4 className={css.profile_info_head_name}>John Smith</h4>
+                <h4 className={css.profile_info_head_name}>{fullName}</h4>
             </div>
             <div className={css.profile_info_body}>
                 <div className={css.profile_info_body_item}>
@@ -54,7 +55,7 @@ export const ProfileInfo: React.FC = () => {
                         Kingdom
                     </span>
                     <p className={css.profile_info_body_item_value}>
-                        Pennsylvania
+                        {profile?.country || "-"}
                     </p>
                 </div>
                 <div className={css.profile_info_body_item}>
@@ -62,7 +63,7 @@ export const ProfileInfo: React.FC = () => {
                         Club
                     </span>
                     <p className={css.profile_info_body_item_value}>
-                        Pittsburgh Crokinole Club
+                        {profile?.club || "-"}
                     </p>
                 </div>
                 <div className={css.profile_info_body_item}>
