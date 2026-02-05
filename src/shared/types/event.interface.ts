@@ -12,4 +12,5 @@ export interface IEventCardProps {
     winner?: string;
     currentRank?: number;
     totalParticipants?: number;
+    startDate?: string;
 }

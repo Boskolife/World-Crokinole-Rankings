@@ -62,6 +62,7 @@ export async function getEvents(): Promise<IEventCardProps[]> {
             winner: event.winner,
             currentRank: event.current_rank || null,
             totalParticipants: event.total_participants || null,
+            startDate: event.start_date || undefined,
         })) || []
     );
 }
@@ -95,6 +96,7 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
             winner: event.winner,
             currentRank: event.current_rank || null,
             totalParticipants: event.total_participants || null,
+            startDate: event.start_date || undefined,
         })) || []
     );
 }
@@ -128,6 +130,7 @@ export async function getPastEvents(): Promise<IEventCardProps[]> {
             winner: event.winner,
             currentRank: event.current_rank || null,
             totalParticipants: event.total_participants || null,
+            startDate: event.start_date || undefined,
         })) || []
     );
 }
