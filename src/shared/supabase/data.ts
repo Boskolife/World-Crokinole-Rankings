@@ -8,11 +8,38 @@ import type {
     IMatchHistory,
 } from "@/shared/types";
 
+function formatEventDate(startDate: string, endDate: string): string {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    const startMonth = start.toLocaleDateString("en-US", { month: "short" });
+    const startDay = start.getDate();
+    const startTime = start.toLocaleTimeString("en-US", { 
+        hour: "numeric", 
+        minute: "2-digit",
+        hour12: true 
+    });
+    
+    const endMonth = end.toLocaleDateString("en-US", { month: "short" });
+    const endDay = end.getDate();
+    const endTime = end.toLocaleTimeString("en-US", { 
+        hour: "numeric", 
+        minute: "2-digit",
+        hour12: true 
+    });
+    
+    if (startMonth === endMonth && startDay === endDay) {
+        return `${startMonth} ${startDay}, ${startTime} - ${endTime}`;
+    }
+    
+    return `${startMonth} ${startDay}, ${startTime} - ${endMonth} ${endDay}, ${endTime}`;
+}
+
 export async function getEvents(): Promise<IEventCardProps[]> {
     const { data, error } = await supabase
         .from("events")
         .select("*")
-        .order("id", { ascending: true });
+        .order("start_date", { ascending: true });
 
     if (error) {
         console.error("Error fetching events:", error);
@@ -25,12 +52,82 @@ export async function getEvents(): Promise<IEventCardProps[]> {
             image: event.image || "",
             title: event.title,
             price: event.price,
-            date: event.date,
+            date: event.start_date && event.end_date 
+                ? formatEventDate(event.start_date, event.end_date)
+                : "",
             location: event.location,
             format: event.format,
             isRanked: event.is_ranked,
             isRegistrationRequired: event.is_registration_required,
             winner: event.winner,
+            currentRank: event.current_rank || null,
+            totalParticipants: event.total_participants || null,
+        })) || []
+    );
+}
+
+export async function getFutureEvents(): Promise<IEventCardProps[]> {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .gte("start_date", now)
+        .order("start_date", { ascending: true });
+
+    if (error) {
+        console.error("Error fetching future events:", error);
+        return [];
+    }
+
+    return (
+        data?.map((event) => ({
+            id: event.id,
+            image: event.image || "",
+            title: event.title,
+            price: event.price,
+            date: event.start_date && event.end_date 
+                ? formatEventDate(event.start_date, event.end_date)
+                : "",
+            location: event.location,
+            format: event.format,
+            isRanked: event.is_ranked,
+            isRegistrationRequired: event.is_registration_required,
+            winner: event.winner,
+            currentRank: event.current_rank || null,
+            totalParticipants: event.total_participants || null,
+        })) || []
+    );
+}
+
+export async function getPastEvents(): Promise<IEventCardProps[]> {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .lt("end_date", now)
+        .order("start_date", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching past events:", error);
+        return [];
+    }
+
+    return (
+        data?.map((event) => ({
+            id: event.id,
+            image: event.image || "",
+            title: event.title,
+            price: event.price,
+            date: event.start_date && event.end_date 
+                ? formatEventDate(event.start_date, event.end_date)
+                : "",
+            location: event.location,
+            format: event.format,
+            isRanked: event.is_ranked,
+            isRegistrationRequired: event.is_registration_required,
+            winner: event.winner,
+            currentRank: event.current_rank || null,
+            totalParticipants: event.total_participants || null,
         })) || []
     );
 }

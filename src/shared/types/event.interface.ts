@@ -10,4 +10,6 @@ export interface IEventCardProps {
     isRegistrationRequired?: boolean;
     isPastEvent?: boolean;
     winner?: string;
+    currentRank?: number;
+    totalParticipants?: number;
 }
