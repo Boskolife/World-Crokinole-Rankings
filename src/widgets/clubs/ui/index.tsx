@@ -7,7 +7,6 @@ import {
     CustomRoundedDropdown,
     SearchInput,
 } from "@/shared/ui";
-import clubsList from "@/data/clubs-list.json";
 import { IClub } from "@/shared/types";
 import { ClubCard } from "../components/club-card/ClubCard";
 import { clientRoutes } from "@/shared/routes/client";
@@ -34,7 +33,7 @@ export const Clubs: React.FC<IClubsProps> = ({
     createClubButton = false,
 }) => {
     title = title || "Clubs";
-    const clubs: IClub[] = clubsProp || clubsList.clubs;
+    const clubs: IClub[] = clubsProp || [];
     const router = useRouter();
     const {
         clubsContainerRef,

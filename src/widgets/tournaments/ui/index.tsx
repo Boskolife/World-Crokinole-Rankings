@@ -2,12 +2,14 @@
 import React from "react";
 import css from "./styles.module.scss";
 import { TournamentTable } from "@/shared/modules";
-import tournamentsList from "@/data/tournaments-list.json";
 import { ITournament } from "@/shared/types/tournament.interface";
 import { Button } from "@/shared/ui";
 
-export const Tournaments: React.FC = () => {
-    const tournaments: ITournament[] = tournamentsList.tournaments;
+interface TournamentsProps {
+    tournaments: ITournament[];
+}
+
+export const Tournaments: React.FC<TournamentsProps> = ({ tournaments }) => {
 
     return (
         <>

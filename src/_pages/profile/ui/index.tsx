@@ -3,14 +3,22 @@ import { MatchHistory } from "@/widgets/match-history";
 import { Tournaments } from "@/widgets/tournaments";
 import { RatingList } from "@/widgets/rating-list";
 import { Badges } from "@/widgets/badges";
+import { getTournaments, getMatchHistory } from "@/shared/supabase/data";
+import { TournamentsClient } from "./TournamentsClient";
+import { MatchHistoryClient } from "./MatchHistoryClient";
 
-export function ProfilePage() {
+export async function ProfilePage() {
+    const [tournaments, matchHistory] = await Promise.all([
+        getTournaments(),
+        getMatchHistory(),
+    ]);
+
     return (
         <>
             <Account />
-            <Tournaments />
+            <TournamentsClient tournaments={tournaments} />
             <RatingList />
-            <MatchHistory />
+            <MatchHistoryClient matches={matchHistory} />
             <Badges />
         </>
     );

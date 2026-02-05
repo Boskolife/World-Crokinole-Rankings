@@ -2,13 +2,15 @@
 import React from "react";
 import css from "./styles.module.scss";
 import { MatchHistoryTable } from "@/shared/modules/match-history-table/MatchHistoryTable";
-import matchHistoryList from "@/data/match-history-list.json";
 import { IMatchHistory } from "@/shared/types/match-history.interface";
 import { Pagination } from "@/shared/modules";
 import { usePagination } from "@/shared/hooks";
 
-export const MatchHistory: React.FC = () => {
-    const matches: IMatchHistory[] = matchHistoryList.matches;
+interface MatchHistoryProps {
+    matches: IMatchHistory[];
+}
+
+export const MatchHistory: React.FC<MatchHistoryProps> = ({ matches }) => {
 
     const {
         containerRef,

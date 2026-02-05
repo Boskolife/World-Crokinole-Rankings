@@ -5,7 +5,6 @@ import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { Pagination } from "@/shared/modules";
 import { PlayerTable } from "../../../shared/modules/player-table/PlayerTable";
 import { usePagination } from "@/shared/hooks";
-import playersList from "@/data/players-list.json";
 import { IPlayer } from "@/shared/types";
 import { exampleKingdomOptions } from "@/shared/constants";
 
@@ -15,8 +14,11 @@ const clubOptions = [
     { value: "club-3", label: "Club 3" },
 ];
 
-export const Players: React.FC = () => {
-    const players: IPlayer[] = playersList.players;
+interface PlayersProps {
+    players: IPlayer[];
+}
+
+export const Players: React.FC<PlayersProps> = ({ players }) => {
 
     const {
         containerRef,

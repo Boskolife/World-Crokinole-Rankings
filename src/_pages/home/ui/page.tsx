@@ -5,26 +5,38 @@ import { News } from "@/widgets/news";
 import { Rankings } from "@/widgets/rankings";
 import { Events } from "@/widgets/events";
 import { Clubs } from "@/widgets/clubs";
-import eventsList from "@/data/events-list.json";
 import { SubscribePlans } from "@/shared/modules";
+import { getEvents, getAllRankings, getClubs } from "@/shared/supabase/data";
+import { EventsClient } from "./EventsClient";
+import { RankingsClient } from "./RankingsClient";
+import { ClubsClient } from "./ClubsClient";
 
-const events = eventsList.events;
+export async function HomePage() {
+    const [events, rankings, clubs] = await Promise.all([
+        getEvents(),
+        getAllRankings(),
+        getClubs(),
+    ]);
 
-export function HomePage() {
     return (
         <>
             <Hero />
             <StatsPreview />
             <Navigation />
             <News />
-            <Rankings />
-            <Events
+            <RankingsClient rankings={rankings} />
+            <EventsClient
                 title="Future events"
                 events={events}
                 needViewAllButton={true}
                 totalItems={6}
             />
-            <Clubs title="Clubs" needViewAllButton={true} totalItems={6} />
+            <ClubsClient
+                title="Clubs"
+                clubs={clubs}
+                needViewAllButton={true}
+                totalItems={6}
+            />
             <SubscribePlans
                 title="Upgrade to Premium to create ranked events and unlock more
                 features"

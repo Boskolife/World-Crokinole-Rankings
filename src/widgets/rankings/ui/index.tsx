@@ -7,7 +7,6 @@ import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { RankingList } from "../components/ranking-list/RankingList";
 import { Pagination } from "@/shared/modules";
 
-import rankedListData from "@/data/ranked-list.json";
 import { CustomButton } from "@/shared/ui/buttons";
 import { useRankingsList } from "@/shared/hooks";
 import {
@@ -20,7 +19,17 @@ import {
 
 type CategoryValue = RankingsCategoryValue;
 
-export const Rankings: React.FC = () => {
+import type { IRankList } from "@/shared/types";
+
+interface RankingsProps {
+    rankings: {
+        laurels: IRankList[];
+        singles: IRankList[];
+        doubles: IRankList[];
+    };
+}
+
+export const Rankings: React.FC<RankingsProps> = ({ rankings }) => {
     const {
         listRef,
         displayedList,
@@ -35,7 +44,7 @@ export const Rankings: React.FC = () => {
         handlePageChange,
         handleViewFullList,
     } = useRankingsList<CategoryValue>({
-        lists: rankedListData.rankedList,
+        lists: rankings,
         initialCategory: rankingsSwitcherOptions[0].value,
     });
 
