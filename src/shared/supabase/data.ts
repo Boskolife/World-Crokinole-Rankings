@@ -139,6 +139,7 @@ export async function getPlayers(): Promise<IPlayer[]> {
     const { data, error } = await supabase
         .from("players")
         .select("*")
+        .not("user_id", "is", null)
         .order("rating", { ascending: false });
 
     if (error) {
@@ -148,7 +149,7 @@ export async function getPlayers(): Promise<IPlayer[]> {
 
     return (
         data?.map((player) => ({
-            id: player.id,
+            id: player.user_id || player.id,
             name: player.name,
             countryCode: player.country_code,
             kingdom: player.kingdom,
