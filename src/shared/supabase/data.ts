@@ -159,6 +159,127 @@ export async function getPlayers(): Promise<IPlayer[]> {
     );
 }
 
+export interface GetPlayersParams {
+    search?: string;
+    kingdom?: string;
+    club?: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface GetPlayersResult {
+    players: IPlayer[];
+    total: number;
+}
+
+export async function getPlayersWithFilters(
+    params: GetPlayersParams = {}
+): Promise<GetPlayersResult> {
+    const {
+        search = "",
+        kingdom = "",
+        club = "",
+        page = 1,
+        pageSize = 10,
+    } = params;
+
+    let query = supabase
+        .from("players")
+        .select("*", { count: "exact" })
+        .not("user_id", "is", null);
+
+    if (search) {
+        const searchPattern = `%${search}%`;
+        query = query.or(`name.ilike.${searchPattern},club.ilike.${searchPattern}`);
+    }
+
+    if (kingdom) {
+        query = query.eq("kingdom", kingdom);
+    }
+
+    if (club) {
+        query = query.eq("club", club);
+    }
+
+    query = query.order("rating", { ascending: false });
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+        console.error("Error fetching players with filters:", error);
+        return { players: [], total: 0 };
+    }
+
+    const players =
+        data?.map((player) => ({
+            id: player.user_id || player.id,
+            name: player.name,
+            countryCode: player.country_code,
+            kingdom: player.kingdom,
+            club: player.club,
+            rating: player.rating,
+        })) || [];
+
+    return {
+        players,
+        total: count || 0,
+    };
+}
+
+export async function getUniqueKingdoms(): Promise<
+    Array<{ value: string; label: string }>
+> {
+    const { data, error } = await supabase
+        .from("players")
+        .select("kingdom")
+        .not("user_id", "is", null)
+        .not("kingdom", "is", null);
+
+    if (error) {
+        console.error("Error fetching kingdoms:", error);
+        return [];
+    }
+
+    const uniqueKingdoms = Array.from(
+        new Set(data?.map((p) => p.kingdom).filter(Boolean) || [])
+    ).sort();
+
+    return uniqueKingdoms.map((kingdom) => ({
+        value: kingdom,
+        label: kingdom,
+    }));
+}
+
+export async function getUniqueClubs(): Promise<
+    Array<{ value: string; label: string }>
+> {
+    const { data, error } = await supabase
+        .from("players")
+        .select("club")
+        .not("user_id", "is", null)
+        .not("club", "is", null)
+        .neq("club", "");
+
+    if (error) {
+        console.error("Error fetching clubs:", error);
+        return [];
+    }
+
+    const uniqueClubs = Array.from(
+        new Set(data?.map((p) => p.club).filter(Boolean) || [])
+    ).sort();
+
+    return uniqueClubs.map((club) => ({
+        value: club,
+        label: club,
+    }));
+}
+
 export async function getClubs(): Promise<IClub[]> {
     const { data, error } = await supabase
         .from("clubs")
