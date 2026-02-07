@@ -56,8 +56,9 @@ export const exampleKingdomOptions: DropdownOption[] = [
 
 // Sort order options (used for sorting by rank/rating)
 export const sortOrderOptions: DropdownOption[] = [
-    { value: "rank-asc", label: "Rank Ascending" },
-    { value: "rank-desc", label: "Rank Descending" },
+    { value: "id", label: "Default" },
+    { value: "members-desc", label: "Members (High to Low)" },
+    { value: "members-asc", label: "Members (Low to High)" },
 ];
 
 export const ratingListSwitcherOptions: DropdownOption[] = [

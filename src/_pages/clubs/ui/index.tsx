@@ -1,11 +1,7 @@
-import { Clubs } from "@/widgets/clubs";
 import { HeroSecondary } from "@/widgets/hero-secondary";
-import { getClubs } from "@/shared/supabase/data";
 import { ClubsClient } from "./ClubsClient";
 
 export async function ClubsPage() {
-    const clubs = await getClubs();
-
     return (
         <>
             <HeroSecondary
@@ -14,7 +10,6 @@ export async function ClubsPage() {
             />
             <ClubsClient
                 title="Join a club"
-                clubs={clubs}
                 needPagination={true}
                 createClubButton={true}
             />

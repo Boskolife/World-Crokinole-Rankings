@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import css from "./styles.module.scss";
 import {
     Button,
@@ -12,44 +12,116 @@ import { ClubCard } from "../components/club-card/ClubCard";
 import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
-import { useClubs } from "@/shared/hooks";
-import { exampleKingdomOptions, sortOrderOptions } from "@/shared/constants";
+import {
+    getClubsWithFilters,
+    getUniqueLocations,
+} from "@/shared/supabase/data";
+import { sortOrderOptions } from "@/shared/constants";
 
 export interface IClubsProps {
     title?: string;
-    clubs?: IClub[];
+    initialClubs?: IClub[];
     needViewAllButton?: boolean;
     needPagination?: boolean;
-    totalItems?: number;
     createClubButton?: boolean;
 }
 
 export const Clubs: React.FC<IClubsProps> = ({
     title,
-    clubs: clubsProp,
+    initialClubs = [],
     needViewAllButton = false,
-    needPagination = false,
-    totalItems,
+    needPagination = true,
     createClubButton = false,
 }) => {
     title = title || "Clubs";
-    const clubs: IClub[] = clubsProp || [];
     const router = useRouter();
-    const {
-        clubsContainerRef,
-        displayedClubs,
-        effectiveTotalItems,
-        resolvedCurrentPage,
-        pageSize,
-        handlePageChange,
-    } = useClubs({
-        clubs,
-        needPagination,
-        totalItems,
-    });
+    const [clubs, setClubs] = useState<IClub[]>(initialClubs);
+    const [totalClubs, setTotalClubs] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const [searchValue, setSearchValue] = useState("");
+    const [selectedLocation, setSelectedLocation] = useState("");
+    const [sortBy, setSortBy] = useState("id");
+    const [locationOptions, setLocationOptions] = useState<
+        Array<{ value: string; label: string }>
+    >([]);
+
+    const pageSize = 6;
+
+    useEffect(() => {
+        if (!needPagination) {
+            if (initialClubs && initialClubs.length > 0) {
+                setClubs(initialClubs);
+            }
+            return;
+        }
+
+        const loadFilterOptions = async () => {
+            try {
+                const locations = await getUniqueLocations();
+                setLocationOptions(locations);
+            } catch (error) {
+                console.error("Error loading filter options:", error);
+            }
+        };
+
+        loadFilterOptions();
+    }, [needPagination]);
+
+    useEffect(() => {
+        if (!needPagination) return;
+
+        const loadClubs = async () => {
+            setIsLoading(true);
+            try {
+                const result = await getClubsWithFilters({
+                    search,
+                    location: selectedLocation || undefined,
+                    page: currentPage,
+                    pageSize,
+                    sortBy,
+                });
+                setClubs(result.clubs);
+                setTotalClubs(result.total);
+            } catch (error) {
+                console.error("Error loading clubs:", error);
+                setClubs([]);
+                setTotalClubs(0);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadClubs();
+    }, [search, selectedLocation, currentPage, sortBy, needPagination, pageSize]);
+
+    const handleSearch = () => {
+        setSearch(searchValue);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(e.target.value);
+    };
+
+    const handleLocationChange = (value: string) => {
+        setSelectedLocation(value);
+        setCurrentPage(1);
+    };
+
+    const handleSortChange = (value: string) => {
+        setSortBy(value);
+        setCurrentPage(1);
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     return (
-        <section className={css.clubs} ref={clubsContainerRef}>
+        <section className={css.clubs}>
             <div className="container">
                 <div className={css.clubs_title_wrap}>
                     <h2 className={css.clubs_title}>{title}</h2>
@@ -64,41 +136,59 @@ export const Clubs: React.FC<IClubsProps> = ({
                         </Button>
                     )}
                 </div>
-                <div className={css.clubs_head}>
-                    <SearchInput
-                        placeholder="Find player by name or club"
-                        ariaLabel="Find club by name"
-                        className={css.clubs_head_search}
-                    />
-                    <div className={css.clubs_head_dropdowns}>
-                        <CustomRoundedDropdown
-                            id="club-dropdown"
-                            options={exampleKingdomOptions}
-                            placeholder="Kingdom"
-                            aria-label="Select Kingdom"
-                            className={css.clubs_head_dropdown}
-                        />
-                        <CustomRoundedDropdown
-                            id="sort-dropdown"
-                            options={sortOrderOptions}
-                            placeholder="Sort by Rank"
-                            aria-label="Select Sort by"
-                            className={css.clubs_head_dropdown}
-                        />
-                    </div>
-                </div>
-                <div className={css.clubs_content}>
-                    {displayedClubs.map((club) => (
-                        <ClubCard key={club.id} {...club} />
-                    ))}
-                </div>
                 {needPagination && (
-                    <Pagination
-                        totalItems={effectiveTotalItems}
-                        pageSize={pageSize}
-                        currentPage={resolvedCurrentPage}
-                        onPageChange={handlePageChange}
-                    />
+                    <div className={css.clubs_head}>
+                        <SearchInput
+                            placeholder="Find club by name or location"
+                            ariaLabel="Find club by name or location"
+                            className={css.clubs_head_search}
+                            value={searchValue}
+                            onChange={handleSearchChange}
+                            onSearch={handleSearch}
+                        />
+                        <div className={css.clubs_head_dropdowns}>
+                            <CustomRoundedDropdown
+                                id="location-dropdown"
+                                options={[
+                                    { value: "", label: "All Locations" },
+                                    ...locationOptions,
+                                ]}
+                                placeholder="Location"
+                                aria-label="Select Location"
+                                className={css.clubs_head_dropdown}
+                                value={selectedLocation}
+                                onChange={handleLocationChange}
+                            />
+                            <CustomRoundedDropdown
+                                id="sort-dropdown"
+                                options={sortOrderOptions}
+                                placeholder="Sort by"
+                                aria-label="Select Sort by"
+                                className={css.clubs_head_dropdown}
+                                value={sortBy}
+                                onChange={handleSortChange}
+                            />
+                        </div>
+                    </div>
+                )}
+                {isLoading ? (
+                    <div className={css.clubs_loading}>Loading...</div>
+                ) : (
+                    <>
+                        <div className={css.clubs_content}>
+                            {clubs.map((club) => (
+                                <ClubCard key={club.id} {...club} />
+                            ))}
+                        </div>
+                        {needPagination && totalClubs > 0 && (
+                            <Pagination
+                                totalItems={totalClubs}
+                                pageSize={pageSize}
+                                currentPage={currentPage}
+                                onPageChange={handlePageChange}
+                            />
+                        )}
+                    </>
                 )}
                 {needViewAllButton && (
                     <CustomButton

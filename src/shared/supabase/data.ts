@@ -310,6 +310,107 @@ export async function getClubs(): Promise<IClub[]> {
     );
 }
 
+export interface GetClubsParams {
+    search?: string;
+    location?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+}
+
+export interface GetClubsResult {
+    clubs: IClub[];
+    total: number;
+}
+
+export async function getClubsWithFilters(
+    params: GetClubsParams = {}
+): Promise<GetClubsResult> {
+    const {
+        search = "",
+        location = "",
+        page = 1,
+        pageSize = 6,
+        sortBy = "id",
+    } = params;
+
+    let query = supabase
+        .from("clubs")
+        .select("*", { count: "exact" });
+
+    if (search) {
+        const searchPattern = `%${search}%`;
+        query = query.or(`title.ilike.${searchPattern},description.ilike.${searchPattern},location.ilike.${searchPattern}`);
+    }
+
+    if (location) {
+        query = query.eq("location", location);
+    }
+
+    const ascending = sortBy === "id" || sortBy === "members-asc";
+    query = query.order(
+        sortBy.startsWith("members") ? "members" : "id",
+        { ascending }
+    );
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+        console.error("Error fetching clubs with filters:", error);
+        return { clubs: [], total: 0 };
+    }
+
+    const clubs =
+        data?.map((club) => ({
+            id: club.id,
+            title: club.title,
+            image: club.image || "",
+            description: club.description,
+            members: club.members,
+            location: club.location,
+            labels: club.labels || "",
+            country: club.country || "",
+            labelItem1: club.label_item1 || "",
+            labelItem2: club.label_item2 || "",
+            hosted: club.hosted,
+            veteranPlayers: club.veteran_players,
+            isLocked: club.is_locked,
+        })) || [];
+
+    return {
+        clubs,
+        total: count || 0,
+    };
+}
+
+export async function getUniqueLocations(): Promise<
+    Array<{ value: string; label: string }>
+> {
+    const { data, error } = await supabase
+        .from("clubs")
+        .select("location")
+        .not("location", "is", null);
+
+    if (error) {
+        console.error("Error fetching locations:", error);
+        return [];
+    }
+
+    const uniqueLocations = Array.from(
+        new Set(data?.map((c) => c.location).filter(Boolean) || [])
+    ).sort();
+
+    return uniqueLocations.map((location) => ({
+        value: location,
+        label: location,
+    }));
+}
+
 export async function getTournaments(): Promise<ITournament[]> {
     const { data, error } = await supabase
         .from("tournaments")
