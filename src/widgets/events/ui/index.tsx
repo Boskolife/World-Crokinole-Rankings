@@ -5,6 +5,7 @@ import { CustomRoundedDropdown } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
 import cn from "classnames";
 import { EventCard } from "../components/event-card/EventCard";
+import { EventsMap } from "../components/events-map/EventsMap";
 import { IEventCardProps } from "@/shared/types";
 import { CustomButton } from "@/shared/ui/buttons";
 import { clientRoutes } from "@/shared/routes/client";
@@ -238,12 +239,16 @@ export const Events: React.FC<IEventsProps> = ({
                         </button>
                     </div>
                 </div>
-                <div className={css.events_content}>
-                    {displayedEvents.map((event) => (
-                        <EventCard key={event.id} {...event} isPastEvent={isPastEvents} />
-                    ))}
-                </div>
-                {needViewAllButton && (
+                {activeSwitcher === "map" ? (
+                    <EventsMap events={filteredEvents} />
+                ) : (
+                    <div className={css.events_content}>
+                        {displayedEvents.map((event) => (
+                            <EventCard key={event.id} {...event} isPastEvent={isPastEvents} />
+                        ))}
+                    </div>
+                )}
+                {needViewAllButton && activeSwitcher === "list" && (
                     <CustomButton
                         className={css.events_button}
                         onClick={() => router.push(clientRoutes.events)}
@@ -251,7 +256,7 @@ export const Events: React.FC<IEventsProps> = ({
                         View all events
                     </CustomButton>
                 )}
-                {needPagination && (
+                {needPagination && activeSwitcher === "list" && (
                     <Pagination
                         totalItems={effectiveTotalItems}
                         pageSize={pageSize}
