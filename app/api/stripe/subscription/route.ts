@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
             subscription.stripe_subscription_id
         );
 
-        // Используем актуальные данные из Stripe для current_period_start и current_period_end
+        // Use actual data from Stripe for current_period_start and current_period_end
         const stripeSubAny = stripeSubscription as any;
         const periodStart = stripeSubAny.current_period_start;
         const periodEnd = stripeSubAny.current_period_end;
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
             ? new Date(periodEnd * 1000).toISOString()
             : subscription.current_period_end;
 
-        // Обновляем данные в базе, если они отсутствуют или устарели
+        // Update database data if it's missing or outdated
         if (!subscription.current_period_start || !subscription.current_period_end) {
             await supabase
                 .from("subscriptions")

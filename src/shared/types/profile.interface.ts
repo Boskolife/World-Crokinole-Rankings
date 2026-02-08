@@ -6,6 +6,7 @@ export interface IProfile {
     country: string | null;
     club: string | null;
     subscription_plan?: SubscriptionPlan;
+    is_admin?: boolean;
     created_at?: string;
     updated_at?: string;
 }

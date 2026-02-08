@@ -23,6 +23,7 @@ export interface ISubscribeCardProps {
     onSelect?: () => void;
     isSelected?: boolean;
     isSaving?: boolean;
+    hasActiveSubscription?: boolean;
 }
 
 export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
@@ -40,6 +41,7 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
     onSelect,
     isSelected,
     isSaving,
+    hasActiveSubscription = false,
 }) => {
     const router = useRouter();
     const locale = useLocale();
@@ -52,7 +54,7 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
             return;
         }
 
-        // Для free плана с onSelect (отмена подписки) разрешаем действие
+        // For free plan with onSelect (subscription cancellation) allow the action
         if (id === 1 && !onSelect) {
             return;
         }
@@ -145,7 +147,7 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
                     onClick={handleSubscribe}
                     disabled={isLoading || isSaving}
                 >
-                    {isSaving ? "Canceling..." : isLoading ? "Loading..." : (id === 1 && onSelect) ? "Cancel Subscription" : buttonText}
+                    {isSaving ? "Canceling..." : isLoading ? "Loading..." : (id === 1 && onSelect && hasActiveSubscription) ? "Cancel Subscription" : buttonText}
                 </CustomButton>
             )}
         </div>

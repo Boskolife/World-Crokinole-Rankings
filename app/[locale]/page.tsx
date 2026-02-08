@@ -10,23 +10,17 @@ export default function LocaleRootPage() {
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
-    const { isAuth } = useAuth();
+    const { isAuth, isMounted } = useAuth();
+
     useEffect(() => {
-        try {
-            const flag =
-                typeof window !== "undefined"
-                    ? window.localStorage.getItem("isAuth")
-                    : null;
-            const isAuth = flag === "true";
-            if (isAuth) {
-                router.replace(`/${locale}/dashboard`);
-            } else {
-                router.replace(`/${locale}${clientRoutes.steps(1)}`);
-            }
-        } catch {
+        if (!isMounted) return;
+
+        if (isAuth) {
+            router.replace(`/${locale}/dashboard`);
+        } else {
             router.replace(`/${locale}${clientRoutes.steps(1)}`);
         }
-    }, [router, locale, isAuth]);
+    }, [router, locale, isAuth, isMounted]);
 
     return null;
 }

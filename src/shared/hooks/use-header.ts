@@ -177,28 +177,28 @@ export const useHeader = () => {
     };
 
     const handleRankingsClick = () => {
-        // Убираем локаль из pathname для сравнения (формат: /en/, /ru/, /fr/ и т.д.)
+        // Remove locale from pathname for comparison (format: /en/, /ru/, /fr/, etc.)
         const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(\/|$)/, "/") || "/";
         const isOnHomePage = pathWithoutLocale === "/" || pathWithoutLocale === clientRoutes.home;
 
         if (isOnHomePage) {
-            // Если уже на главной странице, просто прокручиваем
+            // If already on home page, just scroll
             scrollToRankings();
         } else {
-            // Если не на главной, переходим на главную
+            // If not on home page, navigate to home
             router.push(clientRoutes.home);
-            // Ждем загрузки страницы и наличия элемента перед прокруткой
+            // Wait for page load and element presence before scrolling
             let attempts = 0;
-            const maxAttempts = 20; // Максимум 20 попыток (1 секунда)
+            const maxAttempts = 20; // Maximum 20 attempts (1 second)
             const checkAndScroll = () => {
                 if (scrollToRankings() || attempts >= maxAttempts) {
                     return;
                 }
                 attempts++;
-                // Если элемент еще не загружен, проверяем снова через небольшой интервал
+                // If element is not loaded yet, check again after a short interval
                 setTimeout(checkAndScroll, 50);
             };
-            // Начинаем проверку после небольшой задержки для начала рендера
+            // Start checking after a short delay for rendering to begin
             setTimeout(checkAndScroll, 100);
         }
     };

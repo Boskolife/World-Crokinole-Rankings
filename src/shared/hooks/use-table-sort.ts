@@ -25,10 +25,10 @@ export const useTableSort = <T,>({
 
     const handleSort = (column: string) => {
         if (sortColumn === column) {
-            // Если кликнули на ту же колонку, меняем направление
+            // If clicked on the same column, change direction
             setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
         } else {
-            // Если кликнули на другую колонку, устанавливаем её и направление по умолчанию
+            // If clicked on a different column, set it and default direction
             setSortColumn(column);
             setSortDirection("asc");
         }
@@ -47,12 +47,12 @@ export const useTableSort = <T,>({
                 aValue = sortFn(a, sortColumn);
                 bValue = sortFn(b, sortColumn);
             } else {
-                // Fallback: пытаемся получить значение через ключ объекта
+                // Fallback: try to get value via object key
                 aValue = (a as Record<string, unknown>)[sortColumn] as string | number;
                 bValue = (b as Record<string, unknown>)[sortColumn] as string | number;
             }
 
-            // Нормализуем строковые значения
+            // Normalize string values
             if (typeof aValue === "string") {
                 aValue = aValue.toLowerCase();
             }

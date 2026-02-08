@@ -77,7 +77,7 @@ export function useRankingsList<Category extends string>({
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // Используем setTimeout для того, чтобы прокрутка происходила после обновления DOM
+        // Use setTimeout so scrolling happens after DOM update
         setTimeout(() => {
             scrollToListTop();
         }, 0);

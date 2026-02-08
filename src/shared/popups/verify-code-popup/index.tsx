@@ -29,7 +29,7 @@ export const VerifyCodePopup: React.FC = () => {
     const onSubmit = (data: { code: string }) => {
         console.log("submit", data);
         handleSwitchToLinked();
-        // Здесь будет логика отправки формы
+        // Form submission logic will be here
     };
 
     return (

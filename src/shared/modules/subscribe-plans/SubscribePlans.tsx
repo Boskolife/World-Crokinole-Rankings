@@ -65,7 +65,7 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
                 console.log('Current subscription loaded:', subscriptionData);
                 setCurrentSubscription(subscriptionData);
                 
-                // Автоматически переключаем displayMode на период текущей подписки
+                // Automatically switch displayMode to current subscription period
                 if (subscriptionData.billingPeriod !== displayMode) {
                     setDisplayMode(subscriptionData.billingPeriod);
                     setPlanMode(subscriptionData.billingPeriod);
@@ -136,7 +136,7 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
     };
 
     const handleFreePlanSelect = async () => {
-        // Если есть активная подписка, отменяем её
+        // If there's an active subscription, cancel it
         if (currentSubscription && currentSubscription.planId !== 1) {
             await handleCancelSubscription();
         }
@@ -177,10 +177,10 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
                     {currentPlans.map((plan) => {
                         let isCurrentPlan = false;
 
-                        // Определяем текущий план
+                        // Determine current plan
                         if (currentSubscription) {
-                            // Если есть активная подписка, проверяем совпадение planId
-                            // Показываем как текущий, если это тот же план, независимо от displayMode
+                            // If there's an active subscription, check planId match
+                            // Show as current if it's the same plan, regardless of displayMode
                             isCurrentPlan = plan.id === currentSubscription.planId;
                             
                             if (plan.id === currentSubscription.planId) {
@@ -195,11 +195,11 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
                             plan.id === 1 &&
                             (!profile?.subscription_plan || profile.subscription_plan === "standard")
                         ) {
-                            // Если нет подписки и это free план, он текущий
+                            // If there's no subscription and this is the free plan, it's current
                             isCurrentPlan = true;
                         }
 
-                        // Для free плана (id=1) с активной подпиской добавляем обработчик отмены
+                        // For free plan (id=1) with active subscription, add cancellation handler
                         const shouldShowCancel = plan.id === 1 && currentSubscription && currentSubscription.planId !== 1;
 
                         return (

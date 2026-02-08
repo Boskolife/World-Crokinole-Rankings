@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import css from "../subscribe-plans/styles.module.scss";
 import cn from "classnames";
 import { SwitcherModule } from "@/shared/modules";
@@ -31,7 +31,28 @@ export const SubscribePlansRegistration: React.FC = () => {
     );
     const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const checkSubscription = async () => {
+            if (!user) {
+                setHasActiveSubscription(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/stripe/subscription?userId=${user.id}`);
+                const data = await response.json();
+                setHasActiveSubscription(data.subscription !== null && data.subscription.status === "active");
+            } catch (error) {
+                console.error("Failed to check subscription:", error);
+                setHasActiveSubscription(false);
+            }
+        };
+
+        checkSubscription();
+    }, [user]);
 
     const handleModeChange = (newMode: "monthly" | "annual") => {
         if (newMode === displayMode) return;
@@ -147,17 +168,21 @@ export const SubscribePlansRegistration: React.FC = () => {
                         [css.subscribe_plans_cards_fading_in]: isFadingIn,
                     })}
                 >
-                    {currentPlans.map((plan) => (
-                        <SubscribeCard
-                            key={plan.id}
-                            {...(plan as ISubscribeCardProps)}
-                            currentPlan={false}
-                            billingPeriod={displayMode}
-                            onSelect={() => handlePlanSelect(plan.id)}
-                            isSelected={selectedPlanId === plan.id}
-                            isSaving={isSaving && selectedPlanId === plan.id}
-                        />
-                    ))}
+                    {currentPlans.map((plan) => {
+                        const shouldShowCancel = plan.id === 1 && hasActiveSubscription;
+                        return (
+                            <SubscribeCard
+                                key={plan.id}
+                                {...(plan as ISubscribeCardProps)}
+                                currentPlan={false}
+                                billingPeriod={displayMode}
+                                onSelect={shouldShowCancel ? () => handlePlanSelect(plan.id) : () => handlePlanSelect(plan.id)}
+                                isSelected={selectedPlanId === plan.id}
+                                isSaving={isSaving && selectedPlanId === plan.id}
+                                hasActiveSubscription={hasActiveSubscription}
+                            />
+                        );
+                    })}
                 </div>
                 <p className={css.subscribe_plans_description}>
                     Prices in USD, billed {displayMode === "annual" ? "annually" : "monthly"}. You can change or cancel

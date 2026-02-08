@@ -6,7 +6,7 @@ $minWidth: 375;
   $addSize: $startSize - $minSize;
 
   @if $type==1 {
-    /* Только если меньше контейнера */
+    /* Only if smaller than container */
     #{$property}: $startSize + px;
 
     @media (max-width: #{$maxWidthContainer + px}) {
@@ -16,7 +16,7 @@ $minWidth: 375;
       );
     }
   } @else if $type==2 {
-    /* Только если больше контейнера */
+    /* Only if larger than container */
     #{$property}: $startSize + px;
 
     @media (min-width: #{$maxWidthContainer + px}) {
@@ -26,7 +26,7 @@ $minWidth: 375;
       );
     }
   } @else {
-    /* Во всех случаях */
+    /* In all cases */
     #{$property}: calc(
       #{$minSize +
         px} +
@@ -51,10 +51,10 @@ $minWidth: 375;
     @include adaptive-value("font-size", 115, 96, 1);
 */
 
-/* "paddibg" - свойство которое нужно адаптировать */
+/* "padding" - property that needs to be adapted */
 
-/* 50 - максимальное значение свойства в px */
+/* 50 - maximum property value in px */
 
-/* 20 - минимальное значение свойства в px */
+/* 20 - minimum property value in px */
 
-/* 0 или 1 или 2 - ($type) условие, по которому будет выполняться адаптив */
+/* 0 or 1 or 2 - ($type) condition by which adaptation will be performed */

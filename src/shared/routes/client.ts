@@ -7,6 +7,7 @@ export const clientRoutes = {
     profile: "/profile",
     signIn: "/auth/sign-in",
     signUp: "/auth/sign-up",
+    admin: "/admin",
 
     steps: (step: number) => `/new-visitor/step-${step}`,
 };

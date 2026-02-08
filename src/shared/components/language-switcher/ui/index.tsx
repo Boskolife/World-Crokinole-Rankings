@@ -23,7 +23,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     const dropdownRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Получаем локаль из URL параметров
+    // Get locale from URL parameters
     const locale = (params?.locale as string) || (localeConfig.defaultLocale as string);
 
     const handleClose = () => {
@@ -34,7 +34,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         timeoutRef.current = setTimeout(() => {
             setIsOpen(false);
             setIsClosing(false);
-        }, 300); // Длительность анимации закрытия
+        }, 300); // Animation duration for closing
     };
 
     const handleToggle = () => {
@@ -50,7 +50,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     };
 
     const handleLocaleChange = (newLocale: string) => {
-        // Получаем путь без локали
+        // Get path without locale
         const pathWithoutLocale = pathname.replace(`/${locale}`, "") || "/";
         router.replace(pathWithoutLocale, { locale: newLocale });
         handleClose();

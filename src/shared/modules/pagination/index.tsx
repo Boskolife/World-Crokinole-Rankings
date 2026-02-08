@@ -39,26 +39,26 @@ export const Pagination: React.FC<IPaginationProps> = ({
         const maxVisible = 5;
 
         if (totalPages <= maxVisible + 2) {
-            // Если страниц мало, показываем все
+            // If there are few pages, show all
             return Array.from({ length: totalPages }, (_, i) => i + 1);
         }
 
         if (currentPage <= maxVisible - 1) {
-            // Показываем первые страницы + последнюю
+            // Show first pages + last
             for (let i = 1; i <= maxVisible; i++) {
                 visiblePages.push(i);
             }
             visiblePages.push("...");
             visiblePages.push(totalPages);
         } else if (currentPage >= totalPages - maxVisible + 2) {
-            // Показываем первую + последние страницы
+            // Show first + last pages
             visiblePages.push(1);
             visiblePages.push("...");
             for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
                 visiblePages.push(i);
             }
         } else {
-            // Показываем первую + средние + последнюю
+            // Show first + middle + last
             visiblePages.push(1);
             visiblePages.push("...");
             for (let i = currentPage - 1; i <= currentPage + 1; i++) {

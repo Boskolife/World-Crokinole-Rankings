@@ -13,7 +13,7 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
-// Конфигурация для вебхука - отключаем body parsing
+// Webhook configuration - disable body parsing
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
             ? (subscription.items.data[0]?.price?.recurring?.interval_count === 12 ? "annual" : "monthly")
             : "monthly";
 
-        // Правильно извлекаем current_period_start и current_period_end из Stripe subscription
-        // Stripe возвращает эти значения как числа (Unix timestamp в секундах)
+        // Correctly extract current_period_start and current_period_end from Stripe subscription
+        // Stripe returns these values as numbers (Unix timestamp in seconds)
         const subscriptionAny = subscription as any;
         const periodStart = subscriptionAny.current_period_start;
         const periodEnd = subscriptionAny.current_period_end;
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
             hasPeriodEnd: periodEnd !== undefined && periodEnd !== null,
         });
 
-        // Конвертируем Unix timestamp в ISO строку для базы данных
+        // Convert Unix timestamp to ISO string for database
         const periodStartISO = periodStart && typeof periodStart === 'number' 
             ? new Date(periodStart * 1000).toISOString() 
             : null;

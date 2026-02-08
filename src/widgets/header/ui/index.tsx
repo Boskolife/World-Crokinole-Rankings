@@ -31,11 +31,14 @@ const getPlanLabel = (plan?: SubscriptionPlan): string => {
 
 export const Header: React.FC = () => {
     const { isMenuOpen, handleToggleMenu, navMenuItems, tAuth } = useHeader();
-    const { isAuth } = useAuth();
-    const { profile } = useUserProfile();
+    const { isAuth, isMounted } = useAuth();
+    const { profile, isLoading: profileLoading } = useUserProfile();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
+    
+    const shouldShowAuthContent = isMounted && isAuth && !profileLoading && profile !== null;
+    
     return (
         <header className={cn(css.header, "header")}>
             <div className="container">
@@ -46,11 +49,11 @@ export const Header: React.FC = () => {
                     <div
                         className={cn(css.header_inner, {
                             [css.open]: isMenuOpen,
-                            [css.isAuth]: isAuth,
+                            [css.isAuth]: shouldShowAuthContent,
                         })}
                     >
                         <NavMenu items={navMenuItems} />
-                        {isAuth ? (
+                        {shouldShowAuthContent ? (
                             <div
                                 className={css.header_profile}
                                 suppressHydrationWarning

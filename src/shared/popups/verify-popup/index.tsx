@@ -18,7 +18,7 @@ export const VerifyPopup: React.FC = () => {
         console.log("submit", data);
         openPopup("verify-code", { email: data.email });
         closePopup("verify");
-        // Здесь будет логика отправки формы
+        // Form submission logic will be here
     };
 
     const handleManualReview = (e: React.MouseEvent<HTMLAnchorElement>) => {

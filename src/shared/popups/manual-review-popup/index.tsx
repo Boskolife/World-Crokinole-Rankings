@@ -21,7 +21,7 @@ export const ManualReviewPopup: React.FC = () => {
     }) => {
         console.log("submit", data);
         closeAllPopups();
-        // Здесь будет логика отправки формы
+        // Form submission logic will be here
     };
 
     return (

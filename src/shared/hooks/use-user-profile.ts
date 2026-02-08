@@ -19,12 +19,21 @@ function getFallbackName(email?: string | null) {
 }
 
 export const useUserProfile = () => {
-    const { user } = useAuth();
+    const { user, isAuth } = useAuth();
     const userId = user?.id ?? null;
 
     const [profile, setProfile] = useState<IProfile | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isAuth || !userId) {
+            setProfile(null);
+            setIsLoading(false);
+            setError(null);
+            cache.delete(userId || "");
+        }
+    }, [isAuth, userId]);
 
     const refetch = useCallback(async () => {
         if (!isSupabaseConfigured || !userId) {
@@ -40,7 +49,7 @@ export const useUserProfile = () => {
         try {
             const { data, error: dbError } = await supabase
                 .from("profiles")
-                .select("id, full_name, country, club, subscription_plan")
+                .select("id, full_name, country, club, subscription_plan, is_admin")
                 .eq("id", userId)
                 .maybeSingle();
 
@@ -68,12 +77,18 @@ export const useUserProfile = () => {
             setProfile(null);
             setIsLoading(false);
             setError(null);
+            cache.delete(userId);
             return;
         }
 
         const cached = cache.get(userId);
-        if (cached) {
+        const cacheAge = cached ? Date.now() - cached.updatedAt : Infinity;
+        const CACHE_MAX_AGE = 5 * 60 * 1000;
+
+        if (cached && cacheAge < CACHE_MAX_AGE) {
             setProfile(cached.profile);
+        } else {
+            setProfile(null);
         }
 
         refetch();
