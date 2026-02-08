@@ -13,11 +13,42 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
+// Конфигурация для Vercel
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+// Обработка GET для проверки доступности endpoint
+export async function GET() {
+    return NextResponse.json({ 
+        message: 'Stripe webhook endpoint is active',
+        methods: ['POST', 'OPTIONS'],
+    });
+}
+
+// Обработка OPTIONS для CORS (если нужно)
+export async function OPTIONS() {
+    return new NextResponse(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, stripe-signature',
+        },
+    });
+}
+
 export async function POST(request: NextRequest) {
+    console.log('Webhook endpoint called', {
+        method: request.method,
+        url: request.url,
+        headers: Object.fromEntries(request.headers.entries()),
+    });
+
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
 
     if (!signature) {
+        console.error('Webhook called without signature header');
         return NextResponse.json(
             { error: "No signature" },
             { status: 400 }
