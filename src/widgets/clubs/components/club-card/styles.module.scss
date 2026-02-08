@@ -1,6 +1,9 @@
 @use "@/app/styles/scss-utils/compat-legacy" as *;
 
 .club_card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     border-radius: 12px;
     border: 1px solid var(--black-20);
     @include adaptive-value("padding", 24, 16, 1);
@@ -126,6 +129,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        margin-top: auto;
     }
 
     &_button {

@@ -510,3 +510,65 @@ export async function getMatchHistory(): Promise<IMatchHistory[]> {
     );
 }
 
+export interface GetMatchHistoryForClaimParams {
+    search?: string;
+    kingdom?: string;
+}
+
+function formatMatchHistoryDate(dateString: string): string {
+    const date = new Date(dateString);
+    const month = date.toLocaleDateString("en-US", { month: "long" });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+}
+
+export async function getMatchHistoryForClaim(
+    params: GetMatchHistoryForClaimParams = {}
+): Promise<Array<{
+    rank: number;
+    name: string;
+    tournament: string;
+    date: string;
+    kingdom: string;
+    club: string;
+    myMatches: string;
+    id: string;
+}>> {
+    const { search = "", kingdom = "" } = params;
+
+    let query = supabase
+        .from("match_history")
+        .select("*")
+        .order("date", { ascending: false });
+
+    if (search) {
+        const searchPattern = `%${search}%`;
+        query = query.or(`player_name.ilike.${searchPattern},tournament_name.ilike.${searchPattern}`);
+    }
+
+    if (kingdom) {
+        query = query.eq("kingdom", kingdom);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error("Error fetching match history for claim:", error);
+        return [];
+    }
+
+    return (
+        data?.map((match, index) => ({
+            rank: index + 1,
+            name: match.player_name,
+            tournament: match.tournament_name,
+            date: formatMatchHistoryDate(match.date),
+            kingdom: match.kingdom || "",
+            club: match.club || "",
+            myMatches: "This is me",
+            id: match.id,
+        })) || []
+    );
+}
+

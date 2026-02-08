@@ -8,3 +8,14 @@ export interface IMatchHistory {
     tournamentPageUrl: string;
 }
 
+export interface IMatchHistoryForClaim {
+    rank: number;
+    name: string;
+    tournament: string;
+    date: string;
+    kingdom: string;
+    club: string;
+    myMatches: string;
+    id: string;
+}
+
