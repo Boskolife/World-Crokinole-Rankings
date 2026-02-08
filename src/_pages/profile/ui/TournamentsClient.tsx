@@ -11,3 +11,4 @@ export function TournamentsClient({ tournaments }: TournamentsClientProps) {
     return <Tournaments tournaments={tournaments} />;
 }
 
+

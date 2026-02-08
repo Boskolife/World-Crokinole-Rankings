@@ -11,3 +11,4 @@ export function MatchHistoryClient({ matches }: MatchHistoryClientProps) {
     return <MatchHistory matches={matches} />;
 }
 
+

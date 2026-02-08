@@ -19,10 +19,11 @@ export function ClubsClient({
     return (
         <Clubs
             title={title}
-            clubs={clubs}
+            initialClubs={clubs}
             needViewAllButton={needViewAllButton}
-            totalItems={totalItems}
+            needPagination={false}
         />
     );
 }
+
 
