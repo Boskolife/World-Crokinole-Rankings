@@ -45,9 +45,37 @@ export async function GET(request: NextRequest) {
             subscription.stripe_subscription_id
         );
 
+        // Используем актуальные данные из Stripe для current_period_start и current_period_end
+        const stripeSubAny = stripeSubscription as any;
+        const periodStart = stripeSubAny.current_period_start;
+        const periodEnd = stripeSubAny.current_period_end;
+
+        const currentPeriodStart = periodStart && typeof periodStart === 'number'
+            ? new Date(periodStart * 1000).toISOString()
+            : subscription.current_period_start;
+
+        const currentPeriodEnd = periodEnd && typeof periodEnd === 'number'
+            ? new Date(periodEnd * 1000).toISOString()
+            : subscription.current_period_end;
+
+        // Обновляем данные в базе, если они отсутствуют или устарели
+        if (!subscription.current_period_start || !subscription.current_period_end) {
+            await supabase
+                .from("subscriptions")
+                .update({
+                    current_period_start: currentPeriodStart,
+                    current_period_end: currentPeriodEnd,
+                    cancel_at_period_end: stripeSubscription.cancel_at_period_end || subscription.cancel_at_period_end,
+                })
+                .eq("stripe_subscription_id", subscription.stripe_subscription_id);
+        }
+
         return NextResponse.json({
             subscription: {
                 ...subscription,
+                current_period_start: currentPeriodStart,
+                current_period_end: currentPeriodEnd,
+                cancel_at_period_end: stripeSubscription.cancel_at_period_end || subscription.cancel_at_period_end,
                 stripeSubscription,
             },
         });

@@ -63,9 +63,34 @@ export async function POST(request: NextRequest) {
             ? (subscription.items.data[0]?.price?.recurring?.interval_count === 12 ? "annual" : "monthly")
             : "monthly";
 
-        const subscriptionData = subscription as any;
-        const periodStart = subscriptionData.current_period_start;
-        const periodEnd = subscriptionData.current_period_end;
+        // Правильно извлекаем current_period_start и current_period_end из Stripe subscription
+        // Stripe возвращает эти значения как числа (Unix timestamp в секундах)
+        const subscriptionAny = subscription as any;
+        const periodStart = subscriptionAny.current_period_start;
+        const periodEnd = subscriptionAny.current_period_end;
+
+        console.log('Subscription periods:', {
+            subscriptionId: subscription.id,
+            periodStart,
+            periodEnd,
+            periodStartType: typeof periodStart,
+            periodEndType: typeof periodEnd,
+            hasPeriodStart: periodStart !== undefined && periodStart !== null,
+            hasPeriodEnd: periodEnd !== undefined && periodEnd !== null,
+        });
+
+        // Конвертируем Unix timestamp в ISO строку для базы данных
+        const periodStartISO = periodStart && typeof periodStart === 'number' 
+            ? new Date(periodStart * 1000).toISOString() 
+            : null;
+        const periodEndISO = periodEnd && typeof periodEnd === 'number' 
+            ? new Date(periodEnd * 1000).toISOString() 
+            : null;
+
+        console.log('Converted periods:', {
+            periodStartISO,
+            periodEndISO,
+        });
 
         const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
             {
@@ -76,8 +101,8 @@ export async function POST(request: NextRequest) {
                 plan_name: planName,
                 status: subscription.status,
                 billing_period: billingPeriod,
-                current_period_start: periodStart ? new Date(Number(periodStart) * 1000).toISOString() : null,
-                current_period_end: periodEnd ? new Date(Number(periodEnd) * 1000).toISOString() : null,
+                current_period_start: periodStartISO,
+                current_period_end: periodEndISO,
                 cancel_at_period_end: subscription.cancel_at_period_end || false,
             },
             { onConflict: "stripe_subscription_id" }

@@ -24,11 +24,12 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
     className,
     title,
 }) => {
-    const { profile } = useUserProfile();
+    const { profile, refetch } = useUserProfile();
     const { user } = useAuth();
     const [currentSubscription, setCurrentSubscription] = useState<{
         planId: number;
         billingPeriod: "monthly" | "annual";
+        subscriptionId?: string;
     } | null>(null);
     const [planMode, setPlanMode] = useState<"monthly" | "annual">("annual");
     const [isFadingOut, setIsFadingOut] = useState(false);
@@ -36,6 +37,7 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
     const [displayMode, setDisplayMode] = useState<"monthly" | "annual">(
         "annual"
     );
+    const [isCanceling, setIsCanceling] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -54,10 +56,22 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
             const data = await response.json();
 
             if (data.subscription) {
-                setCurrentSubscription({
+                const subscriptionData = {
                     planId: data.subscription.plan_id,
                     billingPeriod: data.subscription.billing_period,
-                });
+                    subscriptionId: data.subscription.stripe_subscription_id,
+                };
+                
+                console.log('Current subscription loaded:', subscriptionData);
+                setCurrentSubscription(subscriptionData);
+                
+                // Автоматически переключаем displayMode на период текущей подписки
+                if (subscriptionData.billingPeriod !== displayMode) {
+                    setDisplayMode(subscriptionData.billingPeriod);
+                    setPlanMode(subscriptionData.billingPeriod);
+                }
+            } else {
+                console.log('No subscription found');
             }
         } catch (error) {
             console.error("Failed to fetch subscription:", error);
@@ -82,6 +96,50 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
         }, 300);
 
         setPlanMode(newMode);
+    };
+
+    const handleCancelSubscription = async () => {
+        if (!user || !currentSubscription?.subscriptionId) {
+            return;
+        }
+
+        if (!confirm("Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period.")) {
+            return;
+        }
+
+        setIsCanceling(true);
+
+        try {
+            const response = await fetch("/api/stripe/subscription", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId: user.id }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await fetchCurrentSubscription();
+                await refetch();
+                setCurrentSubscription(null);
+            } else {
+                alert(data.error || "Failed to cancel subscription");
+            }
+        } catch (error) {
+            console.error("Failed to cancel subscription:", error);
+            alert("Failed to cancel subscription. Please try again.");
+        } finally {
+            setIsCanceling(false);
+        }
+    };
+
+    const handleFreePlanSelect = async () => {
+        // Если есть активная подписка, отменяем её
+        if (currentSubscription && currentSubscription.planId !== 1) {
+            await handleCancelSubscription();
+        }
     };
 
     const currentPlans =
@@ -119,16 +177,30 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
                     {currentPlans.map((plan) => {
                         let isCurrentPlan = false;
 
+                        // Определяем текущий план
                         if (currentSubscription) {
-                            isCurrentPlan =
-                                plan.id === currentSubscription.planId &&
-                                displayMode === currentSubscription.billingPeriod;
+                            // Если есть активная подписка, проверяем совпадение planId
+                            // Показываем как текущий, если это тот же план, независимо от displayMode
+                            isCurrentPlan = plan.id === currentSubscription.planId;
+                            
+                            if (plan.id === currentSubscription.planId) {
+                                console.log('Current plan found:', {
+                                    planId: plan.id,
+                                    planName: plan.name,
+                                    subscriptionPlanId: currentSubscription.planId,
+                                    isCurrentPlan,
+                                });
+                            }
                         } else if (
                             plan.id === 1 &&
                             (!profile?.subscription_plan || profile.subscription_plan === "standard")
                         ) {
+                            // Если нет подписки и это free план, он текущий
                             isCurrentPlan = true;
                         }
+
+                        // Для free плана (id=1) с активной подпиской добавляем обработчик отмены
+                        const shouldShowCancel = plan.id === 1 && currentSubscription && currentSubscription.planId !== 1;
 
                         return (
                             <SubscribeCard
@@ -136,6 +208,8 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
                                 {...(plan as ISubscribeCardProps)}
                                 currentPlan={isCurrentPlan}
                                 billingPeriod={displayMode}
+                                onSelect={shouldShowCancel ? handleFreePlanSelect : undefined}
+                                isSaving={shouldShowCancel ? isCanceling : false}
                             />
                         );
                     })}

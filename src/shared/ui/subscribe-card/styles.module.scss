@@ -91,6 +91,36 @@
         }
     }
 
+    &_current_plan_button {
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 135%;
+        padding: 6px 20px;
+        border-radius: 120px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+        cursor: default;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: max-content;
+        text-align: center;
+        color: var(--white);
+        background-color: var(--gold);
+        pointer-events: none;
+        min-height: 52px;
+
+        @include media-down(sm) {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+
+        &_inverted {
+            background-color: var(--white);
+            color: var(--black);
+        }
+    }
+
 
     &.inverted {
         background: linear-gradient(90deg, #00284B 0%, #00284B 1%, #2A5298 100%);

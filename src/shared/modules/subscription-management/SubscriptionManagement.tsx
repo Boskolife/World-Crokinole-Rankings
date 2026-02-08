@@ -89,11 +89,20 @@ export const SubscriptionManagement: React.FC = () => {
     }
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return "Invalid date";
+            }
+            return date.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        } catch (error) {
+            console.error("Error formatting date:", error);
+            return "Invalid date";
+        }
     };
 
     const getBillingPeriodLabel = (period: string) => {
@@ -122,7 +131,11 @@ export const SubscriptionManagement: React.FC = () => {
                 <div className={css.subscription_management_info_item}>
                     <span className={css.subscription_management_info_label}>Next billing date:</span>
                     <span className={css.subscription_management_info_value}>
-                        {formatDate(subscription.current_period_end)}
+                        {subscription.cancel_at_period_end 
+                            ? "N/A (canceling)" 
+                            : subscription.current_period_end 
+                                ? formatDate(subscription.current_period_end)
+                                : "N/A"}
                     </span>
                 </div>
             </div>

@@ -10,16 +10,29 @@ import { NavMenu } from "../components/nav-menu/NavMenu";
 import { BurgerMenu } from "../components/burger-menu/Burger";
 import { useHeader } from "@/shared/hooks";
 import cn from "classnames";
-import { useAuth } from "@/shared/hooks";
+import { useAuth, useUserProfile } from "@/shared/hooks";
 import { Profile } from "../components/profile/Profile";
 import { Notification } from "../components/notifications/Notification";
 import { clientRoutes } from "@/shared/routes/client";
 import { useParams, useRouter } from "next/navigation";
 import { localeConfig } from "@/app/localization/config";
+import type { SubscriptionPlan } from "@/shared/types";
+
+const getPlanLabel = (plan?: SubscriptionPlan): string => {
+    switch (plan) {
+        case "premium":
+            return "Premium";
+        case "administrator":
+            return "Administrator";
+        default:
+            return "Free Plan";
+    }
+};
 
 export const Header: React.FC = () => {
     const { isMenuOpen, handleToggleMenu, navMenuItems, tAuth } = useHeader();
     const { isAuth } = useAuth();
+    const { profile } = useUserProfile();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
@@ -47,8 +60,11 @@ export const Header: React.FC = () => {
                                         css.header_language_switcher_desktop
                                     }
                                 />
-                                <div className={css.header_profile_plan}>
-                                    <span>Free Plan</span>
+                                <div className={cn(css.header_profile_plan, {
+                                    [css.header_profile_plan_premium]: profile?.subscription_plan === "premium",
+                                    [css.header_profile_plan_administrator]: profile?.subscription_plan === "administrator",
+                                })}>
+                                    <span>{getPlanLabel(profile?.subscription_plan)}</span>
                                 </div>
                                 <Notification />
                                 <Profile />

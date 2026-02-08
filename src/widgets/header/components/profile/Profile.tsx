@@ -8,18 +8,6 @@ import { useAuth, useProfileDropdown, useUserProfile } from "@/shared/hooks";
 import { clientRoutes } from "@/shared/routes/client";
 import { useParams, useRouter } from "next/navigation";
 import { localeConfig } from "@/app/localization/config";
-import type { SubscriptionPlan } from "@/shared/types";
-
-const getPlanLabel = (plan?: SubscriptionPlan): string => {
-    switch (plan) {
-        case "premium":
-            return "Premium";
-        case "administrator":
-            return "Administrator";
-        default:
-            return "Standard";
-    }
-};
 
 export const Profile: React.FC = () => {
     const { isDropdownOpen, isClosing, dropdownRef, handleDropdownOpen } =
@@ -40,12 +28,6 @@ export const Profile: React.FC = () => {
                 <h3 className={css.profile_info_name}>{fullName}</h3>
                 <div className={css.profile_info_status_wrapper}>
                     <p className={css.profile_info_status}>Player</p>
-                    <span className={cn(css.profile_info_plan_badge, {
-                        [css.profile_info_plan_badge_premium]: profile?.subscription_plan === "premium",
-                        [css.profile_info_plan_badge_administrator]: profile?.subscription_plan === "administrator",
-                    })}>
-                        {getPlanLabel(profile?.subscription_plan)}
-                    </span>
                 </div>
             </div>
             <button

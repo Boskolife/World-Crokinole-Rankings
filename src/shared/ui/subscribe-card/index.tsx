@@ -52,7 +52,12 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
             return;
         }
 
-        if (id === 1 || currentPlan) {
+        // Для free плана с onSelect (отмена подписки) разрешаем действие
+        if (id === 1 && !onSelect) {
+            return;
+        }
+
+        if (currentPlan && !onSelect) {
             return;
         }
 
@@ -97,9 +102,6 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
                 [css.inverted]: inverted,
             })}
         >
-            {currentPlan && (
-                <span className={css.subscribe_card_current_plan}>NOW</span>
-            )}
             <h3 className={css.subscribe_card_title}>{name}</h3>
             <p className={css.subscribe_card_description}>
                 <span
@@ -130,14 +132,22 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
                     </span>
                 )}
             </div>
-            <CustomButton
-                inverted={inverted}
-                className={css.subscribe_card_button}
-                onClick={handleSubscribe}
-                disabled={(isLoading || isSaving) || (currentPlan && !onSelect)}
-            >
-                {isSaving ? "Saving..." : isLoading ? "Loading..." : currentPlan && !onSelect ? "Current Plan" : buttonText}
-            </CustomButton>
+            {currentPlan && !onSelect ? (
+                <div className={cn(css.subscribe_card_current_plan_button, {
+                    [css.subscribe_card_current_plan_button_inverted]: inverted,
+                })}>
+                    Current Plan
+                </div>
+            ) : (
+                <CustomButton
+                    inverted={inverted}
+                    className={css.subscribe_card_button}
+                    onClick={handleSubscribe}
+                    disabled={isLoading || isSaving}
+                >
+                    {isSaving ? "Canceling..." : isLoading ? "Loading..." : (id === 1 && onSelect) ? "Cancel Subscription" : buttonText}
+                </CustomButton>
+            )}
         </div>
     );
 };
