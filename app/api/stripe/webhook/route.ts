@@ -13,9 +13,8 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
-// Конфигурация для Vercel
+// Отключаем body parsing для вебхука (нужно для проверки подписи)
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
 // Обработка GET для проверки доступности endpoint
 export async function GET() {
@@ -25,7 +24,7 @@ export async function GET() {
     });
 }
 
-// Обработка OPTIONS для CORS (если нужно)
+// Обработка OPTIONS для CORS
 export async function OPTIONS() {
     return new NextResponse(null, {
         status: 200,
@@ -38,14 +37,15 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
-    console.log('Webhook endpoint called', {
-        method: request.method,
-        url: request.url,
-        headers: Object.fromEntries(request.headers.entries()),
-    });
-
-    const body = await request.text();
-    const signature = request.headers.get("stripe-signature");
+    try {
+        const body = await request.text();
+        const signature = request.headers.get("stripe-signature");
+        
+        console.log('[WEBHOOK] POST request received', {
+            url: request.url,
+            hasSignature: !!signature,
+            bodyLength: body.length,
+        });
 
     if (!signature) {
         console.error('Webhook called without signature header');
@@ -199,16 +199,20 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        console.log(`Webhook event ${event.type} processed successfully`);
-        return NextResponse.json({ received: true, event: event.type });
+        console.log(`✅ Webhook event ${event.type} processed successfully`);
+        return NextResponse.json({ 
+            received: true, 
+            event: event.type,
+            eventId: event.id,
+        });
     } catch (error: any) {
-        console.error("Webhook handler error:", {
-            eventType: event.type,
+        console.error("❌ Webhook handler error:", {
+            eventType: event?.type || 'unknown',
             error: error.message,
             stack: error.stack,
         });
         return NextResponse.json(
-            { error: error.message, event: event.type },
+            { error: error.message, event: event?.type },
             { status: 500 }
         );
     }
