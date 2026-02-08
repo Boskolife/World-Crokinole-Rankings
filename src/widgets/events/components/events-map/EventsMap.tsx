@@ -282,8 +282,8 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
                     if (currentZoom && currentZoom > 15) {
                         map.setZoom(15);
                     }
-                    window.google.maps.event.removeListener(listener);
-                });
+                    window.google.maps.event.removeListener(listener as unknown as google.maps.MapsEventListener);
+                }) as unknown as google.maps.MapsEventListener;
             } else if (events.length === 0) {
                 map.setCenter({ lat: 40.7128, lng: -74.0060 });
                 map.setZoom(3);

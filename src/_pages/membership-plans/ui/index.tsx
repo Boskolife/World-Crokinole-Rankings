@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SubscribePlans } from "@/shared/modules";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 
-export function MembershipPlansPage() {
+function MembershipPlansContent() {
     const searchParams = useSearchParams();
     const { refetch } = useUserProfile();
     const success = searchParams.get("success");
@@ -47,5 +47,13 @@ export function MembershipPlansPage() {
             )}
             <SubscribePlans title="Upgrade to Premium to create ranked events and unlock more features" />
         </div>
+    );
+}
+
+export function MembershipPlansPage() {
+    return (
+        <Suspense fallback={<div className="container">Loading...</div>}>
+            <MembershipPlansContent />
+        </Suspense>
     );
 }

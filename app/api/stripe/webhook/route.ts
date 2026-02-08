@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-    apiVersion: "2024-12-18.acacia",
+    apiVersion: "2026-01-28.clover",
 });
 
 const supabase = createClient(
@@ -51,18 +51,22 @@ export async function POST(request: NextRequest) {
             ? (subscription.items.data[0]?.price?.recurring?.interval_count === 12 ? "annual" : "monthly")
             : "monthly";
 
+        const subscriptionData = subscription as any;
+        const periodStart = subscriptionData.current_period_start;
+        const periodEnd = subscriptionData.current_period_end;
+
         const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
             {
                 user_id: userId,
                 stripe_subscription_id: subscription.id,
-                stripe_customer_id: subscription.customer as string,
+                stripe_customer_id: typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id,
                 plan_id: parseInt(planId),
                 plan_name: planName,
                 status: subscription.status,
                 billing_period: billingPeriod,
-                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                cancel_at_period_end: subscription.cancel_at_period_end,
+                current_period_start: periodStart ? new Date(Number(periodStart) * 1000).toISOString() : null,
+                current_period_end: periodEnd ? new Date(Number(periodEnd) * 1000).toISOString() : null,
+                cancel_at_period_end: subscription.cancel_at_period_end || false,
             },
             { onConflict: "stripe_subscription_id" }
         );
