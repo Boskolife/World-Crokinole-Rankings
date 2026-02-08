@@ -250,7 +250,7 @@ function TableManager({ tableName }: { tableName: string }) {
                 <p>No data</p>
                 <button
                     className={css.addButton}
-                    onClick={() => setShowAddForm(true)}
+                    onClick={handleAdd}
                 >
                     Add Record
                 </button>

@@ -77,7 +77,9 @@ export const useUserProfile = () => {
             setProfile(null);
             setIsLoading(false);
             setError(null);
-            cache.delete(userId);
+            if (userId) {
+                cache.delete(userId);
+            }
             return;
         }
 
