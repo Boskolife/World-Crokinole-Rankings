@@ -216,5 +216,12 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
+    } catch (error: any) {
+        console.error("❌ Webhook request error:", error.message);
+        return NextResponse.json(
+            { error: error.message || "Internal server error" },
+            { status: 500 }
+        );
+    }
 }
 
