@@ -69,9 +69,9 @@
                 "Submit official ranked matches from your events",
                 "Stripe integration for paid events"
             ],
-            "price": 3.99,
+            "price": 4.99,
             "currency": "$",
-            "duration": "per month billed yearly",
+            "duration": "per month",
             "buttonText": "Choose Premium",
             "inverted": true
         },
@@ -86,9 +86,9 @@
                 "Players earn laurels for competing in your tournaments.",
                 "Unlock a 10% discount code for BrownCastle Games (5% club credit + 5% instant savings)"
             ],
-            "price": 6.99,
+            "price": 8.99,
             "currency": "$",
-            "duration": "per month billed yearly",
+            "duration": "per month",
             "buttonText": "Choose Administrator"
         }
     ]

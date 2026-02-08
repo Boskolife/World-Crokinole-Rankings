@@ -1,10 +1,12 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
 import { CustomButton } from "@/shared/ui/buttons/custom-button";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
+import { useAuth } from "@/shared/hooks/use-auth";
 
 export interface ISubscribeCardProps {
     id: number;
@@ -17,6 +19,10 @@ export interface ISubscribeCardProps {
     buttonText: string;
     inverted?: boolean;
     currentPlan?: boolean;
+    billingPeriod?: "monthly" | "annual";
+    onSelect?: () => void;
+    isSelected?: boolean;
+    isSaving?: boolean;
 }
 
 export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
@@ -30,9 +36,60 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
     buttonText,
     inverted,
     currentPlan,
+    billingPeriod = "annual",
+    onSelect,
+    isSelected,
+    isSaving,
 }) => {
     const router = useRouter();
     const locale = useLocale();
+    const { user } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubscribe = async () => {
+        if (onSelect) {
+            onSelect();
+            return;
+        }
+
+        if (id === 1 || currentPlan) {
+            return;
+        }
+
+        if (!user) {
+            router.push(`/${locale}${clientRoutes.signIn}`);
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await fetch("/api/stripe/checkout", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    planId: id.toString(),
+                    userId: user.id,
+                    billingPeriod,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                console.error("Failed to create checkout session");
+            }
+        } catch (error) {
+            console.error("Error creating checkout session:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div
             key={id}
@@ -76,11 +133,10 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
             <CustomButton
                 inverted={inverted}
                 className={css.subscribe_card_button}
-                onClick={() =>
-                    router.push(`/${locale}${clientRoutes.steps(4)}`)
-                }
+                onClick={handleSubscribe}
+                disabled={(isLoading || isSaving) || (currentPlan && !onSelect)}
             >
-                {buttonText}
+                {isSaving ? "Saving..." : isLoading ? "Loading..." : currentPlan && !onSelect ? "Current Plan" : buttonText}
             </CustomButton>
         </div>
     );

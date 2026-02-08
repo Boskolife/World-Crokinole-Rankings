@@ -12,11 +12,26 @@ import {
     isSupabaseConfigured,
     supabaseConfigError,
 } from "@/shared/supabase/client";
+import { useUserProfile } from "@/shared/hooks/use-user-profile";
+import cn from "classnames";
+import type { SubscriptionPlan } from "@/shared/types";
+
+const getPlanLabel = (plan?: SubscriptionPlan): string => {
+    switch (plan) {
+        case "premium":
+            return "Premium";
+        case "administrator":
+            return "Administrator";
+        default:
+            return "Standard";
+    }
+};
 
 export const SignUpForm: React.FC = () => {
     const router = useRouter();
     const pathname = usePathname();
     const locale = useLocale();
+    const { profile } = useUserProfile();
     const [formError, setFormError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +77,16 @@ export const SignUpForm: React.FC = () => {
             className={css.auth_form}
         >
             <p className={css.auth_form_title}>Join the rankings</p>
+            {profile?.subscription_plan && (
+                <div className={css.auth_form_plan_badge_wrapper}>
+                    <span className={cn(css.auth_form_plan_badge, {
+                        [css.auth_form_plan_badge_premium]: profile.subscription_plan === "premium",
+                        [css.auth_form_plan_badge_administrator]: profile.subscription_plan === "administrator",
+                    })}>
+                        Current Plan: {getPlanLabel(profile.subscription_plan)}
+                    </span>
+                </div>
+            )}
             {formError && <div className={css.auth_form_error}>{formError}</div>}
             <div className={css.auth_form_fields}>
                 <FormField

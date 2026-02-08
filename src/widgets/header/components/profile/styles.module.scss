@@ -20,6 +20,32 @@
             font-size: 14px;
             color: var(--black-60);
         }
+
+        &_status_wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        &_plan_badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            background: var(--black-10);
+            color: var(--black-60);
+
+            &_premium {
+                background: var(--gold);
+                color: var(--white);
+            }
+
+            &_administrator {
+                background: var(--black);
+                color: var(--white);
+            }
+        }
     }
 
     &_avatar {

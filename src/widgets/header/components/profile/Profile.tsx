@@ -8,12 +8,24 @@ import { useAuth, useProfileDropdown, useUserProfile } from "@/shared/hooks";
 import { clientRoutes } from "@/shared/routes/client";
 import { useParams, useRouter } from "next/navigation";
 import { localeConfig } from "@/app/localization/config";
+import type { SubscriptionPlan } from "@/shared/types";
+
+const getPlanLabel = (plan?: SubscriptionPlan): string => {
+    switch (plan) {
+        case "premium":
+            return "Premium";
+        case "administrator":
+            return "Administrator";
+        default:
+            return "Standard";
+    }
+};
 
 export const Profile: React.FC = () => {
     const { isDropdownOpen, isClosing, dropdownRef, handleDropdownOpen } =
         useProfileDropdown();
     const { logout } = useAuth();
-    const { fullName } = useUserProfile();
+    const { fullName, profile } = useUserProfile();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
@@ -26,7 +38,15 @@ export const Profile: React.FC = () => {
         <div className={css.profile} ref={dropdownRef}>
             <div className={css.profile_info}>
                 <h3 className={css.profile_info_name}>{fullName}</h3>
-                <p className={css.profile_info_status}>Player</p>
+                <div className={css.profile_info_status_wrapper}>
+                    <p className={css.profile_info_status}>Player</p>
+                    <span className={cn(css.profile_info_plan_badge, {
+                        [css.profile_info_plan_badge_premium]: profile?.subscription_plan === "premium",
+                        [css.profile_info_plan_badge_administrator]: profile?.subscription_plan === "administrator",
+                    })}>
+                        {getPlanLabel(profile?.subscription_plan)}
+                    </span>
+                </div>
             </div>
             <button
                 type="button"
@@ -86,34 +106,24 @@ export const Profile: React.FC = () => {
                     </div>
                     <div className={css.profile_dropdown_menu}>
                         <RootLink
-                            href="#"
+                            href={`/${locale}${clientRoutes.profile}`}
                             className={css.profile_dropdown_menu_item}
                         >
                             <Icon
                                 name="settings"
                                 className={css.profile_dropdown_menu_icon}
                             />
-                            <span>Account setting</span>
+                            <span>Account settings</span>
                         </RootLink>
                         <RootLink
-                            href="#"
-                            className={css.profile_dropdown_menu_item}
-                        >
-                            <Icon
-                                name="plus"
-                                className={css.profile_dropdown_menu_icon}
-                            />
-                            <span>Add account</span>
-                        </RootLink>
-                        <RootLink
-                            href="#"
+                            href={`/${locale}${clientRoutes.membershipPlans}`}
                             className={css.profile_dropdown_menu_item}
                         >
                             <Icon
                                 name="coins"
                                 className={css.profile_dropdown_menu_icon}
                             />
-                            <span>Plans</span>
+                            <span>Manage subscription</span>
                         </RootLink>
                     </div>
                     <button

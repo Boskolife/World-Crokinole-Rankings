@@ -6,3 +6,4 @@ export { PlayerTable } from "./player-table/PlayerTable";
 export { TournamentTable } from "./tournament-table/TournamentTable";
 export { MatchHistoryTable } from "./match-history-table/MatchHistoryTable";
 export { RatingChart } from "./rating-chart/RatingChart";
+export { SubscriptionManagement } from "./subscription-management/SubscriptionManagement";

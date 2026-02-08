@@ -2,7 +2,7 @@
 
 import { HomeNewVisitor } from "@/widgets/home-new-visitor";
 import { Step3 } from "@/widgets/home-new-visitor/Step-3";
-import { SubscribePlans } from "@/shared/modules/subscribe-plans/SubscribePlans";
+import { SubscribePlansRegistration } from "@/shared/modules/subscribe-plans-registration/SubscribePlansRegistration";
 import css from "./styles.module.scss";
 export default function Page() {
     return (
@@ -10,7 +10,7 @@ export default function Page() {
             <HomeNewVisitor className={css.height_auto}>
                 <Step3 />
             </HomeNewVisitor>
-            <SubscribePlans />
+            <SubscribePlansRegistration />
         </>
     );
 }

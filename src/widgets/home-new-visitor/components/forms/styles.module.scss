@@ -64,4 +64,33 @@
         font-size: 14px;
         line-height: 1.3;
     }
+
+    &_plan_badge_wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 12px;
+    }
+
+    &_plan_badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--white);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+
+        &_premium {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--black);
+        }
+
+        &_administrator {
+            background: var(--black);
+            border-color: var(--black);
+            color: var(--white);
+        }
+    }
 }
