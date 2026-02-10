@@ -1,12 +1,10 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import css from "./styles.module.scss";
-import { FormField } from "@/shared/ui/input";
-import { useForm } from "react-hook-form";
-import { IMatchHistoryFormData } from "@/shared/types/form.interface";
-import { CustomDropdown } from "@/shared/ui/custom-dropdown";
+import { SearchInput, CustomRoundedDropdown } from "@/shared/ui";
 import { Button } from "@/shared/ui/buttons";
 import { MatchHistoryItem } from "../components/match-history-item/MatchHistoryItem";
 import { CustomCheckbox } from "@/shared/ui/checkbox";
+import { Pagination } from "@/shared/modules";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
@@ -26,11 +24,6 @@ export const MatchHistory: React.FC = () => {
     const { openPopup } = usePopup();
     const router = useRouter();
     const locale = useLocale();
-    const {
-        register,
-        watch,
-        formState: { errors },
-    } = useForm<IMatchHistoryFormData>();
 
     const [matchHistoryData, setMatchHistoryData] = useState<Array<{
         rank: number;
@@ -43,72 +36,98 @@ export const MatchHistory: React.FC = () => {
         id: string;
     }>>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedMatches, setSelectedMatches] = useState<Set<number>>(
+    const [selectedMatches, setSelectedMatches] = useState<Set<string>>(
         new Set()
     );
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 5;
 
-    const fullName = watch("fullName") || "";
-    const country = watch("country") || "";
-    const [debouncedFullName, setDebouncedFullName] = useState("");
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedFullName(fullName);
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [fullName]);
+    const [searchValue, setSearchValue] = useState("");
+    const [search, setSearch] = useState("");
+    const [country, setCountry] = useState("");
 
     const loadMatchHistory = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getMatchHistoryForClaim({
-                search: debouncedFullName,
+                search: search,
                 kingdom: country || undefined,
             });
             setMatchHistoryData(data);
+            setCurrentPage(1);
         } catch (error) {
             console.error("Error loading match history:", error);
             setMatchHistoryData([]);
         } finally {
             setIsLoading(false);
         }
-    }, [debouncedFullName, country]);
+    }, [search, country]);
 
     useEffect(() => {
         loadMatchHistory();
     }, [loadMatchHistory]);
 
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return matchHistoryData.slice(startIndex, endIndex).map((item, index) => ({
+            ...item,
+            rank: startIndex + index + 1,
+        }));
+    }, [matchHistoryData, currentPage, pageSize]);
+
+    const totalPages = Math.ceil(matchHistoryData.length / pageSize);
+
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(totalPages);
+        }
+    }, [totalPages, currentPage]);
+
     const allMatchesSelected = useMemo(() => {
         return (
             matchHistoryData.length > 0 &&
             matchHistoryData.every((item) =>
-                selectedMatches.has(item.rank)
+                selectedMatches.has(item.id)
             )
         );
     }, [selectedMatches, matchHistoryData]);
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            const allRanks = new Set(
-                matchHistoryData.map((item) => item.rank)
+            const allIds = new Set(
+                matchHistoryData.map((item) => item.id)
             );
-            setSelectedMatches(allRanks);
+            setSelectedMatches(allIds);
         } else {
             setSelectedMatches(new Set());
         }
     };
 
-    const handleMatchToggle = (rank: number, checked: boolean) => {
+    const handleMatchToggle = (id: string, checked: boolean) => {
         setSelectedMatches((prev) => {
             const newSet = new Set(prev);
             if (checked) {
-                newSet.add(rank);
+                newSet.add(id);
             } else {
-                newSet.delete(rank);
+                newSet.delete(id);
             }
             return newSet;
         });
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(e.target.value);
+    };
+
+    const handleSearch = () => {
+        setSearch(searchValue);
+        setCurrentPage(1);
     };
 
     return (
@@ -116,28 +135,32 @@ export const MatchHistory: React.FC = () => {
             <div className="container">
                 <div className={css.match_history_head}>
                     <div className={css.match_history_head_inputs}>
-                        <FormField
-                            id="fullName"
-                            label="Full name"
-                            name="fullName"
-                            type="text"
-                            placeholder="Enter your full name"
-                            register={register}
-                            error={errors.fullName?.message as string}
-                            className={css.match_history_head_input}
-                            labelClassName={css.match_history_head_input_label}
-                        />
-                        <CustomDropdown
-                            id="country"
-                            name="country"
-                            label="Kingdom (Country)"
-                            placeholder="Select state/country"
-                            options={kingdomOptions}
-                            register={register}
-                            error={errors.country?.message as string}
-                            className={css.match_history_head_input}
-                            labelClassName={css.match_history_head_input_label}
-                        />
+                        <div className={css.match_history_head_input}>
+                            <label className={css.match_history_head_input_label}>Full name</label>
+                            <SearchInput
+                                id="fullName"
+                                name="fullName"
+                                placeholder="Enter your full name"
+                                ariaLabel="Enter your full name"
+                                searchButtonAriaLabel="Search by full name"
+                                value={searchValue}
+                                onChange={handleSearchChange}
+                                onSearch={handleSearch}
+                            />
+                        </div>
+                        <div className={css.match_history_head_input}>
+                            <label className={css.match_history_head_input_label}>Kingdom (Country)</label>
+                            <CustomRoundedDropdown
+                                id="country"
+                                placeholder="Select state/country"
+                                options={kingdomOptions}
+                                value={country}
+                                onChange={(value) => {
+                                    setCountry(value);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
                     </div>
                     <div className={css.match_history_head_buttons}>
                         <Button
@@ -215,13 +238,13 @@ export const MatchHistory: React.FC = () => {
                                 </td>
                             </tr>
                         ) : (
-                            matchHistoryData.map((item) => (
+                            paginatedData.map((item) => (
                                 <MatchHistoryItem
                                     key={item.id}
                                     {...item}
-                                    checked={selectedMatches.has(item.rank)}
+                                    checked={selectedMatches.has(item.id)}
                                     onChange={(checked) =>
-                                        handleMatchToggle(item.rank, checked)
+                                        handleMatchToggle(item.id, checked)
                                     }
                                 />
                             ))
@@ -229,6 +252,16 @@ export const MatchHistory: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            {matchHistoryData.length > 0 && (
+                <div className={css.match_history_pagination}>
+                    <Pagination
+                        totalItems={matchHistoryData.length}
+                        pageSize={pageSize}
+                        currentPage={currentPage}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+            )}
         </section>
     );
 };

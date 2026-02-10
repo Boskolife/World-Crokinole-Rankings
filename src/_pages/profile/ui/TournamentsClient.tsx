@@ -12,3 +12,4 @@ export function TournamentsClient({ tournaments }: TournamentsClientProps) {
 }
 
 
+
