@@ -190,36 +190,22 @@ function TableManager({ tableName }: { tableName: string }) {
         }
     }, [totalPages, currentPage]);
 
-    const handleDelete = async (id: string | number) => {
-        if (!confirm("Are you sure you want to delete this record?")) {
-            return;
-        }
-
-        try {
-            const { error } = await supabase
-                .from(tableName)
-                .delete()
-                .eq("id", id);
-
-            if (error) {
-                console.error("Error deleting:", error);
-                alert("Error deleting record");
-                return;
-            }
-
-            const currentDataLength = data.length;
-            await loadData();
-            
-            setTimeout(() => {
-                const newTotalPages = Math.ceil((currentDataLength - 1) / pageSize);
-                if (currentPage > newTotalPages && newTotalPages > 0) {
-                    setCurrentPage(newTotalPages);
-                }
-            }, 100);
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Error deleting record");
-        }
+    const handleDelete = (id: string | number) => {
+        openPopup("admin-delete-confirm", {
+            tableName,
+            id,
+            onConfirm: async () => {
+                const currentDataLength = data.length;
+                await loadData();
+                
+                setTimeout(() => {
+                    const newTotalPages = Math.ceil((currentDataLength - 1) / pageSize);
+                    if (currentPage > newTotalPages && newTotalPages > 0) {
+                        setCurrentPage(newTotalPages);
+                    }
+                }, 100);
+            },
+        });
     };
 
     const handleEdit = (item: any) => {

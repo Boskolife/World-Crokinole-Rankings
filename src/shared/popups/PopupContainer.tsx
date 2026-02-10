@@ -9,6 +9,7 @@ import { LinkedPopup } from "./linked-popup";
 import { ManualReviewPopup } from "./manual-review-popup";
 import { AdminEditPopup } from "./admin-edit-popup";
 import { AdminAddPopup } from "./admin-add-popup";
+import { AdminDeleteConfirmPopup } from "./admin-delete-confirm-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -50,6 +51,7 @@ export const PopupContainer: React.FC = () => {
                 {isPopupOpen("manual-review") && <ManualReviewPopup />}
                 {isPopupOpen("admin-edit") && <AdminEditPopup />}
                 {isPopupOpen("admin-add") && <AdminAddPopup />}
+                {isPopupOpen("admin-delete-confirm") && <AdminDeleteConfirmPopup />}
             </div>
         </div>
     );
