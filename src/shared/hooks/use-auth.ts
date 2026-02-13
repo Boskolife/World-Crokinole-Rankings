@@ -51,34 +51,26 @@ export const useAuth = () => {
                     setIsMounted(true);
                     return;
                 }
-                
-                try {
-                    const { data: userData, error } = await supabase.auth.getUser();
+
+                setSession(currentSession);
+                setUser(currentSession.user);
+                if (isActive) setIsMounted(true);
+
+                supabase.auth.getUser().then(({ data: userData, error }) => {
+                    if (!isActive) return;
                     if (error || !userData?.user) {
-                        try {
-                            await supabase.auth.signOut();
-                        } catch {
-                        }
+                        supabase.auth.signOut().catch(() => {});
                         setSession(null);
                         setUser(null);
-                        setIsMounted(true);
                         return;
                     }
-                    
-                    setSession(currentSession);
                     setUser(userData.user);
-                } catch {
-                    try {
-                        await supabase.auth.signOut();
-                    } catch {
-                    }
+                }).catch(() => {
+                    if (!isActive) return;
+                    supabase.auth.signOut().catch(() => {});
                     setSession(null);
                     setUser(null);
-                } finally {
-                    if (isActive) {
-                        setIsMounted(true);
-                    }
-                }
+                });
             })
             .catch(() => {
                 if (!isActive) return;

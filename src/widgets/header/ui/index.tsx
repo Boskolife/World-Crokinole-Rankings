@@ -38,7 +38,8 @@ export const Header: React.FC = () => {
     const locale = params?.locale || (localeConfig.defaultLocale as string);
     
     const shouldShowAuthContent = isMounted && isAuth && !profileLoading && profile !== null;
-    
+    const isAuthChecking = !isMounted || (isAuth && (profileLoading || profile === null));
+
     return (
         <header className={cn(css.header, "header")}>
             <div className="container">
@@ -53,7 +54,16 @@ export const Header: React.FC = () => {
                         })}
                     >
                         <NavMenu items={navMenuItems} />
-                        {shouldShowAuthContent ? (
+                        {isAuthChecking ? (
+                            <div className={css.header_auth_loading}>
+                                <LanguageSwitcher
+                                    className={
+                                        css.header_language_switcher_desktop
+                                    }
+                                />
+                                <div className={css.header_auth_loader} />
+                            </div>
+                        ) : shouldShowAuthContent ? (
                             <div
                                 className={css.header_profile}
                                 suppressHydrationWarning

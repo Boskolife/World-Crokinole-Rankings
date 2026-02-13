@@ -55,6 +55,29 @@
         }
     }
 
+    &_auth_loading {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    &_auth_loader {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--grey-light, #e5e5e5);
+        border-top-color: var(--gold, #c9a227);
+        border-radius: 50%;
+        animation: header-auth-spin 0.7s linear infinite;
+    }
+}
+
+@keyframes header-auth-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.header {
     &_actions {
         display: flex;
         align-items: center;
