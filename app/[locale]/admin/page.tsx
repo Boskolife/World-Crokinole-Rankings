@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth, useUserProfile } from "@/shared/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/shared/supabase/client";
 import { Pagination } from "@/shared/modules/pagination";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
+import { localeConfig } from "@/app/localization/config";
 import css from "./styles.module.scss";
+
+const LOADING_TIMEOUT_MS = 15000;
 
 type AdminSection = 
     | "events" 
@@ -23,15 +26,36 @@ export default function AdminPage() {
     const { isAuth, user, isMounted } = useAuth();
     const { profile, isLoading: profileLoading } = useUserProfile();
     const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale ?? localeConfig.defaultLocale;
     const [activeSection, setActiveSection] = useState<AdminSection>("events");
+    const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (!isMounted || !isAuth || !profileLoading) {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+            setLoadingTimedOut(false);
+            return;
+        }
+        timeoutRef.current = setTimeout(() => {
+            setLoadingTimedOut(true);
+        }, LOADING_TIMEOUT_MS);
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [isMounted, isAuth, profileLoading]);
 
     useEffect(() => {
         if (isMounted && !isAuth) {
-            router.push("/");
+            router.push(`/${locale}/admin/sign-in`);
         }
-    }, [isAuth, isMounted, router]);
+    }, [isAuth, isMounted, locale, router]);
 
-    if (!isMounted || profileLoading) {
+    if (!isMounted) {
         return (
             <div className={css.container}>
                 <div className={css.loading}>Loading...</div>
@@ -39,8 +63,35 @@ export default function AdminPage() {
         );
     }
 
+    if (profileLoading && isAuth) {
+        return (
+            <div className={css.container}>
+                <div className={css.loading}>
+                    {loadingTimedOut ? (
+                        <div className={css.loadingTimeout}>
+                            <p>Taking too long. Check your connection.</p>
+                            <button
+                                type="button"
+                                className={css.retryButton}
+                                onClick={() => window.location.reload()}
+                            >
+                                Refresh page
+                            </button>
+                        </div>
+                    ) : (
+                        "Loading profile..."
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     if (!isAuth) {
-        return null;
+        return (
+            <div className={css.container}>
+                <div className={css.loading}>Redirecting to sign in...</div>
+            </div>
+        );
     }
 
     if (!profile?.is_admin) {
@@ -133,12 +184,32 @@ function SubscriptionsManager() {
     return <TableManager tableName="subscriptions" />;
 }
 
+const TABLE_ORDER_COLUMN: Record<string, string> = {
+    events: "id",
+    players: "created_at",
+    clubs: "id",
+    tournaments: "created_at",
+    rankings: "id",
+    match_history: "created_at",
+    profiles: "created_at",
+    subscriptions: "created_at",
+};
+
 function TableManager({ tableName }: { tableName: string }) {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
     const { openPopup } = usePopup();
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const formatValue = (value: any): string => {
         if (value === null || value === undefined) return "";
@@ -151,26 +222,35 @@ function TableManager({ tableName }: { tableName: string }) {
         return String(value);
     };
 
+    const orderCol = TABLE_ORDER_COLUMN[tableName] ?? "id";
+
     const loadData = useCallback(async () => {
         setLoading(true);
+        setLoadError(null);
         try {
             const { data: tableData, error } = await supabase
                 .from(tableName)
                 .select("*")
-                .order("id", { ascending: false });
+                .order(orderCol, { ascending: false });
 
+            if (!isMountedRef.current) return;
             if (error) {
                 console.error("Error loading data:", error);
+                setLoadError(error.message);
+                setData([]);
+                setLoading(false);
                 return;
             }
-
             setData(tableData || []);
-        } catch (error) {
-            console.error("Error:", error);
+        } catch (err) {
+            if (!isMountedRef.current) return;
+            console.error("Error:", err);
+            setLoadError(err instanceof Error ? err.message : "Failed to load");
+            setData([]);
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) setLoading(false);
         }
-    }, [tableName]);
+    }, [tableName, orderCol]);
 
     useEffect(() => {
         loadData();
@@ -230,6 +310,21 @@ function TableManager({ tableName }: { tableName: string }) {
         return <div className={css.loading}>Loading...</div>;
     }
 
+    if (loadError) {
+        return (
+            <div className={css.empty}>
+                <p className={css.loadError}>{loadError}</p>
+                <button
+                    type="button"
+                    className={css.retryButton}
+                    onClick={() => loadData()}
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
     if (data.length === 0) {
         return (
             <div className={css.empty}>
@@ -244,7 +339,32 @@ function TableManager({ tableName }: { tableName: string }) {
         );
     }
 
-    const columns = Object.keys(data[0] || {});
+    const rawColumns = Object.keys(data[0] || {});
+    const columns =
+        tableName === "profiles"
+            ? ["avatar", ...rawColumns.filter((c) => c !== "avatar_url")]
+            : rawColumns;
+
+    const renderCell = (item: any, col: string) => {
+        if (tableName === "profiles" && col === "avatar") {
+            const url = item.avatar_url?.trim();
+            if (!url) return <td key={col} className={css.avatarCell} />;
+            return (
+                <td key={col} className={css.avatarCell}>
+                    <img
+                        src={url}
+                        alt=""
+                        className={css.avatarThumb}
+                        width={36}
+                        height={36}
+                    />
+                </td>
+            );
+        }
+        return (
+            <td key={col}>{formatValue(item[col])}</td>
+        );
+    };
 
     return (
         <div className={css.tableManager}>
@@ -301,9 +421,7 @@ function TableManager({ tableName }: { tableName: string }) {
                     <tbody>
                         {paginatedData.map((item) => (
                             <tr key={item.id}>
-                                {columns.map((col) => (
-                                    <td key={col}>{formatValue(item[col])}</td>
-                                ))}
+                                {columns.map((col) => renderCell(item, col))}
                                 <td className={css.actionsCell}>
                                     <div className={css.actionButtons}>
                                         <button

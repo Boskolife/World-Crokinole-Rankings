@@ -1,0 +1,41 @@
+.admin_sign_in_form {
+    width: 100%;
+    max-width: 360px;
+    padding: 32px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    &_title {
+        margin: 0 0 8px;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--black);
+        text-align: center;
+    }
+
+    &_error {
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255, 0, 0, 0.08);
+        border: 1px solid rgba(255, 0, 0, 0.25);
+        color: var(--red, #c00);
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    &_submit {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    &_loading {
+        padding: 24px;
+        text-align: center;
+        color: var(--black-60);
+        font-size: 16px;
+    }
+}

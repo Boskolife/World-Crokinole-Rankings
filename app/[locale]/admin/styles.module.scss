@@ -84,11 +84,81 @@
     color: #666;
 }
 
+.loadingTimeout {
+    p {
+        margin: 0 0 16px;
+    }
+}
+
+.loadError {
+    color: #d32f2f;
+    margin-bottom: 12px;
+}
+
 .error {
     text-align: center;
     padding: 40px;
     color: #d32f2f;
     font-size: 18px;
+}
+
+.errorBoundary {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.errorBoundaryTitle {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.errorBoundaryMessage {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.errorBoundaryActions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.retryButton,
+.linkButton {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+}
+
+.retryButton {
+    background: #007bff;
+    color: white;
+
+    &:hover {
+        background: #0069d9;
+    }
+}
+
+.linkButton {
+    background: #f0f0f0;
+    color: #333;
+
+    &:hover {
+        background: #e0e0e0;
+    }
 }
 
 .tableManager {
@@ -226,6 +296,21 @@
         border-radius: 4px;
         font-size: 14px;
     }
+}
+
+.avatarCell {
+    width: 52px;
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+.avatarThumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    background: #eee;
 }
 
 .actionButtons {
