@@ -18,4 +18,3 @@ export interface IMatchHistoryForClaim {
     myMatches: string;
     id: string;
 }
-

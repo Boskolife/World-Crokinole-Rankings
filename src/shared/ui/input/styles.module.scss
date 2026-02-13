@@ -49,6 +49,17 @@
         &.form_field_input_with_icon {
             padding-right: 48px;
         }
+
+        &[readonly] {
+            background: var(--blue-grey-light, #eef1f5);
+            color: var(--black-50, #6b7280);
+            cursor: default;
+
+            &:hover,
+            &:focus {
+                border-color: var(--blue-dark);
+            }
+        }
     }
 
     &_clear {

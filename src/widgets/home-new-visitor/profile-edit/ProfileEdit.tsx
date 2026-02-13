@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import css from "./styles.module.scss";
 import { FormField } from "@/shared/ui/input";
 import { useForm } from "react-hook-form";
 import { Button, CustomDropdown } from "@/shared/ui";
-import { useProfileInfo } from "@/shared/hooks";
+import { useProfileInfo, useUserProfile } from "@/shared/hooks";
 import { IProfileEditFormData } from "@/shared/types";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
@@ -15,23 +15,65 @@ import {
     supabaseConfigError,
 } from "@/shared/supabase/client";
 
-export const ProfileEdit: React.FC = () => {
+type ProfileEditProps = {
+    credentialsReadOnly?: boolean;
+    onCountryClubChange?: (country: string, club: string) => void;
+};
+
+export const ProfileEdit: React.FC<ProfileEditProps> = ({
+    credentialsReadOnly = false,
+    onCountryClubChange,
+}) => {
     const { user } = useAuth();
+    const { profile } = useUserProfile();
     const [formError, setFormError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const currentEmail = user?.email ?? "";
+    const defaultValues = useMemo<IProfileEditFormData>(
+        () => ({
+            fullName: profile?.full_name?.trim() ?? "",
+            country: profile?.country?.trim() ?? "",
+            club: profile?.club?.trim() ?? "",
+            email: currentEmail,
+            password: "",
+        }),
+        [profile?.full_name, profile?.country, profile?.club, currentEmail]
+    );
 
     const {
         register,
         formState: { errors },
         handleSubmit,
-    } = useForm<IProfileEditFormData>();
+        watch,
+        reset,
+    } = useForm<IProfileEditFormData>({ defaultValues });
+
+    const hasSyncedProfile = useRef(false);
+    useEffect(() => {
+        if (!profile || hasSyncedProfile.current) return;
+        hasSyncedProfile.current = true;
+        reset(defaultValues);
+    }, [profile, defaultValues, reset]);
+
+    const watchedCountry = watch("country");
+    const watchedClub = watch("club");
+    const isFirstCountryClubSync = useRef(true);
+
+    useEffect(() => {
+        if (!credentialsReadOnly || !onCountryClubChange) return;
+        if (isFirstCountryClubSync.current) {
+            isFirstCountryClubSync.current = false;
+            return;
+        }
+        onCountryClubChange(watchedCountry ?? "", watchedClub ?? "");
+    }, [credentialsReadOnly, onCountryClubChange, watchedCountry, watchedClub]);
 
     const { countries, clubs } = useProfileInfo();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
-    
-    const currentEmail = user?.email ?? "";
+
     const isAuthed = Boolean(user);
     const canUseSupabase = isSupabaseConfigured && isAuthed;
 
@@ -69,6 +111,26 @@ export const ProfileEdit: React.FC = () => {
         setIsSubmitting(true);
 
         try {
+            if (credentialsReadOnly) {
+                const { error: upsertError } = await supabase
+                    .from("profiles")
+                    .upsert(
+                        {
+                            id: user.id,
+                            full_name: data.fullName?.trim(),
+                            country: data.country?.trim(),
+                            club: data.club?.trim() || null,
+                        },
+                        { onConflict: "id" }
+                    );
+                if (upsertError) {
+                    setFormError(upsertError.message);
+                    return;
+                }
+                router.push(`/${locale}/new-visitor/save-continue`);
+                return;
+            }
+
             const nextEmail = data.email?.trim();
             const nextPassword = data.password?.trim();
             const shouldUpdateEmail =
@@ -131,16 +193,18 @@ export const ProfileEdit: React.FC = () => {
                             label="Email"
                             placeholder="Enter your email"
                             type="email"
-                            register={register}
-                            defaultValue={currentEmail}
-                            rules={emailRules}
+                            register={credentialsReadOnly ? undefined : register}
+                            defaultValue={credentialsReadOnly ? undefined : currentEmail}
+                            rules={credentialsReadOnly ? undefined : emailRules}
                             error={errors?.email?.message as string}
                             disabled={!canUseSupabase}
+                            readOnly={credentialsReadOnly}
+                            value={credentialsReadOnly ? currentEmail : undefined}
                         />
                         <button
                             className={css.profile_edit_form_item_button}
                             type="button"
-                            disabled={!canUseSupabase}
+                            disabled={credentialsReadOnly || !canUseSupabase}
                         >
                             Change email
                         </button>
@@ -151,16 +215,18 @@ export const ProfileEdit: React.FC = () => {
                             name="password"
                             label="Password"
                             placeholder="Enter your password"
-                            type="password"
-                            register={register}
-                            rules={passwordRules}
+                            type={credentialsReadOnly ? "text" : "password"}
+                            register={credentialsReadOnly ? undefined : register}
+                            rules={credentialsReadOnly ? undefined : passwordRules}
                             error={errors?.password?.message as string}
                             disabled={!canUseSupabase}
+                            readOnly={credentialsReadOnly}
+                            value={credentialsReadOnly ? "••••••••" : undefined}
                         />
                         <button
                             className={css.profile_edit_form_item_button}
                             type="button"
-                            disabled={!canUseSupabase}
+                            disabled={credentialsReadOnly || !canUseSupabase}
                         >
                             Change password
                         </button>

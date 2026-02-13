@@ -11,7 +11,7 @@ export default function Page() {
             <HomeNewVisitor className={css.height_auto}>
                 <Step5 />
             </HomeNewVisitor>
-            <CompleteProfile />
+            <CompleteProfile credentialsReadOnly />
         </>
     );
 }

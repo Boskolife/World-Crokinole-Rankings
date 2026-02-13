@@ -44,6 +44,12 @@
             font-weight: 600;
             color: var(--blue-gray);
         }
+
+        &_upload_error {
+            font-size: 14px;
+            color: var(--red, #c00);
+            margin: 0;
+        }
     }
 
     &_body {

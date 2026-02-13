@@ -14,6 +14,7 @@ export const Profile: React.FC = () => {
         useProfileDropdown();
     const { logout } = useAuth();
     const { fullName, profile } = useUserProfile();
+    const avatarSrc = profile?.avatar_url?.trim() || "/images/profile-placeholder.png";
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
@@ -41,10 +42,11 @@ export const Profile: React.FC = () => {
             >
                 <Image
                     className={css.profile_avatar_image}
-                    src="/images/profile-placeholder.png"
+                    src={avatarSrc}
                     alt="avatar"
                     width={44}
                     height={44}
+                    unoptimized={avatarSrc.includes("supabase.co")}
                 />
                 <Icon
                     name="chevron_down"
@@ -65,10 +67,11 @@ export const Profile: React.FC = () => {
                                 className={
                                     css.profile_dropdown_info_avatar_image
                                 }
-                                src="/images/profile-placeholder.png"
+                                src={avatarSrc}
                                 alt="avatar"
                                 width={44}
                                 height={44}
+                                unoptimized={avatarSrc.includes("supabase.co")}
                             />
                         </div>
                         <div className={css.profile_dropdown_info_name}>

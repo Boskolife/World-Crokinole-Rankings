@@ -1,83 +1,119 @@
+"use client";
+
 import { useState, useRef } from "react";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { useUserProfile } from "@/shared/hooks/use-user-profile";
+import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
+
+const AVATAR_BUCKET = "avatars";
+const PLACEHOLDER_SRC = "/images/profile-placeholder.png";
+
+function getExtension(filename: string): string {
+    const match = filename.match(/\.([a-zA-Z0-9]+)$/);
+    return match ? match[1].toLowerCase() : "jpg";
+}
 
 export const useProfileInfo = () => {
-    const [imageSrc, setImageSrc] = useState<string>(
-        "/images/profile-placeholder.png"
-    );
+    const { user } = useAuth();
+    const { profile, refetch: refetchProfile } = useUserProfile();
+    const userId = user?.id ?? null;
+
+    const [imageSrc, setImageSrc] = useState<string>(PLACEHOLDER_SRC);
+    const [avatarVersion, setAvatarVersion] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const baseImageSrc = profile?.avatar_url?.trim() || imageSrc;
+    const effectiveImageSrc =
+        baseImageSrc && baseImageSrc.includes("supabase.co")
+            ? `${baseImageSrc}${baseImageSrc.includes("?") ? "&" : "?"}t=${avatarVersion}`
+            : baseImageSrc;
 
     const handleButtonClick = () => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const file = e.target.files?.[0];
-        if (file) {
-            if (file.type.startsWith("image/")) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    if (reader.result) {
-                        setImageSrc(reader.result as string);
-                    }
-                };
-                reader.readAsDataURL(file);
+        e.target.value = "";
+        if (!file || !file.type.startsWith("image/")) return;
+        if (!isSupabaseConfigured || !userId) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (reader.result) setImageSrc(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            return;
+        }
+
+        setIsUploading(true);
+        setUploadError(null);
+
+        const ext = getExtension(file.name);
+        const path = `${userId}/avatar.${ext}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from(AVATAR_BUCKET)
+                .upload(path, file, { upsert: true });
+
+            if (uploadError) {
+                setUploadError(uploadError.message);
+                return;
             }
+
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+
+            const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ avatar_url: publicUrl })
+                .eq("id", userId);
+
+            if (updateError) {
+                setUploadError(updateError.message);
+                return;
+            }
+
+            setImageSrc(publicUrl);
+            setAvatarVersion((v) => v + 1);
+            await refetchProfile();
+        } catch {
+            setUploadError("Failed to upload avatar");
+        } finally {
+            setIsUploading(false);
         }
     };
 
     const countries = [
-        {
-            value: "United States",
-            label: "United States",
-        },
-        {
-            value: "Canada",
-            label: "Canada",
-        },
-        {
-            value: "United Kingdom",
-            label: "United Kingdom",
-        },
-        {
-            value: "Australia",
-            label: "Australia",
-        },
-        {
-            value: "New Zealand",
-            label: "New Zealand",
-        },
-        {
-            value: "Other",
-            label: "Other",
-        },
+        { value: "United States", label: "United States" },
+        { value: "Canada", label: "Canada" },
+        { value: "United Kingdom", label: "United Kingdom" },
+        { value: "Australia", label: "Australia" },
+        { value: "New Zealand", label: "New Zealand" },
+        { value: "Other", label: "Other" },
     ];
 
     const clubs = [
-        {
-            value: "Manchester United",
-            label: "Manchester United",
-        },
-        {
-            value: "Manchester City",
-            label: "Manchester City",
-        },
-        {
-            value: "Liverpool",
-            label: "Liverpool",
-        },
-        {
-            value: "Chelsea",
-            label: "Chelsea",
-        },
+        { value: "Manchester United", label: "Manchester United" },
+        { value: "Manchester City", label: "Manchester City" },
+        { value: "Liverpool", label: "Liverpool" },
+        { value: "Chelsea", label: "Chelsea" },
     ];
 
     return {
-        imageSrc,
+        imageSrc: effectiveImageSrc,
+        imageKey: `${effectiveImageSrc}-${avatarVersion}`,
         fileInputRef,
         handleButtonClick,
         handleFileChange,
+        isUploading,
+        uploadError,
         countries,
         clubs,
     };
 };
-

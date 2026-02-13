@@ -49,7 +49,7 @@ export const useUserProfile = () => {
         try {
             const { data, error: dbError } = await supabase
                 .from("profiles")
-                .select("id, full_name, country, club, subscription_plan, is_admin")
+                .select("id, full_name, country, club, avatar_url, subscription_plan, is_admin")
                 .eq("id", userId)
                 .maybeSingle();
 

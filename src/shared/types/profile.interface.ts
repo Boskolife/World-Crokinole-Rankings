@@ -5,6 +5,7 @@ export interface IProfile {
     full_name: string | null;
     country: string | null;
     club: string | null;
+    avatar_url: string | null;
     subscription_plan?: SubscriptionPlan;
     is_admin?: boolean;
     created_at?: string;

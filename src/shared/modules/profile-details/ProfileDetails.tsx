@@ -9,17 +9,21 @@ import { useUserProfile } from "@/shared/hooks";
 export const ProfileDetails: React.FC = () => {
     const { fullName, email, profile } = useUserProfile();
     const kingdom = profile?.country || "-";
+    const club = profile?.club || "-";
+    const avatarSrc =
+        profile?.avatar_url?.trim() || "/images/profile-placeholder.png";
     return (
         <div className="container">
             <div className={css.profile_details_content}>
                 <div className={css.profile_details_left}>
                     <div className={css.profile_details_left_profile}>
                         <Image
-                            src="/images/profile-placeholder.png"
+                            src={avatarSrc}
                             alt="Profile"
                             width={164}
                             height={164}
                             className={css.profile_details_left_profile_image}
+                            unoptimized={avatarSrc.includes("supabase.co")}
                         />
                         <div className={css.profile_details_left_profile_info}>
                             <h4
@@ -128,7 +132,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                {profile?.club || "-"}
+                                {club}
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>

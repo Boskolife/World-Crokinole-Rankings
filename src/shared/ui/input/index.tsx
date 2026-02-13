@@ -197,7 +197,7 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
                               ref: assignRef,
                           })}
                 />
-                {isFilled && (
+                {isFilled && !restProps.readOnly && (
                     <button
                         type="button"
                         className={css.form_field_clear}
