@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
                 metadata: {
                     userId,
                     planId,
+                    billingPeriod,
                 },
             },
         });

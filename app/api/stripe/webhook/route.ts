@@ -55,55 +55,77 @@ export async function POST(request: NextRequest) {
 
         const updateSubscription = async (
             subscription: Stripe.Subscription,
-            userId: string
+            userId: string,
+            billingPeriodFromSession?: string
         ) => {
-        const planId = subscription.metadata?.planId || "1";
+        const subId = subscription.id;
+        const sub = await stripe.subscriptions.retrieve(subId, {
+            expand: ["items.data.price", "latest_invoice"],
+        });
+
+        const planId = (sub.metadata?.planId ?? subscription.metadata?.planId) || "1";
         const planName = planMap[planId] || "standard";
-        const billingPeriod = subscription.items.data[0]?.price?.recurring?.interval === "month" 
-            ? (subscription.items.data[0]?.price?.recurring?.interval_count === 12 ? "annual" : "monthly")
-            : "monthly";
 
-        // Correctly extract current_period_start and current_period_end from Stripe subscription
-        // Stripe returns these values as numbers (Unix timestamp in seconds)
-        const subscriptionAny = subscription as any;
-        const periodStart = subscriptionAny.current_period_start;
-        const periodEnd = subscriptionAny.current_period_end;
+        const billingPeriodFromMeta =
+            (sub.metadata?.billingPeriod as string) ??
+            (subscription.metadata?.billingPeriod as string) ??
+            billingPeriodFromSession;
+        const firstItem = sub.items?.data?.[0];
+        const price = firstItem?.price;
+        const recurring =
+            typeof price === "object" && price && "recurring" in price
+                ? (price as { recurring?: { interval?: string; interval_count?: number } }).recurring
+                : undefined;
+        const interval = recurring?.interval;
+        const intervalCount = recurring?.interval_count ?? 1;
+        const billingPeriodDerived =
+            interval === "year" || (interval === "month" && intervalCount === 12)
+                ? "annual"
+                : "monthly";
+        const billingPeriod =
+            billingPeriodFromMeta === "annual" || billingPeriodFromMeta === "monthly"
+                ? billingPeriodFromMeta
+                : billingPeriodDerived;
 
-        console.log('Subscription periods:', {
-            subscriptionId: subscription.id,
-            periodStart,
-            periodEnd,
-            periodStartType: typeof periodStart,
-            periodEndType: typeof periodEnd,
-            hasPeriodStart: periodStart !== undefined && periodStart !== null,
-            hasPeriodEnd: periodEnd !== undefined && periodEnd !== null,
-        });
+        let periodStartISO: string | null = null;
+        let periodEndISO: string | null = null;
 
-        // Convert Unix timestamp to ISO string for database
-        const periodStartISO = periodStart && typeof periodStart === 'number' 
-            ? new Date(periodStart * 1000).toISOString() 
-            : null;
-        const periodEndISO = periodEnd && typeof periodEnd === 'number' 
-            ? new Date(periodEnd * 1000).toISOString() 
-            : null;
+        const latestInvoice = sub.latest_invoice;
+        if (latestInvoice && typeof latestInvoice === "object") {
+            const inv = latestInvoice as { period_start?: number; period_end?: number; lines?: { data?: Array<{ period?: { start: number; end: number } }> } };
+            if (inv.period_start != null && inv.period_end != null) {
+                periodStartISO = new Date(inv.period_start * 1000).toISOString();
+                periodEndISO = new Date(inv.period_end * 1000).toISOString();
+            }
+            if ((!periodStartISO || !periodEndISO) && inv.lines?.data?.[0]?.period) {
+                const p = inv.lines.data[0].period;
+                if (p.start != null) periodStartISO = new Date(p.start * 1000).toISOString();
+                if (p.end != null) periodEndISO = new Date(p.end * 1000).toISOString();
+            }
+        }
+        if (!periodStartISO || !periodEndISO) {
+            const item = firstItem as unknown as { current_period_start?: number; current_period_end?: number } | undefined;
+            const raw = sub as unknown as { current_period_start?: number; current_period_end?: number };
+            const ps = item?.current_period_start ?? raw?.current_period_start;
+            const pe = item?.current_period_end ?? raw?.current_period_end;
+            if (ps != null && typeof ps === "number") periodStartISO = new Date(ps * 1000).toISOString();
+            if (pe != null && typeof pe === "number") periodEndISO = new Date(pe * 1000).toISOString();
+        }
 
-        console.log('Converted periods:', {
-            periodStartISO,
-            periodEndISO,
-        });
+        const customerId = typeof sub.customer === "string" ? sub.customer : (sub.customer as { id: string })?.id;
 
         const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
             {
                 user_id: userId,
-                stripe_subscription_id: subscription.id,
-                stripe_customer_id: typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id,
+                stripe_subscription_id: sub.id,
+                stripe_customer_id: customerId,
                 plan_id: parseInt(planId),
                 plan_name: planName,
-                status: subscription.status,
+                status: sub.status,
                 billing_period: billingPeriod,
                 current_period_start: periodStartISO,
                 current_period_end: periodEndISO,
-                cancel_at_period_end: subscription.cancel_at_period_end || false,
+                cancel_at_period_end: sub.cancel_at_period_end ?? false,
             },
             { onConflict: "stripe_subscription_id" }
         );
@@ -113,7 +135,7 @@ export async function POST(request: NextRequest) {
             throw new Error(`Failed to update subscription: ${subscriptionError.message}`);
         }
 
-        if (subscription.status === "active" || subscription.status === "trialing") {
+        if (sub.status === "active" || sub.status === "trialing") {
             const { error: profileError } = await supabase
                 .from("profiles")
                 .update({ subscription_plan: planName })
@@ -123,7 +145,7 @@ export async function POST(request: NextRequest) {
                 console.error("Failed to update profile:", profileError);
                 throw new Error(`Failed to update profile: ${profileError.message}`);
             }
-        } else if (subscription.status === "canceled" || subscription.status === "unpaid" || subscription.status === "past_due") {
+        } else if (sub.status === "canceled" || sub.status === "unpaid" || sub.status === "past_due") {
             const { error: profileError } = await supabase
                 .from("profiles")
                 .update({ subscription_plan: "standard" })
@@ -147,8 +169,11 @@ export async function POST(request: NextRequest) {
                 console.log(`Checkout completed - userId: ${userId}, subscriptionId: ${subscriptionId}`);
 
                 if (userId && subscriptionId) {
-                    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-                    await updateSubscription(subscription, userId);
+                    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+                        expand: ["items.data.price"],
+                    });
+                    const billingPeriodFromSession = session.metadata?.billingPeriod as string | undefined;
+                    await updateSubscription(subscription, userId, billingPeriodFromSession);
                     console.log(`Subscription updated for user ${userId}`);
                 } else {
                     console.warn("Missing userId or subscriptionId in checkout.session.completed");
