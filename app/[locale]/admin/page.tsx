@@ -23,7 +23,7 @@ type AdminSection =
     | "subscriptions";
 
 export default function AdminPage() {
-    const { isAuth, user, isMounted } = useAuth();
+    const { isAuth, user, isMounted, logout } = useAuth();
     const { profile, isLoading: profileLoading } = useUserProfile();
     const router = useRouter();
     const params = useParams() as { locale?: string };
@@ -117,8 +117,18 @@ export default function AdminPage() {
         <div className={css.container}>
             <div className={css.header}>
                 <h1 className={css.title}>Admin Panel</h1>
-                <div className={css.userInfo}>
-                    <span>{user?.email}</span>
+                <div className={css.headerRight}>
+                    <span className={css.userInfo}>{user?.email}</span>
+                    <button
+                        type="button"
+                        className={css.logoutButton}
+                        onClick={async () => {
+                            await logout();
+                            router.push(`/${locale}/admin/sign-in`);
+                        }}
+                    >
+                        Logout
+                    </button>
                 </div>
             </div>
             
