@@ -42,30 +42,39 @@ export async function GET(request: NextRequest) {
         }
 
         const stripeSubscription = await stripe.subscriptions.retrieve(
-            subscription.stripe_subscription_id
+            subscription.stripe_subscription_id,
+            { expand: ["latest_invoice"] }
         );
 
-        // Use actual data from Stripe for current_period_start and current_period_end
-        const stripeSubAny = stripeSubscription as any;
-        const periodStart = stripeSubAny.current_period_start;
-        const periodEnd = stripeSubAny.current_period_end;
+        const firstItem = stripeSubscription.items?.data?.[0];
+        const subRaw = stripeSubscription as unknown as { current_period_start?: number; current_period_end?: number };
+        const itemRaw = firstItem as unknown as { current_period_start?: number; current_period_end?: number } | undefined;
+        let periodStart = itemRaw?.current_period_start ?? subRaw?.current_period_start;
+        let periodEnd = itemRaw?.current_period_end ?? subRaw?.current_period_end;
 
-        const currentPeriodStart = periodStart && typeof periodStart === 'number'
-            ? new Date(periodStart * 1000).toISOString()
-            : subscription.current_period_start;
+        const latestInvoice = stripeSubscription.latest_invoice;
+        if ((periodStart == null || periodEnd == null) && latestInvoice && typeof latestInvoice === "object") {
+            const inv = latestInvoice as { period_start?: number; period_end?: number };
+            if (inv.period_start != null) periodStart = inv.period_start;
+            if (inv.period_end != null) periodEnd = inv.period_end;
+        }
 
-        const currentPeriodEnd = periodEnd && typeof periodEnd === 'number'
-            ? new Date(periodEnd * 1000).toISOString()
-            : subscription.current_period_end;
+        const currentPeriodStart =
+            periodStart != null && typeof periodStart === "number"
+                ? new Date(periodStart * 1000).toISOString()
+                : subscription.current_period_start;
+        const currentPeriodEnd =
+            periodEnd != null && typeof periodEnd === "number"
+                ? new Date(periodEnd * 1000).toISOString()
+                : subscription.current_period_end;
 
-        // Update database data if it's missing or outdated
-        if (!subscription.current_period_start || !subscription.current_period_end) {
+        if (currentPeriodStart && currentPeriodEnd) {
             await supabase
                 .from("subscriptions")
                 .update({
                     current_period_start: currentPeriodStart,
                     current_period_end: currentPeriodEnd,
-                    cancel_at_period_end: stripeSubscription.cancel_at_period_end || subscription.cancel_at_period_end,
+                    cancel_at_period_end: stripeSubscription.cancel_at_period_end ?? subscription.cancel_at_period_end,
                 })
                 .eq("stripe_subscription_id", subscription.stripe_subscription_id);
         }
@@ -75,8 +84,7 @@ export async function GET(request: NextRequest) {
                 ...subscription,
                 current_period_start: currentPeriodStart,
                 current_period_end: currentPeriodEnd,
-                cancel_at_period_end: stripeSubscription.cancel_at_period_end || subscription.cancel_at_period_end,
-                stripeSubscription,
+                cancel_at_period_end: stripeSubscription.cancel_at_period_end ?? subscription.cancel_at_period_end,
             },
         });
     } catch (error: any) {
