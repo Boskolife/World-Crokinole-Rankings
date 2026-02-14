@@ -1,9 +1,20 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
-export const supabase = createClient(supabaseUrl ?? "", supabaseAnonKey ?? "");
+function getSupabaseClient(): SupabaseClient {
+    if (supabaseUrl && supabaseAnonKey) {
+        return createBrowserClient(supabaseUrl, supabaseAnonKey);
+    }
+    return createClient(
+        "https://placeholder.supabase.co",
+        "placeholder-key"
+    );
+}
+
+export const supabase = getSupabaseClient();
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
@@ -17,4 +28,3 @@ export const supabaseConfigError = (() => {
     }
     return null;
 })();
-
