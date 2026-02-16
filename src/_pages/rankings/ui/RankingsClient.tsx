@@ -1,7 +1,6 @@
 "use client";
 
 import { Rankings } from "@/widgets/rankings";
-import { clientRoutes } from "@/shared/routes/client";
 import type { IRankList } from "@/shared/types";
 
 interface RankingsClientProps {
@@ -10,14 +9,17 @@ interface RankingsClientProps {
         singles: IRankList[];
         doubles: IRankList[];
     };
+    defaultExpanded?: boolean;
 }
 
-export function RankingsClient({ rankings }: RankingsClientProps) {
+export function RankingsClient({
+    rankings,
+    defaultExpanded = false,
+}: RankingsClientProps) {
     return (
         <Rankings
             rankings={rankings}
-            viewFullListHref={clientRoutes.rankings}
+            defaultExpanded={defaultExpanded}
         />
     );
 }
-

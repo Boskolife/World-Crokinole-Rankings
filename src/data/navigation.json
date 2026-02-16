@@ -4,25 +4,25 @@
             "icon": "ranking",
             "title": "Rankings",
             "description": "See top players and track your climb.",
-            "href": "#"
+            "href": "rankings"
         },
         {
             "icon": "events",
             "title": "Events",
             "description": "Find tournaments and register to compete.",
-            "href": "#"
+            "href": "events"
         },
         {
             "icon": "players",
             "title": "Players",
             "description": "Explore player profiles and stats.",
-            "href": "#"
+            "href": "players"
         },
         {
             "icon": "clubs",
             "title": "Clubs",
             "description": "Join or manage your club community.",
-            "href": "#"
+            "href": "clubs"
         }
     ]
 }

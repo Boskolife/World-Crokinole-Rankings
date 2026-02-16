@@ -9,6 +9,7 @@ const EXPANDED_VISIBLE_ITEMS = 20;
 interface UseRankingsListOptions<Category extends string> {
     lists: Record<Category, IRankList[]>;
     initialCategory: Category;
+    initialExpanded?: boolean;
 }
 
 interface UseRankingsListResult<Category extends string> {
@@ -29,8 +30,9 @@ interface UseRankingsListResult<Category extends string> {
 export function useRankingsList<Category extends string>({
     lists,
     initialCategory,
+    initialExpanded = false,
 }: UseRankingsListOptions<Category>): UseRankingsListResult<Category> {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(initialExpanded);
     const [currentPage, setCurrentPage] = useState(1);
     const [activeCategory, setActiveCategory] =
         useState<Category>(initialCategory);

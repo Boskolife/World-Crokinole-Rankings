@@ -46,8 +46,7 @@ export const SignInForm: React.FC = () => {
                 return;
             }
 
-            const isFromStepFlow = pathname.includes("step-2") || pathname.includes("new-visitor");
-            router.push(isFromStepFlow ? `/${locale}${clientRoutes.steps(3)}` : `/${locale}${clientRoutes.dashboard}`);
+            router.push(`/${locale}${clientRoutes.dashboard}`);
         } catch {
             setFormError(
                 "Could not reach Supabase. Please check NEXT_PUBLIC_SUPABASE_URL and your DNS/Internet connection."
@@ -122,8 +121,7 @@ export const SignInForm: React.FC = () => {
                     setFormError(null);
                     setIsSubmitting(true);
                     try {
-                        const isFromStepFlow = pathname.includes("step-2") || pathname.includes("new-visitor");
-                        const redirectTo = `${window.location.origin}/${locale}${isFromStepFlow ? clientRoutes.steps(3) : clientRoutes.dashboard}`;
+                        const redirectTo = `${window.location.origin}/${locale}${clientRoutes.dashboard}`;
                         const { error } = await supabase.auth.signInWithOAuth({
                             provider: "google",
                             options: { redirectTo },

@@ -7,4 +7,5 @@ export interface ICustomButtonProps
     > {
     className?: string;
     inverted?: boolean;
+    href?: string;
 }

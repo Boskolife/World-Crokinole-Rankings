@@ -5,6 +5,7 @@ import React from "react";
 
 import cn from "classnames";
 import { CustomButton } from "@/shared/ui/buttons";
+import { clientRoutes } from "@/shared/routes/client";
 import Image from "next/image";
 
 export const Hero: React.FC = () => {
@@ -35,7 +36,9 @@ export const Hero: React.FC = () => {
                     <p className={css.hero_description}>
                         Earn laurels. Climb the rankings. Claim the crown.
                     </p>
-                    <CustomButton inverted>View Upcoming Events</CustomButton>
+                    <CustomButton inverted href={clientRoutes.events}>
+                        View Upcoming Events
+                    </CustomButton>
                 </div>
             </div>
         </section>

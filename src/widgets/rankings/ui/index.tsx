@@ -1,25 +1,71 @@
 "use client";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
 import { SwitcherModule } from "@/shared/modules";
 import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { RankingList } from "../components/ranking-list/RankingList";
 import { Pagination } from "@/shared/modules";
-
 import { CustomButton } from "@/shared/ui/buttons";
 import { useRankingsList } from "@/shared/hooks";
 import {
-    worldOptions,
-    kingdomFilterOptions,
-    clubFilterOptions,
     rankingsSwitcherOptions,
     RankingsCategoryValue,
 } from "@/shared/constants/dropdown-options";
+import type { IRankList } from "@/shared/types";
 
 type CategoryValue = RankingsCategoryValue;
 
-import type { IRankList } from "@/shared/types";
+function filterList(
+    list: IRankList[],
+    searchQuery: string,
+    kingdomFilter: string,
+    clubFilter: string
+): IRankList[] {
+    return list.filter((item) => {
+        const q = searchQuery.trim().toLowerCase();
+        if (q && !item.name.toLowerCase().includes(q) && !(item.club || "").toLowerCase().includes(q)) {
+            return false;
+        }
+        if (kingdomFilter && item.kingdom !== kingdomFilter) return false;
+        if (clubFilter && item.club !== clubFilter) return false;
+        return true;
+    });
+}
+
+function getUniqueKingdoms(rankings: {
+    laurels: IRankList[];
+    singles: IRankList[];
+    doubles: IRankList[];
+}): { value: string; label: string }[] {
+    const set = new Set<string>();
+    [rankings.laurels, rankings.singles, rankings.doubles].forEach((list) =>
+        list.forEach((r) => r.kingdom && set.add(r.kingdom))
+    );
+    const options = [{ value: "", label: "All Kingdoms" }];
+    Array.from(set)
+        .sort()
+        .forEach((k) => options.push({ value: k, label: k }));
+    return options;
+}
+
+function getUniqueClubs(rankings: {
+    laurels: IRankList[];
+    singles: IRankList[];
+    doubles: IRankList[];
+}): { value: string; label: string }[] {
+    const set = new Set<string>();
+    [rankings.laurels, rankings.singles, rankings.doubles].forEach((list) =>
+        list.forEach((r) => r.club && set.add(r.club))
+    );
+    const options = [{ value: "", label: "All Clubs" }];
+    Array.from(set)
+        .sort()
+        .forEach((c) => options.push({ value: c, label: c }));
+    return options;
+}
+
+const worldOptions = [{ value: "", label: "World" }];
 
 interface RankingsProps {
     rankings: {
@@ -27,9 +73,46 @@ interface RankingsProps {
         singles: IRankList[];
         doubles: IRankList[];
     };
+    defaultExpanded?: boolean;
+    viewFullListHref?: string;
 }
 
-export const Rankings: React.FC<RankingsProps> = ({ rankings }) => {
+export const Rankings: React.FC<RankingsProps> = ({
+    rankings,
+    defaultExpanded = false,
+    viewFullListHref,
+}) => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [kingdomFilter, setKingdomFilter] = useState("");
+    const [clubFilter, setClubFilter] = useState("");
+
+    const kingdomOptions = useMemo(() => getUniqueKingdoms(rankings), [rankings]);
+    const clubOptions = useMemo(() => getUniqueClubs(rankings), [rankings]);
+
+    const filteredRankings = useMemo(
+        () => ({
+            laurels: filterList(
+                rankings.laurels,
+                searchQuery,
+                kingdomFilter,
+                clubFilter
+            ),
+            singles: filterList(
+                rankings.singles,
+                searchQuery,
+                kingdomFilter,
+                clubFilter
+            ),
+            doubles: filterList(
+                rankings.doubles,
+                searchQuery,
+                kingdomFilter,
+                clubFilter
+            ),
+        }),
+        [rankings, searchQuery, kingdomFilter, clubFilter]
+    );
+
     const {
         listRef,
         displayedList,
@@ -44,8 +127,9 @@ export const Rankings: React.FC<RankingsProps> = ({ rankings }) => {
         handlePageChange,
         handleViewFullList,
     } = useRankingsList<CategoryValue>({
-        lists: rankings,
+        lists: filteredRankings,
         initialCategory: rankingsSwitcherOptions[0].value,
+        initialExpanded: defaultExpanded,
     });
 
     return (
@@ -59,6 +143,8 @@ export const Rankings: React.FC<RankingsProps> = ({ rankings }) => {
                         placeholder="Find player by name or club"
                         ariaLabel="Find player by name or club"
                         className={css.rankings_head_search}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <p className={css.rankings_description}>
@@ -74,21 +160,25 @@ export const Rankings: React.FC<RankingsProps> = ({ rankings }) => {
                     <div className={css.rankings_filters_dropdowns}>
                         <CustomRoundedDropdown
                             className={css.rankings_filters_dropdown}
-                            id="rating"
+                            id="world"
                             placeholder="World"
                             options={worldOptions}
                         />
                         <CustomRoundedDropdown
                             className={css.rankings_filters_dropdown}
-                            id="singles"
+                            id="kingdom"
                             placeholder="Kingdom"
-                            options={kingdomFilterOptions}
+                            options={kingdomOptions}
+                            value={kingdomFilter}
+                            onChange={setKingdomFilter}
                         />
                         <CustomRoundedDropdown
                             className={css.rankings_filters_dropdown}
-                            id="doubles"
+                            id="club"
                             placeholder="Club"
-                            options={clubFilterOptions}
+                            options={clubOptions}
+                            value={clubFilter}
+                            onChange={setClubFilter}
                         />
                     </div>
                 </div>
@@ -101,14 +191,22 @@ export const Rankings: React.FC<RankingsProps> = ({ rankings }) => {
             />
             <div className="container">
                 <div className={css.rankings_footer}>
-                    {shouldShowButton && (
-                        <CustomButton
-                            className={css.rankings_button}
-                            onClick={handleViewFullList}
-                        >
-                            View Full Ranking List
-                        </CustomButton>
-                    )}
+                    {shouldShowButton &&
+                        (viewFullListHref ? (
+                            <CustomButton
+                                className={css.rankings_button}
+                                href={viewFullListHref}
+                            >
+                                View Full Ranking List
+                            </CustomButton>
+                        ) : (
+                            <CustomButton
+                                className={css.rankings_button}
+                                onClick={handleViewFullList}
+                            >
+                                View Full Ranking List
+                            </CustomButton>
+                        ))}
                     {shouldShowPagination && (
                         <Pagination
                             totalItems={totalItems}

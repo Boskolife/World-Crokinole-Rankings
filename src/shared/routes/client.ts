@@ -1,6 +1,7 @@
 export const clientRoutes = {
     home: "/",
     events: "/events",
+    rankings: "/rankings",
     clubs: "/clubs",
     membershipPlans: "/membership-plans",
     players: "/players",

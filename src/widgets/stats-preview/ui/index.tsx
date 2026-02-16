@@ -7,6 +7,7 @@ import Image from "next/image";
 import { RootLink } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
 import { useUserProfile } from "@/shared/hooks";
+import { clientRoutes } from "@/shared/routes/client";
 
 export const StatsPreview: React.FC = () => {
     const { fullName, profile } = useUserProfile();
@@ -33,7 +34,7 @@ export const StatsPreview: React.FC = () => {
                             </h3>
                             <div className={css.stats_preview_profile_link}>
                                 <RootLink
-                                    href="/"
+                                    href={clientRoutes.profile}
                                     className={
                                         css.stats_preview_profile_link_text
                                     }
