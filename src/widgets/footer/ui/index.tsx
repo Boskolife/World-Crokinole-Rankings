@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import cn from "classnames";
 import { RootLink } from "@/shared/ui/links/root-link";
+import { clientRoutes } from "@/shared/routes/client";
 
 export const Footer: React.FC = () => {
     const tNavigation = useTranslations("navigation");
@@ -32,19 +33,19 @@ export const Footer: React.FC = () => {
 
     const navMenuItems = [
         {
-            href: "#",
+            href: clientRoutes.rankings,
             label: tNavigation("rankings"),
         },
         {
-            href: "#",
+            href: clientRoutes.events,
             label: tNavigation("events"),
         },
         {
-            href: "#",
+            href: clientRoutes.clubs,
             label: tNavigation("clubs"),
         },
         {
-            href: "#",
+            href: clientRoutes.players,
             label: tNavigation("players"),
         },
     ];

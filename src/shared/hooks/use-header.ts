@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { clientRoutes } from "../routes/client";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export const useProfileDropdown = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -121,7 +121,6 @@ export const useNotificationDropdown = () => {
 
 export const useHeader = () => {
     const router = useRouter();
-    const pathname = usePathname();
     const tNavigation = useTranslations("navigation");
     const tAuth = useTranslations("auth");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -162,51 +161,10 @@ export const useHeader = () => {
         setIsMenuOpen((prev) => !prev);
     };
 
-    const scrollToRankings = () => {
-        const rankingsElement = document.getElementById("rankings");
-        if (rankingsElement) {
-            const scrollTarget =
-                rankingsElement.getBoundingClientRect().top + window.scrollY;
-            window.scrollTo({
-                top: scrollTarget,
-                behavior: "smooth",
-            });
-            return true;
-        }
-        return false;
-    };
-
-    const handleRankingsClick = () => {
-        // Remove locale from pathname for comparison (format: /en/, /ru/, /fr/, etc.)
-        const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(\/|$)/, "/") || "/";
-        const isOnHomePage = pathWithoutLocale === "/" || pathWithoutLocale === clientRoutes.home;
-
-        if (isOnHomePage) {
-            // If already on home page, just scroll
-            scrollToRankings();
-        } else {
-            // If not on home page, navigate to home
-            router.push(clientRoutes.home);
-            // Wait for page load and element presence before scrolling
-            let attempts = 0;
-            const maxAttempts = 20; // Maximum 20 attempts (1 second)
-            const checkAndScroll = () => {
-                if (scrollToRankings() || attempts >= maxAttempts) {
-                    return;
-                }
-                attempts++;
-                // If element is not loaded yet, check again after a short interval
-                setTimeout(checkAndScroll, 50);
-            };
-            // Start checking after a short delay for rendering to begin
-            setTimeout(checkAndScroll, 100);
-        }
-    };
-
     const navMenuItems = [
         {
-            href: clientRoutes.home,
-            onClick: handleRankingsClick,
+            href: clientRoutes.rankings,
+            onClick: () => router.push(clientRoutes.rankings),
             label: tNavigation("rankings"),
         },
         {
