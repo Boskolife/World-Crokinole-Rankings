@@ -5,8 +5,10 @@ import { Icon } from "@/shared/ui/icons";
 import cn from "classnames";
 import { IEventCardProps } from "@/shared/types";
 import { RootLink } from "@/shared/ui";
+import { clientRoutes } from "@/shared/routes/client";
 
 export const EventCard: React.FC<IEventCardProps> = ({
+    id,
     image,
     title,
     price,
@@ -70,7 +72,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
             </div>
             <div className={css.event_card_content}>
                 <div className={css.event_card_title_wrap}>
-                    <RootLink href="#">
+                    <RootLink href={clientRoutes.eventDetail(id)}>
                         <h3 className={css.event_card_title}>{title}</h3>
                     </RootLink>
                     <span
@@ -96,7 +98,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
                                 <b>Winner:</b>
                                 <span>{winner}</span>
                             </div>
-                            <RootLink href="#" className={css.event_card_status_link}>Tournament Page</RootLink>
+                            <RootLink href={clientRoutes.eventDetail(id)} className={css.event_card_status_link}>Tournament Page</RootLink>
                         </>
                     ) : (
                         <span className={css.event_card_format}>{format}</span>

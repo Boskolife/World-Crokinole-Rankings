@@ -430,3 +430,53 @@
         cursor: pointer;
     }
 }
+
+.join_tournament_title {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--blue-grey);
+    line-height: 1.25;
+}
+
+.join_tournament_description {
+    margin: 0 0 24px 0;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--black);
+}
+
+.join_tournament_dropdown_wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.join_tournament_dropdown_label {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--black);
+}
+
+.join_tournament_dropdown {
+    width: 100%;
+}
+
+.join_tournament_submit {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px 28px;
+    border-radius: 9999px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+    background: #f9c24c;
+    border: none;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: brightness(1.05);
+    }
+}

@@ -12,4 +12,5 @@ export const clientRoutes = {
     dashboard: "/dashboard",
 
     steps: (step: number) => `/new-visitor/step-${step}`,
+    eventDetail: (id: number) => `/events/${id}`,
 };

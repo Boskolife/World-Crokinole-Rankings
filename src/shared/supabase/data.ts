@@ -46,25 +46,56 @@ export async function getEvents(): Promise<IEventCardProps[]> {
         return [];
     }
 
-    return (
-        data?.map((event) => ({
-            id: event.id,
-            image: event.image || "",
-            title: event.title,
-            price: event.price,
-            date: event.start_date && event.end_date 
-                ? formatEventDate(event.start_date, event.end_date)
-                : "",
-            location: event.location,
-            format: event.format,
-            isRanked: event.is_ranked,
-            isRegistrationRequired: event.is_registration_required,
-            winner: event.winner,
-            currentRank: event.current_rank || null,
-            totalParticipants: event.total_participants || null,
-            startDate: event.start_date || undefined,
-        })) || []
-    );
+    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
+}
+
+const mapEventRowToCard = (event: {
+    id: number;
+    image: string | null;
+    title: string;
+    price: string;
+    start_date: string | null;
+    end_date: string | null;
+    location: string;
+    format: string;
+    is_ranked: boolean;
+    is_registration_required: boolean;
+    winner: string | null;
+    current_rank: number | null;
+    total_participants: number | null;
+    strength_of_field?: number | null;
+    tournament_points_available?: number | null;
+    structure?: string | null;
+}): IEventCardProps => ({
+    id: event.id,
+    image: event.image || "",
+    title: event.title,
+    price: event.price,
+    date: event.start_date && event.end_date
+        ? formatEventDate(event.start_date, event.end_date)
+        : "",
+    location: event.location,
+    format: event.format,
+    isRanked: event.is_ranked,
+    isRegistrationRequired: event.is_registration_required,
+    winner: event.winner || undefined,
+    currentRank: event.current_rank ?? undefined,
+    totalParticipants: event.total_participants ?? undefined,
+    startDate: event.start_date || undefined,
+    strengthOfField: event.strength_of_field ?? undefined,
+    tournamentPointsAvailable: event.tournament_points_available ?? undefined,
+    structure: event.structure ?? undefined,
+});
+
+export async function getEventById(id: number): Promise<IEventCardProps | null> {
+    const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if (error || !data) return null;
+    return mapEventRowToCard(data);
 }
 
 export async function getFutureEvents(): Promise<IEventCardProps[]> {
@@ -80,25 +111,7 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
         return [];
     }
 
-    return (
-        data?.map((event) => ({
-            id: event.id,
-            image: event.image || "",
-            title: event.title,
-            price: event.price,
-            date: event.start_date && event.end_date 
-                ? formatEventDate(event.start_date, event.end_date)
-                : "",
-            location: event.location,
-            format: event.format,
-            isRanked: event.is_ranked,
-            isRegistrationRequired: event.is_registration_required,
-            winner: event.winner,
-            currentRank: event.current_rank || null,
-            totalParticipants: event.total_participants || null,
-            startDate: event.start_date || undefined,
-        })) || []
-    );
+    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
 }
 
 export async function getPastEvents(): Promise<IEventCardProps[]> {
@@ -114,25 +127,7 @@ export async function getPastEvents(): Promise<IEventCardProps[]> {
         return [];
     }
 
-    return (
-        data?.map((event) => ({
-            id: event.id,
-            image: event.image || "",
-            title: event.title,
-            price: event.price,
-            date: event.start_date && event.end_date 
-                ? formatEventDate(event.start_date, event.end_date)
-                : "",
-            location: event.location,
-            format: event.format,
-            isRanked: event.is_ranked,
-            isRegistrationRequired: event.is_registration_required,
-            winner: event.winner,
-            currentRank: event.current_rank || null,
-            totalParticipants: event.total_participants || null,
-            startDate: event.start_date || undefined,
-        })) || []
-    );
+    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
 }
 
 export async function getPlayers(): Promise<IPlayer[]> {

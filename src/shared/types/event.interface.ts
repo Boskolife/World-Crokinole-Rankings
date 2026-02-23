@@ -13,4 +13,7 @@ export interface IEventCardProps {
     currentRank?: number;
     totalParticipants?: number;
     startDate?: string;
+    structure?: string;
+    strengthOfField?: number;
+    tournamentPointsAvailable?: number;
 }
