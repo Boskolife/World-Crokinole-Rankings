@@ -6,9 +6,10 @@ import { Button } from "@/shared/ui/buttons";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { IClub } from "@/shared/types/clubs.interface";
 import { clientRoutes } from "@/shared/routes/client";
+import { useClubJoinRequest } from "@/shared/hooks/use-club-join-request";
 import cn from "classnames";
 
-export const ClubCard: React.FC<IClub & { showJoinButton?: boolean }> = ({
+export const ClubCard: React.FC<IClub & { showJoinButton?: boolean; isAuth?: boolean }> = ({
     id,
     image,
     title,
@@ -22,7 +23,9 @@ export const ClubCard: React.FC<IClub & { showJoinButton?: boolean }> = ({
     veteranPlayers,
     isLocked,
     showJoinButton = true,
+    isAuth = false,
 }) => {
+    const { status: joinStatus, createRequest, isSubmitting } = useClubJoinRequest(id);
     return (
         <div className={css.club_card}>
             <div
@@ -112,13 +115,46 @@ export const ClubCard: React.FC<IClub & { showJoinButton?: boolean }> = ({
                     View Details
                 </RootLink>
                 {showJoinButton && (
-                    <Button
-                        buttonType="secondary"
-                        disabled={isLocked}
-                        className={css.club_card_button}
-                    >
-                        {isLocked ? "Invite Only" : "Join Club"}
-                    </Button>
+                    !isAuth ? (
+                        <Button
+                            buttonType="secondary"
+                            disabled={true}
+                            className={css.club_card_button}
+                        >
+                            {isLocked ? "Invite Only" : "Sign in to join"}
+                        </Button>
+                    ) : isLocked ? (
+                        <Button
+                            buttonType="secondary"
+                            disabled={true}
+                            className={css.club_card_button}
+                        >
+                            Invite Only
+                        </Button>
+                    ) : joinStatus === "pending" ? (
+                        <span className={cn(css.club_card_button, css.club_card_button_static)}>
+                            Pending
+                        </span>
+                    ) : joinStatus === "approved" ? (
+                        <span className={cn(css.club_card_button, css.club_card_button_static)}>
+                            Member
+                        </span>
+                    ) : joinStatus === "rejected" ? (
+                        <span className={cn(css.club_card_button, css.club_card_button_static)}>
+                            Declined
+                        </span>
+                    ) : (
+                        <Button
+                            buttonType="secondary"
+                            disabled={isSubmitting}
+                            className={css.club_card_button}
+                            onClick={async () => {
+                                await createRequest();
+                            }}
+                        >
+                            {isSubmitting ? "Sending…" : "Join Club"}
+                        </Button>
+                    )
                 )}
             </div>
         </div>

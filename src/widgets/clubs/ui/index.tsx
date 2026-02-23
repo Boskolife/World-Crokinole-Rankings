@@ -34,7 +34,7 @@ export const Clubs: React.FC<IClubsProps> = ({
 }) => {
     title = title || "Clubs";
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, isAuth } = useAuth();
     const [clubs, setClubs] = useState<IClub[]>(initialClubs);
     const [yourClubs, setYourClubs] = useState<IClub[]>([]);
     const [totalClubs, setTotalClubs] = useState(0);
@@ -206,6 +206,7 @@ export const Clubs: React.FC<IClubsProps> = ({
                                     showJoinButton={!yourClubs.some(
                                         (c) => c.id === club.id
                                     )}
+                                    isAuth={isAuth}
                                 />
                             ))}
                         </div>

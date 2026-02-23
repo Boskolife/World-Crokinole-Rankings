@@ -172,5 +172,23 @@
                 border-color: var(--gold-light);
             }
         }
+
+        &_static {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 120px;
+            border: 1px solid var(--gold);
+            background: var(--gold);
+            color: var(--white);
+            font-weight: 500;
+            font-size: 16px;
+            cursor: default;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
     }
 }

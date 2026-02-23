@@ -7,6 +7,7 @@ import { RootLink } from "@/shared/ui/links/root-link";
 import { useTableSort } from "@/shared/hooks";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
+import { useClubJoinRequest } from "@/shared/hooks/use-club-join-request";
 import { usePopup } from "@/shared/contexts/popup-context";
 import type { IClub } from "@/shared/types";
 import type {
@@ -14,6 +15,7 @@ import type {
     IClubAdmin,
     IClubDiscount,
 } from "@/shared/supabase/data";
+import { getClubJoinRequestCount } from "@/shared/supabase/data";
 import css from "./styles.module.scss";
 import cn from "classnames";
 
@@ -42,9 +44,15 @@ export function ClubDetailClient({
     admins,
     discounts: initialDiscounts,
 }: ClubDetailClientProps) {
-    const { user } = useAuth();
+    const { user, isAuth } = useAuth();
     const { fullName } = useUserProfile();
     const { openPopup } = usePopup();
+    const {
+        status: joinRequestStatus,
+        canJoin,
+        createRequest,
+        isSubmitting,
+    } = useClubJoinRequest(club.id);
     const isAdmin = Boolean(user?.id && admins.some((a) => a.userId === user.id));
     const isMember = Boolean(fullName && members.some((m) => m.name === fullName));
 
@@ -79,10 +87,25 @@ export function ClubDetailClient({
     const [discounts, setDiscounts] = useState<IClubDiscount[]>(
         initialDiscounts
     );
+    const [joinRequestCount, setJoinRequestCount] = useState<number | null>(null);
 
     useEffect(() => {
         setDiscounts(initialDiscounts);
     }, [initialDiscounts]);
+
+    const loadJoinRequestCount = useCallback(async () => {
+        if (!isAdmin || !club.id) return;
+        const count = await getClubJoinRequestCount(club.id, "pending");
+        setJoinRequestCount(count);
+    }, [isAdmin, club.id]);
+
+    useEffect(() => {
+        loadJoinRequestCount();
+    }, [loadJoinRequestCount]);
+
+    const handleOpenJoinRequests = useCallback(() => {
+        openPopup("club-join-requests", { club, onClosed: loadJoinRequestCount });
+    }, [openPopup, club, loadJoinRequestCount]);
 
     const handleOpenAddDiscount = useCallback(() => {
         openPopup("edit-club-discount", { club, discount: null });
@@ -134,9 +157,36 @@ export function ClubDetailClient({
                                 <Icon name="edit_2" />
                                 Edit Club
                             </button>
-                        ) : (
-                            <button type="button" className={css.club_detail_join_btn}>
+                        ) : club.isLocked ? (
+                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
+                                Invite Only
+                            </span>
+                        ) : isMember || joinRequestStatus === "approved" ? (
+                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
+                                Member
+                            </span>
+                        ) : joinRequestStatus === "pending" ? (
+                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
+                                Under consideration
+                            </span>
+                        ) : joinRequestStatus === "rejected" ? (
+                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
+                                Request declined
+                            </span>
+                        ) : !isAuth ? (
+                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_disabled)} title="Sign in to join">
                                 Join Club
+                            </span>
+                        ) : (
+                            <button
+                                type="button"
+                                className={css.club_detail_join_btn}
+                                disabled={isSubmitting}
+                                onClick={async () => {
+                                    await createRequest();
+                                }}
+                            >
+                                {isSubmitting ? "Sending…" : "Join Club"}
                             </button>
                         )}
                     </div>
@@ -298,6 +348,22 @@ export function ClubDetailClient({
                                 ))}
                             </ul>
                         </aside>
+
+                        {isAdmin && (
+                            <button
+                                type="button"
+                                className={css.club_detail_join_requests_btn}
+                                onClick={handleOpenJoinRequests}
+                            >
+                                <Icon name="members" className={css.club_detail_card_title_icon} />
+                                Join requests
+                                {joinRequestCount !== null && joinRequestCount > 0 && (
+                                    <span className={css.club_detail_join_requests_count}>
+                                        {joinRequestCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
 
                         {isAdmin && (
                             <>

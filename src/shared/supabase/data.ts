@@ -555,6 +555,144 @@ export async function deleteClubDiscountById(id: number): Promise<boolean> {
     return !error;
 }
 
+export type ClubJoinRequestStatus = "pending" | "approved" | "rejected";
+
+export interface IClubJoinRequest {
+    id: number;
+    userId: string;
+    clubId: number;
+    status: ClubJoinRequestStatus;
+    createdAt: string;
+    reviewedAt: string | null;
+    reviewedBy: string | null;
+}
+
+export async function getClubJoinRequest(
+    userId: string,
+    clubId: number
+): Promise<IClubJoinRequest | null> {
+    const { data, error } = await supabase
+        .from("club_join_requests")
+        .select("id, user_id, club_id, status, created_at, reviewed_at, reviewed_by")
+        .eq("user_id", userId)
+        .eq("club_id", clubId)
+        .maybeSingle();
+    if (error || !data) return null;
+    return {
+        id: data.id,
+        userId: data.user_id,
+        clubId: data.club_id,
+        status: data.status as ClubJoinRequestStatus,
+        createdAt: data.created_at,
+        reviewedAt: data.reviewed_at,
+        reviewedBy: data.reviewed_by,
+    };
+}
+
+export async function createClubJoinRequest(
+    userId: string,
+    clubId: number
+): Promise<IClubJoinRequest | null> {
+    const { data, error } = await supabase
+        .from("club_join_requests")
+        .insert({ user_id: userId, club_id: clubId, status: "pending" })
+        .select("id, user_id, club_id, status, created_at, reviewed_at, reviewed_by")
+        .single();
+    if (error) return null;
+    return {
+        id: data.id,
+        userId: data.user_id,
+        clubId: data.club_id,
+        status: data.status as ClubJoinRequestStatus,
+        createdAt: data.created_at,
+        reviewedAt: data.reviewed_at,
+        reviewedBy: data.reviewed_by,
+    };
+}
+
+export async function updateClubJoinRequestStatus(
+    id: number,
+    status: ClubJoinRequestStatus,
+    reviewedBy: string
+): Promise<boolean> {
+    const { error } = await supabase
+        .from("club_join_requests")
+        .update({
+            status,
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: reviewedBy,
+        })
+        .eq("id", id);
+    return !error;
+}
+
+export async function getClubJoinRequestCount(
+    clubId: number,
+    status: ClubJoinRequestStatus = "pending"
+): Promise<number> {
+    const { count, error } = await supabase
+        .from("club_join_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("club_id", clubId)
+        .eq("status", status);
+    if (error) return 0;
+    return count ?? 0;
+}
+
+export interface ClubJoinRequestWithUser extends IClubJoinRequest {
+    userName?: string | null;
+    clubTitle?: string | null;
+    playerName?: string | null;
+    playerCountry?: string | null;
+    playerRating?: number | null;
+    playerClub?: string | null;
+}
+
+export async function getClubJoinRequestsForAdmin(
+    clubId?: number,
+    status?: ClubJoinRequestStatus
+): Promise<ClubJoinRequestWithUser[]> {
+    let q = supabase
+        .from("club_join_requests")
+        .select("id, user_id, club_id, status, created_at, reviewed_at, reviewed_by")
+        .order("created_at", { ascending: false });
+    if (clubId != null) q = q.eq("club_id", clubId);
+    if (status) q = q.eq("status", status);
+    const { data, error } = await q;
+    if (error || !data?.length) return [];
+    const rows = data as { id: number; user_id: string; club_id: number; status: string; created_at: string; reviewed_at: string | null; reviewed_by: string | null }[];
+    const clubIds = [...new Set(rows.map((r) => r.club_id))];
+    const userIds = [...new Set(rows.map((r) => r.user_id))];
+    const [clubsRes, profilesRes, playersRes] = await Promise.all([
+        supabase.from("clubs").select("id, title").in("id", clubIds),
+        supabase.from("profiles").select("id, full_name").in("id", userIds),
+        supabase.from("players").select("user_id, name, country_code, rating, club").in("user_id", userIds),
+    ]);
+    const clubById = new Map((clubsRes.data ?? []).map((c) => [c.id, c.title]));
+    const profileById = new Map((profilesRes.data ?? []).map((p) => [p.id, p.full_name]));
+    const playerByUserId = new Map(
+        (playersRes.data ?? []).map((p: { user_id: string; name: string | null; country_code: string | null; rating: number | null; club: string | null }) => [p.user_id, p])
+    );
+    return rows.map((row) => {
+        const player = playerByUserId.get(row.user_id);
+        return {
+            id: row.id,
+            userId: row.user_id,
+            clubId: row.club_id,
+            status: row.status as ClubJoinRequestStatus,
+            createdAt: row.created_at,
+            reviewedAt: row.reviewed_at,
+            reviewedBy: row.reviewed_by,
+            userName: profileById.get(row.user_id) ?? null,
+            clubTitle: clubById.get(row.club_id) ?? null,
+            playerName: player?.name ?? null,
+            playerCountry: player?.country_code ?? null,
+            playerRating: player?.rating ?? null,
+            playerClub: player?.club ?? null,
+        };
+    });
+}
+
 export interface GetClubsParams {
     search?: string;
     location?: string;

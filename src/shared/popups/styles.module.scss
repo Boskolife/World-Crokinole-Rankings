@@ -499,3 +499,44 @@
         filter: brightness(1.05);
     }
 }
+
+.popup_table_wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.popup_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.popup_table_th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--black-10);
+    font-weight: 600;
+    color: var(--black);
+}
+
+.popup_table_td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--black-5);
+    color: var(--black);
+}
+
+.popup_table_row:last-child .popup_table_td {
+    border-bottom: none;
+}
+
+.popup_table_actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.popup_table_actions .popup_button {
+    min-width: 80px;
+    padding: 6px 14px;
+    font-size: 13px;
+}
