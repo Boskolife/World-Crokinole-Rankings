@@ -109,8 +109,15 @@
     }
 }
 
+.club_detail_sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
 .club_detail_members_card,
-.club_detail_admins_card {
+.club_detail_admins_card,
+.club_detail_discount_block {
     background: var(--white);
     border: 1px solid var(--black-10);
     border-radius: 12px;
@@ -181,6 +188,21 @@
 
     &_even {
         background: var(--blue-light);
+    }
+
+    &_you {
+        background: #f5f9fd;
+
+        .club_detail_cell,
+        .club_detail_player_rank,
+        .club_detail_player_link {
+            color: var(--gold);
+        }
+
+        .club_detail_player_link:hover {
+            color: var(--gold-light);
+            text-decoration: underline;
+        }
     }
 }
 
@@ -259,4 +281,141 @@
 .club_detail_chat_icon {
     width: 16px;
     height: 16px;
+}
+
+.club_detail_discount_list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.club_detail_discount_card {
+    background: var(--white);
+    border: 1px solid var(--black-10);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.club_detail_discount_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.club_detail_discount_card_heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--black);
+}
+
+.club_detail_discount_card_heading_icon {
+    width: 20px;
+    height: 20px;
+    color: var(--black-70);
+}
+
+.club_detail_discount_actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.club_detail_discount_action_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--black-50);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+
+    &:hover {
+        color: var(--black);
+        background: var(--black-5);
+    }
+}
+
+.club_detail_discount_description {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--black-70);
+}
+
+.club_detail_discount_code_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--black-10);
+    border-radius: 8px;
+    background: var(--white);
+}
+
+.club_detail_discount_code {
+    flex: 1;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--black);
+}
+
+.club_detail_discount_copy_btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #497aa6;
+    background: #e8f0f8;
+    color: #497aa6;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+
+    &:hover {
+        background: #497aa6;
+        color: var(--white);
+        border-color: #497aa6;
+    }
+}
+
+.club_detail_discount_copy_icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.club_detail_discount_create_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 24px;
+    border-radius: 120px;
+    border: none;
+    background: var(--gold);
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s, background 0.2s;
+
+    &:hover {
+        filter: brightness(1.05);
+        background: var(--gold-light);
+    }
 }

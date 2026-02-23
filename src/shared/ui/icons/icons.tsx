@@ -3,6 +3,7 @@ import { Edit } from "./svg/edit";
 import { Edit2 } from "./svg/edit-2";
 import { Country } from "./svg/country";
 import { Coins } from "./svg/coins";
+import { Copy } from "./svg/copy";
 import { Trash } from "./svg/trash";
 import { Plus } from "./svg/plus";
 import { Minus } from "./svg/minus";
@@ -42,6 +43,7 @@ export const icons = {
     edit_2: Edit2,
     country: Country,
     coins: Coins,
+    copy: Copy,
     trash: Trash,
     plus: Plus,
     minus: Minus,

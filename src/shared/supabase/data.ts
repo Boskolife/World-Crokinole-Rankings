@@ -475,6 +475,86 @@ export async function getClubAdmins(clubId: number): Promise<IClubAdmin[]> {
     });
 }
 
+export interface IClubDiscount {
+    id: number;
+    clubId: number;
+    code: string;
+    description: string;
+}
+
+export async function getClubDiscounts(
+    clubId: number
+): Promise<IClubDiscount[]> {
+    const { data, error } = await supabase
+        .from("club_discounts")
+        .select("id, club_id, code, description")
+        .eq("club_id", clubId)
+        .order("id", { ascending: true });
+
+    if (error || !data) return [];
+    return data.map((row) => ({
+        id: row.id,
+        clubId: row.club_id,
+        code: row.code ?? "",
+        description: row.description ?? "",
+    }));
+}
+
+export async function createClubDiscount(
+    clubId: number,
+    payload: { code: string; description: string }
+): Promise<IClubDiscount | null> {
+    const { data, error } = await supabase
+        .from("club_discounts")
+        .insert({
+            club_id: clubId,
+            code: payload.code,
+            description: payload.description,
+        })
+        .select("id, club_id, code, description")
+        .single();
+
+    if (error) return null;
+    return {
+        id: data.id,
+        clubId: data.club_id,
+        code: data.code ?? "",
+        description: data.description ?? "",
+    };
+}
+
+export async function updateClubDiscount(
+    id: number,
+    payload: { code: string; description: string }
+): Promise<IClubDiscount | null> {
+    const { data, error } = await supabase
+        .from("club_discounts")
+        .update({
+            code: payload.code,
+            description: payload.description,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select("id, club_id, code, description")
+        .single();
+
+    if (error) return null;
+    return {
+        id: data.id,
+        clubId: data.club_id,
+        code: data.code ?? "",
+        description: data.description ?? "",
+    };
+}
+
+export async function deleteClubDiscountById(id: number): Promise<boolean> {
+    const { error } = await supabase
+        .from("club_discounts")
+        .delete()
+        .eq("id", id);
+    return !error;
+}
+
 export interface GetClubsParams {
     search?: string;
     location?: string;
