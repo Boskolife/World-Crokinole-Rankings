@@ -305,6 +305,96 @@ export async function getClubs(): Promise<IClub[]> {
     );
 }
 
+export async function getClubById(id: number): Promise<IClub | null> {
+    const { data, error } = await supabase
+        .from("clubs")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if (error || !data) return null;
+
+    return {
+        id: data.id,
+        title: data.title,
+        image: data.image || "",
+        description: data.description,
+        members: data.members,
+        location: data.location,
+        labels: data.labels || "",
+        country: data.country || "",
+        labelItem1: data.label_item1 || "",
+        labelItem2: data.label_item2 || "",
+        hosted: data.hosted,
+        veteranPlayers: data.veteran_players,
+        isLocked: data.is_locked,
+    };
+}
+
+export interface IClubMember {
+    name: string;
+    laurels: number;
+    singlesRating: number;
+    doublesRating: number;
+}
+
+export async function getClubMembers(clubTitle: string): Promise<IClubMember[]> {
+    const { data, error } = await supabase
+        .from("rankings")
+        .select("name, category, laurels, rating")
+        .eq("club", clubTitle);
+
+    if (error || !data?.length) return [];
+
+    const byName: Record<
+        string,
+        { laurels: number; singlesRating: number; doublesRating: number }
+    > = {};
+    for (const row of data) {
+        if (!byName[row.name]) {
+            byName[row.name] = { laurels: 0, singlesRating: 0, doublesRating: 0 };
+        }
+        if (row.category === "laurels") byName[row.name].laurels = row.laurels ?? 0;
+        if (row.category === "singles") byName[row.name].singlesRating = row.rating ?? 0;
+        if (row.category === "doubles") byName[row.name].doublesRating = row.rating ?? 0;
+    }
+    return Object.entries(byName).map(([name, v]) => ({
+        name,
+        laurels: v.laurels,
+        singlesRating: v.singlesRating,
+        doublesRating: v.doublesRating,
+    }));
+}
+
+export interface IClubAdmin {
+    id: string;
+    fullName: string;
+    country: string | null;
+}
+
+export async function getClubAdmins(clubId: number): Promise<IClubAdmin[]> {
+    const { data, error } = await supabase
+        .from("club_admins")
+        .select("user_id")
+        .eq("club_id", clubId);
+
+    if (error || !data?.length) return [];
+
+    const userIds = data.map((r) => r.user_id);
+    const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name, country")
+        .in("id", userIds);
+
+    if (profilesError || !profiles?.length) return [];
+
+    return profiles.map((p) => ({
+        id: p.id,
+        fullName: p.full_name || "—",
+        country: p.country ?? null,
+    }));
+}
+
 export interface GetClubsParams {
     search?: string;
     location?: string;

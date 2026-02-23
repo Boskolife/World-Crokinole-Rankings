@@ -13,4 +13,5 @@ export const clientRoutes = {
 
     steps: (step: number) => `/new-visitor/step-${step}`,
     eventDetail: (id: number) => `/events/${id}`,
+    clubDetail: (id: number) => `/clubs/${id}`,
 };

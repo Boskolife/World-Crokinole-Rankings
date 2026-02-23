@@ -3,10 +3,13 @@ import css from "./styles.module.scss";
 import Image from "next/image";
 import { Icon } from "@/shared/ui/icons";
 import { Button } from "@/shared/ui/buttons";
+import { RootLink } from "@/shared/ui/links/root-link";
 import { IClub } from "@/shared/types/clubs.interface";
+import { clientRoutes } from "@/shared/routes/client";
 import cn from "classnames";
 
 export const ClubCard: React.FC<IClub> = ({
+    id,
     image,
     title,
     description,
@@ -85,9 +88,12 @@ export const ClubCard: React.FC<IClub> = ({
                 </span>
             </div>
             <div className={css.club_card_buttons}>
-                <Button buttonType="primary" className={css.club_card_button}>
+                <RootLink
+                    href={clientRoutes.clubDetail(id)}
+                    className={cn(css.club_card_button, css.club_card_button_link)}
+                >
                     View Details
-                </Button>
+                </RootLink>
                 <Button
                     buttonType="secondary"
                     disabled={isLocked}

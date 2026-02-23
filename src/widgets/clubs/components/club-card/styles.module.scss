@@ -139,5 +139,27 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        &_link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 135%;
+            padding: 12px 24px;
+            border-radius: 120px;
+            border: 1px solid var(--gold-dark);
+            color: var(--gold-dark);
+            background-color: transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+
+            &:hover {
+                color: var(--gold-light);
+                border-color: var(--gold-light);
+            }
+        }
     }
 }
