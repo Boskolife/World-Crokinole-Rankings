@@ -36,8 +36,8 @@ export const Clubs: React.FC<IClubsProps> = ({
     const router = useRouter();
     const { user, isAuth } = useAuth();
     const [clubs, setClubs] = useState<IClub[]>(initialClubs);
-    const [yourClubs, setYourClubs] = useState<IClub[]>([]);
     const [totalClubs, setTotalClubs] = useState(0);
+    const [userClubIds, setUserClubIds] = useState<Set<number>>(new Set());
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -52,10 +52,12 @@ export const Clubs: React.FC<IClubsProps> = ({
 
     useEffect(() => {
         if (!user?.id) {
-            setYourClubs([]);
+            setUserClubIds(new Set());
             return;
         }
-        getClubsWhereUserIsAdmin(user.id).then(setYourClubs);
+        getClubsWhereUserIsAdmin(user.id).then((list) =>
+            setUserClubIds(new Set(list.map((c) => c.id)))
+        );
     }, [user?.id]);
 
     useEffect(() => {
@@ -132,22 +134,6 @@ export const Clubs: React.FC<IClubsProps> = ({
     return (
         <section className={css.clubs}>
             <div className="container">
-                {yourClubs.length > 0 && (
-                    <>
-                        <div className={css.clubs_title_wrap}>
-                            <h2 className={css.clubs_title}>Your clubs</h2>
-                        </div>
-                        <div className={css.clubs_content}>
-                            {yourClubs.map((club) => (
-                                <ClubCard
-                                    key={club.id}
-                                    {...club}
-                                    showJoinButton={false}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
                 <div className={css.clubs_title_wrap}>
                     <h2 className={css.clubs_title}>{title}</h2>
                 </div>
@@ -203,9 +189,7 @@ export const Clubs: React.FC<IClubsProps> = ({
                                 <ClubCard
                                     key={club.id}
                                     {...club}
-                                    showJoinButton={!yourClubs.some(
-                                        (c) => c.id === club.id
-                                    )}
+                                    showJoinButton={isAuth && !userClubIds.has(club.id)}
                                     isAuth={isAuth}
                                 />
                             ))}
