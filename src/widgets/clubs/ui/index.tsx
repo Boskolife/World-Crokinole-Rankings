@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import css from "./styles.module.scss";
 import {
     CustomButton,
@@ -14,8 +14,10 @@ import { Pagination } from "@/shared/modules";
 import {
     getClubsWithFilters,
     getUniqueLocations,
+    getClubsWhereUserIsAdmin,
 } from "@/shared/supabase/data";
 import { sortOrderOptions } from "@/shared/constants";
+import { useAuth } from "@/shared/hooks/use-auth";
 
 export interface IClubsProps {
     title?: string;
@@ -32,7 +34,9 @@ export const Clubs: React.FC<IClubsProps> = ({
 }) => {
     title = title || "Clubs";
     const router = useRouter();
+    const { user } = useAuth();
     const [clubs, setClubs] = useState<IClub[]>(initialClubs);
+    const [yourClubs, setYourClubs] = useState<IClub[]>([]);
     const [totalClubs, setTotalClubs] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -45,6 +49,14 @@ export const Clubs: React.FC<IClubsProps> = ({
     >([]);
 
     const pageSize = 6;
+
+    useEffect(() => {
+        if (!user?.id) {
+            setYourClubs([]);
+            return;
+        }
+        getClubsWhereUserIsAdmin(user.id).then(setYourClubs);
+    }, [user?.id]);
 
     useEffect(() => {
         if (!needPagination) {
@@ -120,6 +132,22 @@ export const Clubs: React.FC<IClubsProps> = ({
     return (
         <section className={css.clubs}>
             <div className="container">
+                {yourClubs.length > 0 && (
+                    <>
+                        <div className={css.clubs_title_wrap}>
+                            <h2 className={css.clubs_title}>Your clubs</h2>
+                        </div>
+                        <div className={css.clubs_content}>
+                            {yourClubs.map((club) => (
+                                <ClubCard
+                                    key={club.id}
+                                    {...club}
+                                    showJoinButton={false}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
                 <div className={css.clubs_title_wrap}>
                     <h2 className={css.clubs_title}>{title}</h2>
                 </div>
@@ -172,7 +200,13 @@ export const Clubs: React.FC<IClubsProps> = ({
                     <>
                         <div className={css.clubs_content}>
                             {clubs.map((club) => (
-                                <ClubCard key={club.id} {...club} />
+                                <ClubCard
+                                    key={club.id}
+                                    {...club}
+                                    showJoinButton={!yourClubs.some(
+                                        (c) => c.id === club.id
+                                    )}
+                                />
                             ))}
                         </div>
                         {needPagination && totalClubs > 0 && (

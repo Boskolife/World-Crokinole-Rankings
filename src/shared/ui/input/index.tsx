@@ -24,6 +24,7 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
         className,
         maxLength,
         minLength,
+        hideClearButton,
         ...restProps
     } = props;
     
@@ -170,7 +171,7 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
                     className={cn(css.form_field_input, {
                         [css.error]: error,
                         [css.filled]: isFilled,
-                        [css.form_field_input_with_icon]: isFilled,
+                        [css.form_field_input_with_icon]: isFilled && !hideClearButton,
                     })}
                     type={type || "text"}
                     placeholder={placeholder}
@@ -197,7 +198,7 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
                               ref: assignRef,
                           })}
                 />
-                {isFilled && !restProps.readOnly && (
+                {isFilled && !hideClearButton && !restProps.readOnly && (
                     <button
                         type="button"
                         className={css.form_field_clear}

@@ -1,0 +1,10 @@
+.edit_club {
+    &_logo_preview {
+        width: 100%;
+        max-width: 200px;
+        max-height: 120px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: var(--white);
+    }
+}

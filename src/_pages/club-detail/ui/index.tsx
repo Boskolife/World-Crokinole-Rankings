@@ -14,7 +14,7 @@ export async function ClubDetailPage({ id }: ClubDetailPageProps) {
     if (!club) notFound();
 
     const [members, admins] = await Promise.all([
-        getClubMembers(club.title),
+        getClubMembers(club.title, clubId),
         getClubAdmins(clubId),
     ]);
 

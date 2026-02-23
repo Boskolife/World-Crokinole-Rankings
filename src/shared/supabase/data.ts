@@ -331,6 +331,58 @@ export async function getClubById(id: number): Promise<IClub | null> {
     };
 }
 
+function mapClubRow(data: {
+    id: number;
+    title: string;
+    image: string | null;
+    description: string;
+    members: number;
+    location: string;
+    labels: string | null;
+    country: string | null;
+    label_item1: string | null;
+    label_item2: string | null;
+    hosted: number;
+    veteran_players: number;
+    is_locked: boolean | null;
+}): IClub {
+    return {
+        id: data.id,
+        title: data.title,
+        image: data.image || "",
+        description: data.description,
+        members: data.members,
+        location: data.location,
+        labels: data.labels || "",
+        country: data.country || "",
+        labelItem1: data.label_item1 || "",
+        labelItem2: data.label_item2 || "",
+        hosted: data.hosted,
+        veteranPlayers: data.veteran_players,
+        isLocked: data.is_locked ?? false,
+    };
+}
+
+export async function getClubsWhereUserIsAdmin(userId: string): Promise<IClub[]> {
+    const { data: adminRows, error: adminError } = await supabase
+        .from("club_admins")
+        .select("club_id")
+        .eq("user_id", userId);
+
+    if (adminError || !adminRows?.length) return [];
+
+    const clubIds = adminRows.map((r) => r.club_id);
+    const { data: clubsData, error } = await supabase
+        .from("clubs")
+        .select("*")
+        .in("id", clubIds)
+        .order("id", { ascending: true });
+
+    if (error || !clubsData?.length) return [];
+
+    return clubsData.map(mapClubRow);
+}
+
 export interface IClubMember {
     name: string;
     laurels: number;
@@ -338,38 +390,60 @@ export interface IClubMember {
     doublesRating: number;
 }
 
-export async function getClubMembers(clubTitle: string): Promise<IClubMember[]> {
+export async function getClubMembers(
+    clubTitle: string,
+    clubId?: number
+): Promise<IClubMember[]> {
     const { data, error } = await supabase
-        .from("rankings")
-        .select("name, category, laurels, rating")
+        .from("players")
+        .select("name, rating")
         .eq("club", clubTitle);
 
-    if (error || !data?.length) return [];
-
-    const byName: Record<
-        string,
-        { laurels: number; singlesRating: number; doublesRating: number }
-    > = {};
-    for (const row of data) {
-        if (!byName[row.name]) {
-            byName[row.name] = { laurels: 0, singlesRating: 0, doublesRating: 0 };
-        }
-        if (row.category === "laurels") byName[row.name].laurels = row.laurels ?? 0;
-        if (row.category === "singles") byName[row.name].singlesRating = row.rating ?? 0;
-        if (row.category === "doubles") byName[row.name].doublesRating = row.rating ?? 0;
-    }
-    return Object.entries(byName).map(([name, v]) => ({
-        name,
-        laurels: v.laurels,
-        singlesRating: v.singlesRating,
-        doublesRating: v.doublesRating,
+    const fromClub = (data ?? []).map((p) => ({
+        name: p.name ?? "",
+        laurels: 0,
+        singlesRating: p.rating ?? 0,
+        doublesRating: 0,
     }));
+
+    const namesInList = new Set(fromClub.map((m) => m.name));
+
+    if (clubId != null) {
+        const { data: adminRows } = await supabase
+            .from("club_admins")
+            .select("user_id")
+            .eq("club_id", clubId);
+
+        if (adminRows?.length) {
+            const userIds = adminRows.map((r) => r.user_id);
+            const { data: adminPlayers } = await supabase
+                .from("players")
+                .select("name, rating")
+                .in("user_id", userIds);
+
+            for (const p of adminPlayers ?? []) {
+                const name = p.name ?? "—";
+                if (!namesInList.has(name)) {
+                    namesInList.add(name);
+                    fromClub.push({
+                        name,
+                        laurels: 0,
+                        singlesRating: p.rating ?? 0,
+                        doublesRating: 0,
+                    });
+                }
+            }
+        }
+    }
+
+    return fromClub;
 }
 
 export interface IClubAdmin {
     id: string;
     fullName: string;
     country: string | null;
+    userId?: string;
 }
 
 export async function getClubAdmins(clubId: number): Promise<IClubAdmin[]> {
@@ -381,18 +455,24 @@ export async function getClubAdmins(clubId: number): Promise<IClubAdmin[]> {
     if (error || !data?.length) return [];
 
     const userIds = data.map((r) => r.user_id);
-    const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name, country")
-        .in("id", userIds);
+    const { data: players } = await supabase
+        .from("players")
+        .select("id, name, country_code, user_id")
+        .in("user_id", userIds);
 
-    if (profilesError || !profiles?.length) return [];
+    const byUserId = new Map(
+        (players ?? []).map((p) => [p.user_id, p])
+    );
 
-    return profiles.map((p) => ({
-        id: p.id,
-        fullName: p.full_name || "—",
-        country: p.country ?? null,
-    }));
+    return userIds.map((uid) => {
+        const p = byUserId.get(uid);
+        return {
+            id: p?.id ?? uid,
+            fullName: p?.name ?? "—",
+            country: p?.country_code ?? null,
+            userId: uid,
+        };
+    });
 }
 
 export interface GetClubsParams {
@@ -494,6 +574,138 @@ export async function getUniqueLocations(): Promise<
         value: location,
         label: location,
     }));
+}
+
+const CLUB_LOGOS_BUCKET = "club-logos";
+
+function getFileExtension(filename: string): string {
+    const match = filename.match(/\.([a-zA-Z0-9]+)$/);
+    return match ? match[1].toLowerCase() : "png";
+}
+
+export interface CreateClubParams {
+    title: string;
+    description: string;
+    location: string;
+    inviteOnly: boolean;
+    logoFile: File | null;
+    userId: string;
+}
+
+export async function createClub(params: CreateClubParams): Promise<IClub> {
+    const { title, description, location, inviteOnly, logoFile, userId } = params;
+
+    const { data: newClub, error: insertError } = await supabase
+        .from("clubs")
+        .insert({
+            title: title.trim(),
+            description: (description || "").trim(),
+            location: (location || "").trim(),
+            is_locked: !!inviteOnly,
+            members: 1,
+            image: null,
+            labels: null,
+            country: null,
+            label_item1: null,
+            label_item2: null,
+            hosted: 0,
+            veteran_players: 0,
+        })
+        .select("id")
+        .single();
+
+    if (insertError || !newClub?.id) {
+        throw new Error(insertError?.message ?? "Failed to create club");
+    }
+
+    const clubId = newClub.id;
+    let imageUrl: string | null = null;
+
+    if (logoFile) {
+        const ext = getFileExtension(logoFile.name);
+        const path = `${userId}/${clubId}/logo.${ext}`;
+        const { error: uploadError } = await supabase.storage
+            .from(CLUB_LOGOS_BUCKET)
+            .upload(path, logoFile, { upsert: true });
+
+        if (!uploadError) {
+            const { data: urlData } = supabase.storage
+                .from(CLUB_LOGOS_BUCKET)
+                .getPublicUrl(path);
+            imageUrl = urlData.publicUrl;
+        }
+    }
+
+    if (imageUrl) {
+        await supabase
+            .from("clubs")
+            .update({ image: imageUrl })
+            .eq("id", clubId);
+    }
+
+    const { error: adminError } = await supabase
+        .from("club_admins")
+        .insert({ club_id: clubId, user_id: userId });
+
+    if (adminError) {
+        throw new Error(adminError.message);
+    }
+
+    await supabase
+        .from("players")
+        .update({ club: title.trim() })
+        .eq("user_id", userId);
+
+    const club = await getClubById(clubId);
+    if (!club) throw new Error("Club not found after creation");
+    return club;
+}
+
+export interface UpdateClubParams {
+    clubId: number;
+    title: string;
+    description: string;
+    location: string;
+    inviteOnly: boolean;
+    logoFile: File | null;
+    userId: string;
+}
+
+export async function updateClub(params: UpdateClubParams): Promise<IClub> {
+    const { clubId, title, description, location, inviteOnly, logoFile, userId } = params;
+
+    const updates: Record<string, unknown> = {
+        title: title.trim(),
+        description: (description || "").trim(),
+        location: (location || "").trim(),
+        is_locked: !!inviteOnly,
+    };
+
+    if (logoFile) {
+        const ext = getFileExtension(logoFile.name);
+        const path = `${userId}/${clubId}/logo.${ext}`;
+        const { error: uploadError } = await supabase.storage
+            .from(CLUB_LOGOS_BUCKET)
+            .upload(path, logoFile, { upsert: true });
+
+        if (!uploadError) {
+            const { data: urlData } = supabase.storage
+                .from(CLUB_LOGOS_BUCKET)
+                .getPublicUrl(path);
+            updates.image = urlData.publicUrl;
+        }
+    }
+
+    const { error } = await supabase
+        .from("clubs")
+        .update(updates)
+        .eq("id", clubId);
+
+    if (error) throw new Error(error.message);
+
+    const club = await getClubById(clubId);
+    if (!club) throw new Error("Club not found after update");
+    return club;
 }
 
 export async function getTournaments(): Promise<ITournament[]> {

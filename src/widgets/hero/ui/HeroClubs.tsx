@@ -7,9 +7,11 @@ import { CustomButton } from "@/shared/ui/buttons";
 import { Button } from "@/shared/ui/buttons";
 import Image from "next/image";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
+import { usePopup } from "@/shared/contexts/popup-context";
 
 export const HeroClubs: React.FC = () => {
     const { profile } = useUserProfile();
+    const { openPopup } = usePopup();
     const isCommunityAdmin = profile?.subscription_plan === "administrator";
 
     return (
@@ -48,6 +50,7 @@ export const HeroClubs: React.FC = () => {
                                 buttonType="secondary"
                                 icon="plus"
                                 className={css.hero_create_club_btn}
+                                onClick={() => openPopup("create-club")}
                             >
                                 Create Club
                             </Button>

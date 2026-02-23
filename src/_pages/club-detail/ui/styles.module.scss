@@ -52,7 +52,11 @@
     margin: 0 0 16px 0;
 }
 
-.club_detail_join_btn {
+.club_detail_join_btn,
+.club_detail_edit_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 12px 24px;
     border-radius: 120px;
     border: 1px solid var(--gold);

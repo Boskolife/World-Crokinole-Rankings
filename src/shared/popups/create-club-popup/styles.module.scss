@@ -1,0 +1,218 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+.create_club {
+    &_popup {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &_layout {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    &_header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--black-10);
+    }
+
+    &_body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    &_footer {
+        flex-shrink: 0;
+        padding-top: 24px;
+        border-top: 1px solid var(--black-10);
+    }
+
+    &_content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        width: 100%;
+    }
+
+    &_close {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        padding: 0;
+        border: none;
+        background: none;
+
+        &_icon {
+            width: 100%;
+            height: 100%;
+            color: var(--black);
+        }
+
+        &:hover {
+            color: var(--gold);
+        }
+    }
+
+    &_title {
+        margin: 0;
+        @include adaptive-value("font-size", 24, 20, 1);
+        color: var(--blue-grey);
+        font-weight: 600;
+        line-height: 125%;
+    }
+
+    &_description_input {
+        min-height: 120px;
+        resize: none;
+    }
+
+    &_upload_section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        margin-top: -8px;
+    }
+
+    &_logo_preview_wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        width: 100%;
+    }
+
+    &_logo_preview {
+        width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: var(--white);
+        border: 1px solid var(--black-10);
+    }
+
+    &_logo_change_btn {
+        padding: 8px 16px;
+        border-radius: 120px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gold);
+        background: transparent;
+        border: 1px solid var(--gold);
+        cursor: pointer;
+        transition: filter 0.2s ease;
+
+        &:hover {
+            filter: brightness(1.05);
+        }
+    }
+
+    &_upload_label {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--black);
+    }
+
+    &_upload_zone {
+        width: 100%;
+        border: 2px dashed var(--blue-dark);
+        border-radius: 8px;
+        background: var(--blue-grey-light, #f5f7fa);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+
+        &:hover {
+            border-color: var(--blue-grey);
+            background: var(--blue-grey-light, #eef1f5);
+        }
+    }
+
+    &_upload_icon {
+        width: 40px;
+        height: 40px;
+        color: var(--black-50);
+    }
+
+    &_upload_primary_text {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--black);
+        text-align: center;
+    }
+
+    &_upload_secondary_text {
+        font-size: 14px;
+        color: var(--black-50);
+        text-align: center;
+    }
+
+    &_upload_btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 10px 20px;
+        border-radius: 120px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--white);
+        background: var(--gold);
+        border: 1px solid var(--gold);
+        cursor: pointer;
+        transition: filter 0.2s ease;
+
+        &:hover {
+            filter: brightness(1.05);
+        }
+    }
+
+    &_invite_only {
+        margin-top: 4px;
+        margin-bottom: 4px;
+    }
+
+    &_submit {
+        width: 100%;
+        padding: 14px 28px;
+        border-radius: 9999px;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--white);
+        background: var(--gold);
+        border: none;
+        cursor: pointer;
+        transition: filter 0.2s ease;
+
+        &:hover:not(:disabled) {
+            filter: brightness(1.05);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}

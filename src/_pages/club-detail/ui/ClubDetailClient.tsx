@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Icon } from "@/shared/ui/icons";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { useTableSort } from "@/shared/hooks";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { usePopup } from "@/shared/contexts/popup-context";
 import type { IClub } from "@/shared/types";
 import type { IClubMember, IClubAdmin } from "@/shared/supabase/data";
 import css from "./styles.module.scss";
@@ -26,6 +28,10 @@ function getCountryFlagSrc(country: string | null): string {
 }
 
 export function ClubDetailClient({ club, members, admins }: ClubDetailClientProps) {
+    const { user } = useAuth();
+    const { openPopup } = usePopup();
+    const isAdmin = Boolean(user?.id && admins.some((a) => a.userId === user.id));
+
     const {
         sortColumn,
         sortDirection,
@@ -72,9 +78,20 @@ export function ClubDetailClient({ club, members, admins }: ClubDetailClientProp
                         <p className={css.club_detail_description}>
                             {club.description}
                         </p>
-                        <button type="button" className={css.club_detail_join_btn}>
-                            Join Club
-                        </button>
+                        {isAdmin ? (
+                            <button
+                                type="button"
+                                className={css.club_detail_edit_btn}
+                                onClick={() => openPopup("edit-club", { club })}
+                            >
+                                <Icon name="edit_2" />
+                                Edit Club
+                            </button>
+                        ) : (
+                            <button type="button" className={css.club_detail_join_btn}>
+                                Join Club
+                            </button>
+                        )}
                     </div>
                     <div className={css.club_detail_header_meta}>
                         <div className={css.club_detail_meta_item}>
@@ -169,7 +186,7 @@ export function ClubDetailClient({ club, members, admins }: ClubDetailClientProp
                                 <tbody>
                                     {sortedMembers.map((member, index) => (
                                         <tr
-                                            key={`${member.id ?? ""}-${index}`}
+                                            key={`${member.name}-${index}`}
                                             className={cn(css.club_detail_row, {
                                                 [css.club_detail_row_even]: index % 2 === 1,
                                             })}

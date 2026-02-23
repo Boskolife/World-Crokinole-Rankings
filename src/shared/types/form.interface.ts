@@ -24,6 +24,7 @@ export interface IFormFieldProps<TFieldValues extends FieldValues = FieldValues>
     error?: string;
     labelClassName?: string;
     className?: string;
+    hideClearButton?: boolean;
 }
 
 export interface ISignUpFormData {
