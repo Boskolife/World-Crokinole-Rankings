@@ -4,9 +4,14 @@ import css from "./styles.module.scss";
 import React from "react";
 import cn from "classnames";
 import { CustomButton } from "@/shared/ui/buttons";
+import { Button } from "@/shared/ui/buttons";
 import Image from "next/image";
+import { useUserProfile } from "@/shared/hooks/use-user-profile";
 
 export const HeroClubs: React.FC = () => {
+    const { profile } = useUserProfile();
+    const isCommunityAdmin = profile?.subscription_plan === "administrator";
+
     return (
         <section className={css.hero}>
             <div className={css.hero_figure}>
@@ -34,9 +39,20 @@ export const HeroClubs: React.FC = () => {
                         Join a club to unlock exclusive bonuses and compete with
                         fellow gamers
                     </p>
-                    <CustomButton inverted href="#clubs-list">
-                        View clubs
-                    </CustomButton>
+                    <div className={css.hero_buttons}>
+                        <CustomButton inverted href="#clubs-list">
+                            View clubs
+                        </CustomButton>
+                        {isCommunityAdmin && (
+                            <Button
+                                buttonType="secondary"
+                                icon="plus"
+                                className={css.hero_create_club_btn}
+                            >
+                                Create Club
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </section>

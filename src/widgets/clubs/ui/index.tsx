@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import css from "./styles.module.scss";
 import {
-    Button,
     CustomButton,
     CustomRoundedDropdown,
     SearchInput,
@@ -23,7 +22,6 @@ export interface IClubsProps {
     initialClubs?: IClub[];
     needViewAllButton?: boolean;
     needPagination?: boolean;
-    createClubButton?: boolean;
 }
 
 export const Clubs: React.FC<IClubsProps> = ({
@@ -31,7 +29,6 @@ export const Clubs: React.FC<IClubsProps> = ({
     initialClubs = [],
     needViewAllButton = false,
     needPagination = true,
-    createClubButton = false,
 }) => {
     title = title || "Clubs";
     const router = useRouter();
@@ -125,16 +122,6 @@ export const Clubs: React.FC<IClubsProps> = ({
             <div className="container">
                 <div className={css.clubs_title_wrap}>
                     <h2 className={css.clubs_title}>{title}</h2>
-
-                    {createClubButton && (
-                        <Button
-                            className={css.clubs_create_club_button}
-                            buttonType="secondary"
-                            icon="plus"
-                        >
-                            Create Club
-                        </Button>
-                    )}
                 </div>
                 {needPagination && (
                     <div className={css.clubs_head}>

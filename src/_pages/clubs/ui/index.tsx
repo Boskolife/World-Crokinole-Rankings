@@ -9,7 +9,6 @@ export async function ClubsPage() {
                 <ClubsClient
                     title="Join a club"
                     needPagination={true}
-                    createClubButton={true}
                 />
             </div>
         </>
