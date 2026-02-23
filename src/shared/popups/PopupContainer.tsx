@@ -18,6 +18,7 @@ import { EditClubDiscountPopup } from "./edit-club-discount-popup";
 import { ClubDiscountDeleteConfirmPopup } from "./club-discount-delete-confirm-popup";
 import { ClubJoinRequestsPopup } from "./club-join-requests-popup";
 import { EditMemberAccessPopup } from "./edit-member-access-popup";
+import { InviteMemberPopup } from "./invite-member-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -89,6 +90,9 @@ export const PopupContainer: React.FC = () => {
                 )}
                 {isPopupOpen("edit-member-access") && (
                     <EditMemberAccessPopup />
+                )}
+                {isPopupOpen("invite-member") && (
+                    <InviteMemberPopup />
                 )}
             </div>
         </div>

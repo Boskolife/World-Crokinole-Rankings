@@ -141,6 +141,19 @@
     padding: 24px;
 }
 
+.club_detail_card_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    .club_detail_card_title {
+        margin: 0;
+    }
+}
+
 .club_detail_card_title {
     display: flex;
     align-items: center;
@@ -149,6 +162,26 @@
     @include adaptive-value("font-size", 18, 16, 1);
     color: var(--black);
     margin: 0 0 20px 0;
+}
+
+.club_detail_invite_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 120px;
+    border: 1px solid var(--gold);
+    background: var(--gold);
+    color: var(--white);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: var(--gold-light);
+        background: var(--gold-light);
+    }
 }
 
 .club_detail_card_title_icon {

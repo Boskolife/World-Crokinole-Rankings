@@ -532,6 +532,67 @@ export async function removeClubMember(
     return true;
 }
 
+export async function invitePlayerToClub(
+    clubTitle: string,
+    userId: string
+): Promise<boolean> {
+    const { error: playersErr } = await supabase
+        .from("players")
+        .update({ club: clubTitle, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    if (playersErr) return false;
+    const { error: profilesErr } = await supabase
+        .from("profiles")
+        .update({ club: clubTitle, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+    return !profilesErr;
+}
+
+export interface GetPlayersForInviteParams {
+    clubTitle: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export async function getPlayersForInvite(
+    params: GetPlayersForInviteParams
+): Promise<GetPlayersResult> {
+    const { clubTitle, search = "", page = 1, pageSize = 20 } = params;
+    const clubTitleNorm = String(clubTitle).trim().toLowerCase();
+    const clubNeq = `club.neq."${String(clubTitle).replace(/"/g, '""')}"`;
+    let query = supabase
+        .from("players")
+        .select("*", { count: "exact" })
+        .not("user_id", "is", null)
+        .or(`club.is.null,${clubNeq}`);
+    if (search.trim()) {
+        const pattern = `%${search.trim()}%`;
+        query = query.ilike("name", pattern);
+    }
+    query = query.order("rating", { ascending: false });
+    const from = (page - 1) * pageSize;
+    query = query.range(from, from + pageSize - 1);
+    const { data, error, count } = await query;
+    if (error) {
+        console.error("Error fetching players for invite:", error);
+        return { players: [], total: 0 };
+    }
+    let players =
+        (data?.map((p) => ({
+            id: p.user_id || p.id,
+            name: p.name,
+            countryCode: p.country_code,
+            kingdom: p.kingdom,
+            club: p.club,
+            rating: p.rating,
+        })) as IPlayer[]) || [];
+    players = players.filter(
+        (p) => (p.club ?? "").trim().toLowerCase() !== clubTitleNorm
+    );
+    return { players, total: count ?? 0 };
+}
+
 export interface IClubDiscount {
     id: number;
     clubId: number;

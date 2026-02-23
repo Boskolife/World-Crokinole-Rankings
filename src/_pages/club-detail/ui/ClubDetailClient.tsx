@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/shared/ui/icons";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { useTableSort } from "@/shared/hooks";
@@ -44,6 +45,7 @@ export function ClubDetailClient({
     admins,
     discounts: initialDiscounts,
 }: ClubDetailClientProps) {
+    const router = useRouter();
     const { user, isAuth } = useAuth();
     const { fullName } = useUserProfile();
     const { openPopup } = usePopup();
@@ -155,6 +157,10 @@ export function ClubDetailClient({
         [openPopup, club, admins.length]
     );
 
+    const handleOpenInviteMember = useCallback(() => {
+        openPopup("invite-member", { club, onClosed: () => router.refresh() });
+    }, [openPopup, club, router]);
+
     return (
         <section className={css.club_detail}>
             <div className="container">
@@ -235,10 +241,21 @@ export function ClubDetailClient({
 
                 <div className={css.club_detail_layout}>
                     <div className={css.club_detail_members_card}>
-                        <h2 className={css.club_detail_card_title}>
-                            <Icon name="members" className={css.club_detail_card_title_icon} />
-                            Members
-                        </h2>
+                        <div className={css.club_detail_card_header}>
+                            <h2 className={css.club_detail_card_title}>
+                                <Icon name="members" className={css.club_detail_card_title_icon} />
+                                Members
+                            </h2>
+                            {isAdmin && (
+                                <button
+                                    type="button"
+                                    className={css.club_detail_invite_btn}
+                                    onClick={handleOpenInviteMember}
+                                >
+                                    Invite Member
+                                </button>
+                            )}
+                        </div>
                         <div className={css.club_detail_table_wrapper}>
                             <table className={css.club_detail_table}>
                                 <thead>

@@ -686,3 +686,70 @@
         cursor: not-allowed;
     }
 }
+
+.invite_member_header {
+    position: sticky;
+    top: -40px;
+    z-index: 2;
+    background: var(--white);
+    margin-top: -40px;
+    padding-top: 40px;
+    padding-right: 42px;
+    padding-bottom: 16px;
+    padding-left: 0;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 0 var(--black-10);
+    border-radius: 12px 12px 0 0;
+
+    @include media-down(sm) {
+        top: -20px;
+        margin-top: -20px;
+        padding-top: 20px;
+    }
+
+    .popup_close {
+        position: absolute;
+        top: 22px;
+        right: 20px;
+    }
+}
+
+.invite_member_header .invite_member_search_wrap {
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
+.invite_member_search {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid var(--black-10);
+    border-radius: 8px;
+    color: var(--black);
+
+    &::placeholder {
+        color: var(--black-50);
+    }
+}
+
+.invite_member_btn {
+    min-width: 90px;
+
+    &.popup_button_primary {
+        background: var(--gold);
+        border: 1px solid var(--gold);
+        color: var(--white);
+
+        &:hover:not(:disabled) {
+            background: var(--gold-light);
+            border-color: var(--gold-light);
+        }
+    }
+}
+
+.invite_member_btn_pending {
+    background: var(--black-10) !important;
+    border-color: var(--black-10) !important;
+    color: var(--black-50) !important;
+    cursor: default;
+}
