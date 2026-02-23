@@ -42,7 +42,7 @@ export const Clubs: React.FC<IClubsProps> = ({
     const [search, setSearch] = useState("");
     const [searchValue, setSearchValue] = useState("");
     const [selectedLocation, setSelectedLocation] = useState("");
-    const [sortBy, setSortBy] = useState("id");
+    const [sortBy, setSortBy] = useState("");
     const [locationOptions, setLocationOptions] = useState<
         Array<{ value: string; label: string }>
     >([]);
@@ -80,7 +80,7 @@ export const Clubs: React.FC<IClubsProps> = ({
                     location: selectedLocation || undefined,
                     page: currentPage,
                     pageSize,
-                    sortBy,
+                    sortBy: sortBy || "id",
                 });
                 setClubs(result.clubs);
                 setTotalClubs(result.total);
@@ -139,8 +139,8 @@ export const Clubs: React.FC<IClubsProps> = ({
                 {needPagination && (
                     <div className={css.clubs_head}>
                         <SearchInput
-                            placeholder="Find club by name or location"
-                            ariaLabel="Find club by name or location"
+                            placeholder="Find your club by name"
+                            ariaLabel="Find your club by name"
                             className={css.clubs_head_search}
                             value={searchValue}
                             onChange={handleSearchChange}
@@ -161,9 +161,17 @@ export const Clubs: React.FC<IClubsProps> = ({
                             />
                             <CustomRoundedDropdown
                                 id="sort-dropdown"
-                                options={sortOrderOptions}
-                                placeholder="Sort by"
-                                aria-label="Select Sort by"
+                                options={[
+                                    {
+                                        value: "",
+                                        label: "Sorted by default",
+                                    },
+                                    ...sortOrderOptions.filter(
+                                        (o) => o.value !== "id"
+                                    ),
+                                ]}
+                                placeholder="Sorted by default"
+                                aria-label="Select sort order"
                                 className={css.clubs_head_dropdown}
                                 value={sortBy}
                                 onChange={handleSortChange}
