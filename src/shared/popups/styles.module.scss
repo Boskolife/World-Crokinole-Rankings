@@ -540,3 +540,149 @@
     padding: 6px 14px;
     font-size: 13px;
 }
+
+.edit_member_title {
+    margin: 0 0 4px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--blue-grey, #1a1d2e);
+}
+
+.edit_member_description {
+    margin: 0 0 20px 0;
+    font-size: 14px;
+    color: var(--black-50, #6b7280);
+}
+
+.edit_member_card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px;
+    background: var(--blue-light, #f0f7ff);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.edit_member_card_flag {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.edit_member_card_info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.edit_member_card_name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--black);
+}
+
+.edit_member_card_email {
+    font-size: 14px;
+    color: var(--black-50);
+}
+
+.edit_member_role_section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.edit_member_role_label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--black);
+}
+
+.edit_member_radio {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--black-10);
+
+    input {
+        accent-color: var(--gold);
+    }
+}
+
+.edit_member_radio_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit_member_radio_text {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--black);
+}
+
+.edit_member_radio_desc {
+    font-size: 13px;
+    color: var(--black-50);
+    padding-left: 28px;
+}
+
+.edit_member_actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    width: 100%;
+
+    .popup_button {
+        flex: 1;
+    }
+
+    .popup_button_primary {
+        background: var(--gold);
+        border: 1px solid var(--gold);
+        color: var(--white);
+
+        &:hover:not(:disabled) {
+            background: var(--gold-light);
+            border-color: var(--gold-light);
+        }
+    }
+
+    .popup_button_secondary {
+        background: var(--white);
+        border: 1px solid var(--gold);
+        color: var(--gold-dark);
+
+        &:hover:not(:disabled) {
+            background: var(--black-5);
+        }
+    }
+}
+
+.edit_member_remove {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 14px;
+    color: var(--black-70);
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: flex-start;
+
+    &:hover:not(:disabled) {
+        color: var(--black);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}

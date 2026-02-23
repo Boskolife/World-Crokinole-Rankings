@@ -54,6 +54,7 @@ export function ClubDetailClient({
         isSubmitting,
     } = useClubJoinRequest(club.id);
     const isAdmin = Boolean(user?.id && admins.some((a) => a.userId === user.id));
+    const isClubOwner = Boolean(user?.id && admins.some((a) => a.userId === user.id && a.isOwner));
     const isMember = Boolean(fullName && members.some((m) => m.name === fullName));
 
     const {
@@ -129,6 +130,30 @@ export function ClubDetailClient({
         if (!code) return;
         navigator.clipboard.writeText(code);
     }, []);
+
+    const handleOpenEditMember = useCallback(
+        (member: IClubMember) => {
+            if (!member.userId) return;
+            openPopup("edit-member-access", { club, member, adminCount: admins.length });
+        },
+        [openPopup, club, admins.length]
+    );
+
+    const handleOpenEditAdmin = useCallback(
+        (admin: IClubAdmin) => {
+            if (!admin.userId) return;
+            const member: IClubMember = {
+                name: admin.fullName,
+                laurels: 0,
+                singlesRating: 0,
+                doublesRating: 0,
+                userId: admin.userId,
+                isAdmin: true,
+            };
+            openPopup("edit-member-access", { club, member, adminCount: admins.length });
+        },
+        [openPopup, club, admins.length]
+    );
 
     return (
         <section className={css.club_detail}>
@@ -278,6 +303,9 @@ export function ClubDetailClient({
                                                 />
                                             </button>
                                         </th>
+                                        {isAdmin && (
+                                            <th className={css.club_detail_th_actions} />
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -285,9 +313,10 @@ export function ClubDetailClient({
                                         const isCurrentUser =
                                             (isAdmin || isMember) &&
                                             Boolean(fullName && member.name === fullName);
+                                        const canEdit = isAdmin && member.userId && !isCurrentUser;
                                         return (
                                             <tr
-                                                key={`${member.name}-${index}`}
+                                                key={member.userId ?? `${member.name}-${index}`}
                                                 className={cn(css.club_detail_row, {
                                                     [css.club_detail_row_even]:
                                                         index % 2 === 1 && !isCurrentUser,
@@ -315,6 +344,20 @@ export function ClubDetailClient({
                                                 <td className={css.club_detail_cell}>
                                                     {member.doublesRating}
                                                 </td>
+                                                {isAdmin && (
+                                                    <td className={css.club_detail_cell_actions}>
+                                                        {canEdit ? (
+                                                            <button
+                                                                type="button"
+                                                                className={css.club_detail_row_edit_btn}
+                                                                onClick={() => handleOpenEditMember(member)}
+                                                                aria-label="Edit member access"
+                                                            >
+                                                                <Icon name="edit_2" className={css.club_detail_row_edit_icon} />
+                                                            </button>
+                                                        ) : null}
+                                                    </td>
+                                                )}
                                             </tr>
                                         );
                                     })}
@@ -339,11 +382,28 @@ export function ClubDetailClient({
                                             height={24}
                                             className={css.club_detail_admin_flag}
                                         />
-                                        <span className={css.club_detail_admin_name}>{admin.fullName}</span>
-                                        <button type="button" className={css.club_detail_chat_btn}>
-                                            <Icon name="share" className={css.club_detail_chat_icon} />
-                                            Chat
-                                        </button>
+                                        <div className={css.club_detail_admin_name_wrap}>
+                                            <span className={css.club_detail_admin_name}>{admin.fullName}</span>
+                                            <span className={cn(css.club_detail_admin_role, admin.isOwner && css.club_detail_admin_role_owner)}>
+                                                {admin.isOwner ? "Owner" : "Admin"}
+                                            </span>
+                                        </div>
+                                        <div className={css.club_detail_admin_actions}>
+                                            {isClubOwner && admin.userId !== user?.id && (
+                                                <button
+                                                    type="button"
+                                                    className={css.club_detail_admin_edit_btn}
+                                                    onClick={() => handleOpenEditAdmin(admin)}
+                                                    aria-label="Edit member access"
+                                                >
+                                                    <Icon name="edit_2" className={css.club_detail_admin_edit_icon} />
+                                                </button>
+                                            )}
+                                            <button type="button" className={css.club_detail_chat_btn}>
+                                                <Icon name="share" className={css.club_detail_chat_icon} />
+                                                Chat
+                                            </button>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>

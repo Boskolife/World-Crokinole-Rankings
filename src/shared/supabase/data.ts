@@ -388,50 +388,56 @@ export interface IClubMember {
     laurels: number;
     singlesRating: number;
     doublesRating: number;
+    userId?: string | null;
+    isAdmin?: boolean;
 }
 
 export async function getClubMembers(
     clubTitle: string,
     clubId?: number
 ): Promise<IClubMember[]> {
-    const { data, error } = await supabase
-        .from("players")
-        .select("name, rating")
-        .eq("club", clubTitle);
-
-    const fromClub = (data ?? []).map((p) => ({
-        name: p.name ?? "",
-        laurels: 0,
-        singlesRating: p.rating ?? 0,
-        doublesRating: 0,
-    }));
-
-    const namesInList = new Set(fromClub.map((m) => m.name));
-
+    const adminUserIds = new Set<string>();
     if (clubId != null) {
         const { data: adminRows } = await supabase
             .from("club_admins")
             .select("user_id")
             .eq("club_id", clubId);
+        (adminRows ?? []).forEach((r) => adminUserIds.add(r.user_id));
+    }
 
-        if (adminRows?.length) {
-            const userIds = adminRows.map((r) => r.user_id);
+    const { data: playersData } = await supabase
+        .from("players")
+        .select("name, rating, user_id")
+        .eq("club", clubTitle);
+
+    const fromClub: IClubMember[] = (playersData ?? []).map((p) => ({
+        name: p.name ?? "",
+        laurels: 0,
+        singlesRating: p.rating ?? 0,
+        doublesRating: 0,
+        userId: p.user_id ?? null,
+        isAdmin: p.user_id ? adminUserIds.has(p.user_id) : false,
+    }));
+
+    const userIdsInList = new Set(fromClub.map((m) => m.userId).filter(Boolean));
+
+    if (clubId != null && adminUserIds.size > 0) {
+        const missingAdminIds = [...adminUserIds].filter((id) => !userIdsInList.has(id));
+        if (missingAdminIds.length > 0) {
             const { data: adminPlayers } = await supabase
                 .from("players")
-                .select("name, rating")
-                .in("user_id", userIds);
-
+                .select("name, rating, user_id")
+                .in("user_id", missingAdminIds);
             for (const p of adminPlayers ?? []) {
-                const name = p.name ?? "—";
-                if (!namesInList.has(name)) {
-                    namesInList.add(name);
-                    fromClub.push({
-                        name,
-                        laurels: 0,
-                        singlesRating: p.rating ?? 0,
-                        doublesRating: 0,
-                    });
-                }
+                const uid = p.user_id ?? "";
+                fromClub.push({
+                    name: p.name ?? "—",
+                    laurels: 0,
+                    singlesRating: p.rating ?? 0,
+                    doublesRating: 0,
+                    userId: uid,
+                    isAdmin: true,
+                });
             }
         }
     }
@@ -444,17 +450,20 @@ export interface IClubAdmin {
     fullName: string;
     country: string | null;
     userId?: string;
+    isOwner?: boolean;
 }
 
 export async function getClubAdmins(clubId: number): Promise<IClubAdmin[]> {
     const { data, error } = await supabase
         .from("club_admins")
-        .select("user_id")
-        .eq("club_id", clubId);
+        .select("user_id, is_owner")
+        .eq("club_id", clubId)
+        .order("is_owner", { ascending: false });
 
     if (error || !data?.length) return [];
 
-    const userIds = data.map((r) => r.user_id);
+    const rows = data as { user_id: string; is_owner: boolean }[];
+    const userIds = rows.map((r) => r.user_id);
     const { data: players } = await supabase
         .from("players")
         .select("id, name, country_code, user_id")
@@ -463,16 +472,64 @@ export async function getClubAdmins(clubId: number): Promise<IClubAdmin[]> {
     const byUserId = new Map(
         (players ?? []).map((p) => [p.user_id, p])
     );
+    const ownerByUserId = new Map(rows.map((r) => [r.user_id, r.is_owner ?? false]));
 
-    return userIds.map((uid) => {
-        const p = byUserId.get(uid);
+    const result: IClubAdmin[] = rows.map((r) => {
+        const p = byUserId.get(r.user_id);
         return {
-            id: p?.id ?? uid,
+            id: p?.id ?? r.user_id,
             fullName: p?.name ?? "—",
             country: p?.country_code ?? null,
-            userId: uid,
+            userId: r.user_id,
+            isOwner: ownerByUserId.get(r.user_id) ?? false,
         };
     });
+    result.sort((a, b) => (a.isOwner === b.isOwner ? 0 : a.isOwner ? -1 : 1));
+    return result;
+}
+
+export async function setClubMemberRole(
+    clubId: number,
+    userId: string,
+    role: "admin" | "member"
+): Promise<boolean> {
+    if (role === "admin") {
+        const { error } = await supabase
+            .from("club_admins")
+            .insert({ club_id: clubId, user_id: userId, is_owner: false });
+        if (error?.code === "23505") return true;
+        return !error;
+    }
+    const { error } = await supabase
+        .from("club_admins")
+        .delete()
+        .eq("club_id", clubId)
+        .eq("user_id", userId);
+    return !error;
+}
+
+export async function removeClubMember(
+    clubId: number,
+    userId: string,
+    clubTitle: string
+): Promise<boolean> {
+    const { error: adminErr } = await supabase
+        .from("club_admins")
+        .delete()
+        .eq("club_id", clubId)
+        .eq("user_id", userId);
+    if (adminErr) return false;
+    await supabase
+        .from("players")
+        .update({ club: "", updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("club", clubTitle);
+    await supabase
+        .from("profiles")
+        .update({ club: null, updated_at: new Date().toISOString() })
+        .eq("id", userId)
+        .eq("club", clubTitle);
+    return true;
 }
 
 export interface IClubDiscount {
@@ -863,7 +920,7 @@ export async function createClub(params: CreateClubParams): Promise<IClub> {
 
     const { error: adminError } = await supabase
         .from("club_admins")
-        .insert({ club_id: clubId, user_id: userId });
+        .insert({ club_id: clubId, user_id: userId, is_owner: true });
 
     if (adminError) {
         throw new Error(adminError.message);
