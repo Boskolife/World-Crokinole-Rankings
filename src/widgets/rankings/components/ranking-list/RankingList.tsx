@@ -61,8 +61,11 @@ export const RankingList: React.FC<IProps> = ({ rankedList, className }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {rankedList.map((item) => (
-                        <RanksItem key={item.rank} {...item} />
+                    {rankedList.map((item, index) => (
+                        <RanksItem
+                            key={`${item.rank}-${item.name}-${item.kingdom}-${index}`}
+                            {...item}
+                        />
                     ))}
                 </tbody>
             </table>
