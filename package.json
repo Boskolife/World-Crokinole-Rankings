@@ -21,7 +21,8 @@
     "react-hook-form": "^7.66.0",
     "recharts": "^3.5.0",
     "sass": "^1.94.0",
-    "stripe": "^20.3.1"
+    "stripe": "^20.3.1",
+    "vercel": "^50.22.1"
   },
   "devDependencies": {
     "@swc/helpers": "^0.5.17",
