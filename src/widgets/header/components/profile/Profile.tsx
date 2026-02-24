@@ -14,7 +14,7 @@ export const Profile: React.FC = () => {
         useProfileDropdown();
     const { logout } = useAuth();
     const { fullName, profile } = useUserProfile();
-    const avatarSrc = profile?.avatar_url?.trim() || "/images/profile-placeholder.png";
+    const avatarSrc = profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);

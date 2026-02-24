@@ -2,7 +2,6 @@ import React from "react";
 import css from "../ui/styles.module.scss";
 import { Button } from "@/shared/ui/buttons";
 import { RootLink } from "@/shared/ui/links/root-link";
-import { CustomLangSwitcher } from "../components/custom-lang-switcher/CustomLang";
 import { clientRoutes } from "@/shared/routes/client";
 import { useRouter, useParams } from "next/navigation";
 
@@ -27,7 +26,6 @@ export const Step1: React.FC = () => {
             <p className={css.home_new_visitor_description}>
                 One world. One board. United by play.
             </p>
-            <CustomLangSwitcher />
             <Button
                 buttonType="white"
                 className={css.home_new_visitor_continue_button}

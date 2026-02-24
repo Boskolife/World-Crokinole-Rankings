@@ -85,5 +85,4 @@ export interface IProfileEditFormData {
     password: string;
     fullName: string;
     country: string;
-    club: string;
 }

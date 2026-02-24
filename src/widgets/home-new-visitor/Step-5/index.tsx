@@ -1,6 +1,5 @@
 import React from "react";
 import css from "../ui/styles.module.scss";
-import { RootLink } from "@/shared/ui/links/root-link";
 
 export const Step5: React.FC = () => {
     return (
@@ -14,15 +13,11 @@ export const Step5: React.FC = () => {
                 </div>
             </div>
             <h2 className={css.home_new_visitor_title}>
-                Complete your player profile
+                Choose your membership
             </h2>
             <p className={css.home_new_visitor_description}>
-                Add your details so other players and organizers can recognize
-                you in rankings and tournaments.
+                Pick a plan that fits you. Climb the rankings and claim the crown.
             </p>
-            <RootLink className={css.home_new_visitor_skip_link} href="/">
-                Skip for now
-            </RootLink>
         </div>
     );
 };

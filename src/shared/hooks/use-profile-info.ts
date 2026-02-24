@@ -6,7 +6,7 @@ import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
 
 const AVATAR_BUCKET = "avatars";
-const PLACEHOLDER_SRC = "/images/profile-placeholder.png";
+const PLACEHOLDER_SRC = "/svg/avatar-placeholder.svg";
 
 function getExtension(filename: string): string {
     const match = filename.match(/\.([a-zA-Z0-9]+)$/);

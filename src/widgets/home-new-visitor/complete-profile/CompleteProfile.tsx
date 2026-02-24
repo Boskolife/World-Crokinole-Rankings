@@ -11,15 +11,10 @@ export const CompleteProfile: React.FC<CompleteProfileProps> = ({
     credentialsReadOnly = false,
 }) => {
     const [previewCountry, setPreviewCountry] = useState<string | undefined>();
-    const [previewClub, setPreviewClub] = useState<string | undefined>();
 
-    const handleCountryClubChange = useCallback(
-        (country: string, club: string) => {
-            setPreviewCountry(country);
-            setPreviewClub(club);
-        },
-        []
-    );
+    const handleCountryChange = useCallback((country: string) => {
+        setPreviewCountry(country);
+    }, []);
 
     return (
         <section className={css.complete_profile}>
@@ -27,12 +22,11 @@ export const CompleteProfile: React.FC<CompleteProfileProps> = ({
                 <div className={css.complete_profile_content}>
                     <ProfileInfo
                         countryOverride={credentialsReadOnly ? previewCountry : undefined}
-                        clubOverride={credentialsReadOnly ? previewClub : undefined}
                     />
                     <ProfileEdit
                         credentialsReadOnly={credentialsReadOnly}
-                        onCountryClubChange={
-                            credentialsReadOnly ? handleCountryClubChange : undefined
+                        onCountryChange={
+                            credentialsReadOnly ? handleCountryChange : undefined
                         }
                     />
                 </div>

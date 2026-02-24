@@ -8,6 +8,7 @@ import { IProfileEditFormData } from "@/shared/types";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { localeConfig } from "@/app/localization/config";
+import { clientRoutes } from "@/shared/routes/client";
 import { useAuth } from "@/shared/hooks";
 import {
     isSupabaseConfigured,
@@ -17,12 +18,12 @@ import {
 
 type ProfileEditProps = {
     credentialsReadOnly?: boolean;
-    onCountryClubChange?: (country: string, club: string) => void;
+    onCountryChange?: (country: string) => void;
 };
 
 export const ProfileEdit: React.FC<ProfileEditProps> = ({
     credentialsReadOnly = false,
-    onCountryClubChange,
+    onCountryChange,
 }) => {
     const { user } = useAuth();
     const { profile } = useUserProfile();
@@ -34,11 +35,10 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
         () => ({
             fullName: profile?.full_name?.trim() ?? "",
             country: profile?.country?.trim() ?? "",
-            club: profile?.club?.trim() ?? "",
             email: currentEmail,
             password: "",
         }),
-        [profile?.full_name, profile?.country, profile?.club, currentEmail]
+        [profile?.full_name, profile?.country, currentEmail]
     );
 
     const {
@@ -57,19 +57,23 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
     }, [profile, defaultValues, reset]);
 
     const watchedCountry = watch("country");
-    const watchedClub = watch("club");
-    const isFirstCountryClubSync = useRef(true);
+    const watchedFullName = watch("fullName");
+    const isFirstCountrySync = useRef(true);
+
+    const canSubmitStep4 =
+        !credentialsReadOnly ||
+        (Boolean(watchedFullName?.trim()) && Boolean(watchedCountry?.trim()));
 
     useEffect(() => {
-        if (!credentialsReadOnly || !onCountryClubChange) return;
-        if (isFirstCountryClubSync.current) {
-            isFirstCountryClubSync.current = false;
+        if (!credentialsReadOnly || !onCountryChange) return;
+        if (isFirstCountrySync.current) {
+            isFirstCountrySync.current = false;
             return;
         }
-        onCountryClubChange(watchedCountry ?? "", watchedClub ?? "");
-    }, [credentialsReadOnly, onCountryClubChange, watchedCountry, watchedClub]);
+        onCountryChange(watchedCountry ?? "");
+    }, [credentialsReadOnly, onCountryChange, watchedCountry]);
 
-    const { countries, clubs } = useProfileInfo();
+    const { countries } = useProfileInfo();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
@@ -119,7 +123,6 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                             id: user.id,
                             full_name: data.fullName?.trim(),
                             country: data.country?.trim(),
-                            club: data.club?.trim() || null,
                         },
                         { onConflict: "id" }
                     );
@@ -127,7 +130,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                     setFormError(upsertError.message);
                     return;
                 }
-                router.push(`/${locale}/new-visitor/save-continue`);
+                router.push(`/${locale}${clientRoutes.steps(5)}`);
                 return;
             }
 
@@ -158,7 +161,6 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                         id: user.id,
                         full_name: data.fullName?.trim(),
                         country: data.country?.trim(),
-                        club: data.club?.trim() || null,
                     },
                     { onConflict: "id" }
                 );
@@ -261,32 +263,27 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                             disabled={!canUseSupabase}
                         />
                     </div>
-                    <div className={css.profile_edit_form_item}>
-                        <CustomDropdown
-                            id="club"
-                            name="club"
-                            options={clubs}
-                            register={register}
-                            label="Club"
-                            placeholder="Select your club"
-                            disabled={!canUseSupabase}
-                        />
-                    </div>
                 </div>
                 <div className={css.profile_edit_form_buttons}>
-                    <Button
-                        type="button"
-                        buttonType="primary"
-                        className={css.profile_edit_form_buttons_button}
-                        disabled={isSubmitting}
-                    >
-                        Skip for now
-                    </Button>
+                    {!credentialsReadOnly && (
+                        <Button
+                            type="button"
+                            buttonType="primary"
+                            className={css.profile_edit_form_buttons_button}
+                            disabled={isSubmitting}
+                        >
+                            Skip for now
+                        </Button>
+                    )}
                     <Button
                         type="submit"
-                        buttonType="secondary"
+                        buttonType={credentialsReadOnly ? "primary" : "secondary"}
                         className={css.profile_edit_form_buttons_button}
-                        disabled={isSubmitting || !canUseSupabase}
+                        disabled={
+                            isSubmitting ||
+                            !canUseSupabase ||
+                            (credentialsReadOnly && !canSubmitStep4)
+                        }
                     >
                         {isSubmitting ? "Saving..." : "Save & Continue"}
                     </Button>

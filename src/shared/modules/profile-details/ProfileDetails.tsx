@@ -11,7 +11,7 @@ export const ProfileDetails: React.FC = () => {
     const kingdom = profile?.country || "-";
     const club = profile?.club || "-";
     const avatarSrc =
-        profile?.avatar_url?.trim() || "/images/profile-placeholder.png";
+        profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
     return (
         <div className="container">
             <div className={css.profile_details_content}>

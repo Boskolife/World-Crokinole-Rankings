@@ -2,8 +2,8 @@
 
 import { HomeNewVisitor } from "@/widgets/home-new-visitor";
 import { Step5 } from "@/widgets/home-new-visitor/Step-5";
+import { SubscribePlansRegistration } from "@/shared/modules/subscribe-plans-registration/SubscribePlansRegistration";
 import css from "./styles.module.scss";
-import { CompleteProfile } from "@/widgets/home-new-visitor/complete-profile/CompleteProfile";
 
 export default function Page() {
     return (
@@ -11,7 +11,7 @@ export default function Page() {
             <HomeNewVisitor className={css.height_auto}>
                 <Step5 />
             </HomeNewVisitor>
-            <CompleteProfile credentialsReadOnly />
+            <SubscribePlansRegistration />
         </>
     );
 }

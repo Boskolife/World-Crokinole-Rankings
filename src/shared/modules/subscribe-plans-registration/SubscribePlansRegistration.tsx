@@ -108,7 +108,7 @@ export const SubscribePlansRegistration: React.FC = () => {
             }
 
             if (planId === 1) {
-                router.push(`/${locale}${clientRoutes.steps(4)}`);
+                router.push(`/${locale}/new-visitor/save-continue`);
             } else {
                 const response = await fetch("/api/stripe/checkout", {
                     method: "POST",

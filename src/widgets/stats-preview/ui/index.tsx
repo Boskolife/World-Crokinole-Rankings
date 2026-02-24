@@ -22,10 +22,11 @@ export const StatsPreview: React.FC = () => {
                         <div className={css.stats_preview_avatar}>
                             <Image
                                 className={css.stats_preview_avatar_img}
-                                src="/images/profile-placeholder.png"
+                                src={profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg"}
                                 alt="Profile"
                                 width={124}
                                 height={124}
+                                unoptimized={(profile?.avatar_url?.trim() ?? "").includes("supabase.co")}
                             />
                         </div>
                         <div className={css.stats_preview_profile_info}>

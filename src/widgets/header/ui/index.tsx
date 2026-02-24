@@ -3,7 +3,6 @@
 import React from "react";
 import css from "./styles.module.scss";
 import { Link } from "@/app/localization/routing";
-import { LanguageSwitcher } from "@/shared/components/language-switcher";
 import { Button } from "@/shared/ui/buttons/button";
 import { Logo } from "@/shared/components/logo";
 import { NavMenu } from "../components/nav-menu/NavMenu";
@@ -56,11 +55,6 @@ export const Header: React.FC = () => {
                         <NavMenu items={navMenuItems} />
                         {isAuthChecking ? (
                             <div className={css.header_auth_loading}>
-                                <LanguageSwitcher
-                                    className={
-                                        css.header_language_switcher_desktop
-                                    }
-                                />
                                 <div className={css.header_auth_loader} />
                             </div>
                         ) : shouldShowAuthContent ? (
@@ -68,11 +62,6 @@ export const Header: React.FC = () => {
                                 className={css.header_profile}
                                 suppressHydrationWarning
                             >
-                                <LanguageSwitcher
-                                    className={
-                                        css.header_language_switcher_desktop
-                                    }
-                                />
                                 <div className={cn(css.header_profile_plan, {
                                     [css.header_profile_plan_premium]: profile?.subscription_plan === "premium",
                                     [css.header_profile_plan_administrator]: profile?.subscription_plan === "administrator",
@@ -87,11 +76,6 @@ export const Header: React.FC = () => {
                                 className={css.header_actions}
                                 suppressHydrationWarning
                             >
-                                <LanguageSwitcher
-                                    className={
-                                        css.header_language_switcher_desktop
-                                    }
-                                />
                                 <div className={css.header_buttons}>
                                     <Button
                                         buttonType="primary"
@@ -120,9 +104,6 @@ export const Header: React.FC = () => {
                         )}
                     </div>
                     <div className={css.header_actions_mobile}>
-                        <LanguageSwitcher
-                            className={css.header_language_switcher_mobile}
-                        />
                         <BurgerMenu
                             isOpen={isMenuOpen}
                             handleToggleMenu={handleToggleMenu}

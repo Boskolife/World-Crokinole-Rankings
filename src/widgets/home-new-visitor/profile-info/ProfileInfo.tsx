@@ -5,12 +5,10 @@ import { useProfileInfo, useUserProfile } from "@/shared/hooks";
 
 type ProfileInfoProps = {
     countryOverride?: string;
-    clubOverride?: string;
 };
 
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({
     countryOverride,
-    clubOverride,
 }) => {
     const {
         imageSrc,
@@ -24,7 +22,6 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
     const { fullName, profile } = useUserProfile();
 
     const displayCountry = countryOverride !== undefined ? countryOverride : (profile?.country ?? "");
-    const displayClub = clubOverride !== undefined ? clubOverride : (profile?.club ?? "");
 
     return (
         <div className={css.profile_info}>
@@ -77,7 +74,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
                     <span className={css.profile_info_body_item_label}>
                         Player rating
                     </span>
-                    <p className={css.profile_info_body_item_value}>1420</p>
+                    <p className={css.profile_info_body_item_value}>-</p>
                 </div>
                 <div className={css.profile_info_body_item}>
                     <span className={css.profile_info_body_item_label}>
@@ -89,27 +86,15 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
                 </div>
                 <div className={css.profile_info_body_item}>
                     <span className={css.profile_info_body_item_label}>
-                        Club
-                    </span>
-                    <p className={css.profile_info_body_item_value}>
-                        {displayClub || "-"}
-                    </p>
-                </div>
-                <div className={css.profile_info_body_item}>
-                    <span className={css.profile_info_body_item_label}>
                         Record
                     </span>
-                    <p className={css.profile_info_body_item_value}>
-                        8W – 3L – 3T
-                    </p>
+                    <p className={css.profile_info_body_item_value}>-</p>
                 </div>
                 <div className={css.profile_info_body_item}>
                     <span className={css.profile_info_body_item_label}>
                         Tournament Points
                     </span>
-                    <p className={css.profile_info_body_item_value}>
-                        Top 8 over past 2 years: 1520
-                    </p>
+                    <p className={css.profile_info_body_item_value}>-</p>
                 </div>
             </div>
         </div>

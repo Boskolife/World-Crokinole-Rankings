@@ -168,7 +168,7 @@ export const MatchHistory: React.FC = () => {
                             className={css.match_history_head_button}
                             onClick={() =>
                                 router.push(
-                                    `/${locale}${clientRoutes.steps(5)}`
+                                    `/${locale}${clientRoutes.steps(4)}`
                                 )
                             }
                         >
