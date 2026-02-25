@@ -191,7 +191,11 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
             for (const event of events) {
                 if (!event.location || /online|virtual/i.test(event.location)) continue;
 
-                const coordinates = await geocodeLocation(event.location);
+                const coordinates =
+                    typeof event.latitude === "number" && typeof event.longitude === "number"
+                        ? { lat: event.latitude, lng: event.longitude }
+                        : await geocodeLocation(event.location);
+
                 if (coordinates) {
                     const marker = new window.google.maps.Marker({
                         position: coordinates,
@@ -224,7 +228,9 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
                     bounds.extend(coordinates);
                     hasValidLocation = true;
                 }
-                await new Promise((r) => setTimeout(r, 60));
+                if (typeof event.latitude !== "number" || typeof event.longitude !== "number") {
+                    await new Promise((r) => setTimeout(r, 60));
+                }
             }
 
             setMarkers(newMarkers);

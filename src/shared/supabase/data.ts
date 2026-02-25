@@ -66,6 +66,8 @@ const mapEventRowToCard = (event: {
     strength_of_field?: number | null;
     tournament_points_available?: number | null;
     structure?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
 }): IEventCardProps => ({
     id: event.id,
     image: event.image || "",
@@ -85,6 +87,8 @@ const mapEventRowToCard = (event: {
     strengthOfField: event.strength_of_field ?? undefined,
     tournamentPointsAvailable: event.tournament_points_available ?? undefined,
     structure: event.structure ?? undefined,
+    latitude: event.latitude ?? undefined,
+    longitude: event.longitude ?? undefined,
 });
 
 export async function getEventById(id: number): Promise<IEventCardProps | null> {
