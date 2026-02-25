@@ -8,6 +8,8 @@ import { useAuth } from "@/shared/hooks/use-auth";
 import {
     getClubJoinRequestsForAdmin,
     updateClubJoinRequestStatus,
+    invitePlayerToClub,
+    incrementClubMembers,
     type ClubJoinRequestWithUser,
 } from "@/shared/supabase/data";
 import type { IClub } from "@/shared/types";
@@ -16,6 +18,7 @@ import cn from "classnames";
 interface ClubJoinRequestsPopupData {
     club: IClub;
     onClosed?: () => void;
+    onApproved?: () => void;
 }
 
 export const ClubJoinRequestsPopup: React.FC = () => {
@@ -40,8 +43,15 @@ export const ClubJoinRequestsPopup: React.FC = () => {
 
     const handleApprove = async (requestId: number) => {
         if (!data?.club || !user?.id) return;
+        const request = requests.find((r) => r.id === requestId);
+        if (!request) return;
         setReviewingId(requestId);
-        await updateClubJoinRequestStatus(requestId, "approved", user.id);
+        const ok = await updateClubJoinRequestStatus(requestId, "approved", user.id);
+        if (ok) {
+            await invitePlayerToClub(data.club.title, request.userId);
+            await incrementClubMembers(data.club.id);
+            data.onApproved?.();
+        }
         await loadRequests();
         setReviewingId(null);
     };

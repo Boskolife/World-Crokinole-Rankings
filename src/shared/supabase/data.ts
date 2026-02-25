@@ -517,23 +517,22 @@ export async function removeClubMember(
     userId: string,
     clubTitle: string
 ): Promise<boolean> {
-    const { error: adminErr } = await supabase
-        .from("club_admins")
-        .delete()
-        .eq("club_id", clubId)
-        .eq("user_id", userId);
-    if (adminErr) return false;
-    await supabase
-        .from("players")
-        .update({ club: "", updated_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .eq("club", clubTitle);
-    await supabase
-        .from("profiles")
-        .update({ club: null, updated_at: new Date().toISOString() })
-        .eq("id", userId)
-        .eq("club", clubTitle);
-    return true;
+    const { data, error } = await supabase.rpc("remove_club_member", {
+        p_club_id: clubId,
+        p_member_user_id: userId,
+        p_club_title: clubTitle,
+    });
+    if (error) return false;
+    return data === true;
+}
+
+export async function leaveClub(clubId: number, clubTitle: string): Promise<boolean> {
+    const { data, error } = await supabase.rpc("leave_club", {
+        p_club_id: clubId,
+        p_club_title: clubTitle,
+    });
+    if (error) return false;
+    return data === true;
 }
 
 export async function invitePlayerToClub(
@@ -550,6 +549,21 @@ export async function invitePlayerToClub(
         .update({ club: clubTitle, updated_at: new Date().toISOString() })
         .eq("id", userId);
     return !profilesErr;
+}
+
+export async function incrementClubMembers(clubId: number): Promise<boolean> {
+    const { data: club } = await supabase
+        .from("clubs")
+        .select("members")
+        .eq("id", clubId)
+        .single();
+    if (!club) return false;
+    const next = (club.members ?? 0) + 1;
+    const { error } = await supabase
+        .from("clubs")
+        .update({ members: next })
+        .eq("id", clubId);
+    return !error;
 }
 
 export interface GetPlayersForInviteParams {
@@ -1046,6 +1060,39 @@ export async function updateClub(params: UpdateClubParams): Promise<IClub> {
     const club = await getClubById(clubId);
     if (!club) throw new Error("Club not found after update");
     return club;
+}
+
+export async function deleteClub(clubId: number, userId: string): Promise<boolean> {
+    const club = await getClubById(clubId);
+    if (!club) return false;
+
+    const { data: ownerRow } = await supabase
+        .from("club_admins")
+        .select("user_id")
+        .eq("club_id", clubId)
+        .eq("user_id", userId)
+        .eq("is_owner", true)
+        .maybeSingle();
+
+    if (!ownerRow) return false;
+
+    const title = club.title;
+
+    await supabase
+        .from("players")
+        .update({ club: "", updated_at: new Date().toISOString() })
+        .eq("club", title);
+    await supabase
+        .from("profiles")
+        .update({ club: null, updated_at: new Date().toISOString() })
+        .eq("club", title);
+
+    await supabase.from("club_join_requests").delete().eq("club_id", clubId);
+    await supabase.from("club_discounts").delete().eq("club_id", clubId);
+    await supabase.from("club_admins").delete().eq("club_id", clubId);
+
+    const { error } = await supabase.from("clubs").delete().eq("id", clubId);
+    return !error;
 }
 
 export async function getTournaments(): Promise<ITournament[]> {

@@ -14,6 +14,7 @@ interface EditMemberAccessPopupData {
     club: IClub;
     member: IClubMember;
     adminCount?: number;
+    onRemoved?: () => void;
 }
 
 function getCountryFlagSrc(country: string | null): string {
@@ -79,7 +80,7 @@ export const EditMemberAccessPopup: React.FC = () => {
         try {
             const ok = await removeClubMember(data.club.id, data.member.userId!, data.club.title);
             if (ok) {
-                router.refresh();
+                data.onRemoved?.();
                 handleClose();
             } else {
                 setError("Failed to remove member");

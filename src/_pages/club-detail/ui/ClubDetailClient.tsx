@@ -16,7 +16,7 @@ import type {
     IClubAdmin,
     IClubDiscount,
 } from "@/shared/supabase/data";
-import { getClubJoinRequestCount } from "@/shared/supabase/data";
+import { getClubJoinRequestCount, leaveClub } from "@/shared/supabase/data";
 import css from "./styles.module.scss";
 import cn from "classnames";
 
@@ -91,6 +91,7 @@ export function ClubDetailClient({
         initialDiscounts
     );
     const [joinRequestCount, setJoinRequestCount] = useState<number | null>(null);
+    const [isLeaving, setIsLeaving] = useState(false);
 
     useEffect(() => {
         setDiscounts(initialDiscounts);
@@ -106,9 +107,18 @@ export function ClubDetailClient({
         loadJoinRequestCount();
     }, [loadJoinRequestCount]);
 
+    const refreshAfterApprove = useCallback(() => {
+        loadJoinRequestCount();
+        router.refresh();
+    }, [loadJoinRequestCount, router]);
+
     const handleOpenJoinRequests = useCallback(() => {
-        openPopup("club-join-requests", { club, onClosed: loadJoinRequestCount });
-    }, [openPopup, club, loadJoinRequestCount]);
+        openPopup("club-join-requests", {
+            club,
+            onClosed: loadJoinRequestCount,
+            onApproved: refreshAfterApprove,
+        });
+    }, [openPopup, club, loadJoinRequestCount, refreshAfterApprove]);
 
     const handleOpenAddDiscount = useCallback(() => {
         openPopup("edit-club-discount", { club, discount: null });
@@ -133,12 +143,21 @@ export function ClubDetailClient({
         navigator.clipboard.writeText(code);
     }, []);
 
+    const refreshAfterMemberChange = useCallback(() => {
+        router.refresh();
+    }, [router]);
+
     const handleOpenEditMember = useCallback(
         (member: IClubMember) => {
             if (!member.userId) return;
-            openPopup("edit-member-access", { club, member, adminCount: admins.length });
+            openPopup("edit-member-access", {
+                club,
+                member,
+                adminCount: admins.length,
+                onRemoved: refreshAfterMemberChange,
+            });
         },
-        [openPopup, club, admins.length]
+        [openPopup, club, admins.length, refreshAfterMemberChange]
     );
 
     const handleOpenEditAdmin = useCallback(
@@ -152,14 +171,30 @@ export function ClubDetailClient({
                 userId: admin.userId,
                 isAdmin: true,
             };
-            openPopup("edit-member-access", { club, member, adminCount: admins.length });
+            openPopup("edit-member-access", {
+                club,
+                member,
+                adminCount: admins.length,
+                onRemoved: refreshAfterMemberChange,
+            });
         },
-        [openPopup, club, admins.length]
+        [openPopup, club, admins.length, refreshAfterMemberChange]
     );
 
     const handleOpenInviteMember = useCallback(() => {
         openPopup("invite-member", { club, onClosed: () => router.refresh() });
     }, [openPopup, club, router]);
+
+    const handleLeaveClub = useCallback(async () => {
+        if (!user?.id || !confirm("Leave this club? You can request to join again later.")) return;
+        setIsLeaving(true);
+        try {
+            const ok = await leaveClub(club.id, club.title);
+            if (ok) router.refresh();
+        } finally {
+            setIsLeaving(false);
+        }
+    }, [user?.id, club.id, club.title, router]);
 
     return (
         <section className={css.club_detail}>
@@ -180,22 +215,54 @@ export function ClubDetailClient({
                             {club.description}
                         </p>
                         {isAdmin ? (
-                            <button
-                                type="button"
-                                className={css.club_detail_edit_btn}
-                                onClick={() => openPopup("edit-club", { club })}
-                            >
-                                <Icon name="edit_2" />
-                                Edit Club
-                            </button>
+                            <>
+                                <button
+                                    type="button"
+                                    className={css.club_detail_edit_btn}
+                                    onClick={() => openPopup("edit-club", { club })}
+                                >
+                                    <Icon name="edit_2" />
+                                    Edit Club
+                                </button>
+                                {isClubOwner && (
+                                    <button
+                                        type="button"
+                                        className={css.club_detail_delete_btn}
+                                        onClick={() => openPopup("club-delete-confirm", { club })}
+                                    >
+                                        <Icon name="trash" />
+                                        Delete club
+                                    </button>
+                                )}
+                                {!isClubOwner && (
+                                    <button
+                                        type="button"
+                                        className={css.club_detail_leave_btn}
+                                        onClick={handleLeaveClub}
+                                        disabled={isLeaving}
+                                    >
+                                        {isLeaving ? "Leaving…" : "Leave the club"}
+                                    </button>
+                                )}
+                            </>
                         ) : club.isLocked ? (
                             <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
                                 Invite Only
                             </span>
                         ) : isMember || joinRequestStatus === "approved" ? (
-                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
-                                Member
-                            </span>
+                            <>
+                                <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
+                                    Member
+                                </span>
+                                <button
+                                    type="button"
+                                    className={css.club_detail_leave_btn}
+                                    onClick={handleLeaveClub}
+                                    disabled={isLeaving}
+                                >
+                                    {isLeaving ? "Leaving…" : "Leave the club"}
+                                </button>
+                            </>
                         ) : joinRequestStatus === "pending" ? (
                             <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
                                 Under consideration

@@ -73,6 +73,49 @@
     }
 }
 
+.club_detail_delete_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 120px;
+    border: 1px solid #dc3545;
+    background: transparent;
+    color: #dc3545;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 12px;
+
+    &:hover {
+        background: #dc3545;
+        color: var(--white);
+    }
+}
+
+.club_detail_leave_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 120px;
+    border: 1px solid var(--black-30);
+    background: transparent;
+    color: var(--black-70);
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 12px;
+
+    &:hover {
+        border-color: var(--black-50);
+        background: var(--black-10);
+        color: var(--black);
+    }
+}
+
 .club_detail_join_btn_static {
     cursor: default;
     &:hover {
