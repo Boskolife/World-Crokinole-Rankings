@@ -250,19 +250,14 @@ export function ClubDetailClient({
                                 Invite Only
                             </span>
                         ) : isMember || joinRequestStatus === "approved" ? (
-                            <>
-                                <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
-                                    Member
-                                </span>
-                                <button
-                                    type="button"
-                                    className={css.club_detail_leave_btn}
-                                    onClick={handleLeaveClub}
-                                    disabled={isLeaving}
-                                >
-                                    {isLeaving ? "Leaving…" : "Leave the club"}
-                                </button>
-                            </>
+                            <button
+                                type="button"
+                                className={css.club_detail_leave_btn}
+                                onClick={handleLeaveClub}
+                                disabled={isLeaving}
+                            >
+                                {isLeaving ? "Leaving…" : "Leave the club"}
+                            </button>
                         ) : joinRequestStatus === "pending" ? (
                             <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
                                 Under consideration
