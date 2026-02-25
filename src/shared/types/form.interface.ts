@@ -81,7 +81,6 @@ export interface ICustomDropdownProps<
 }
 
 export interface IProfileEditFormData {
-    email: string;
     password: string;
     fullName: string;
     country: string;

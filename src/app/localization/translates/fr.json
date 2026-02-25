@@ -7,7 +7,9 @@
         "logo": "Classements Mondiaux de Crokinole",
         "loading": "Chargement...",
         "error": "Erreur",
-        "notFound": "Page non trouvée"
+        "notFound": "Page non trouvée",
+        "notFoundDescription": "La page demandée n'existe pas ou a été déplacée.",
+        "backToHome": "Retour à l'accueil"
     },
     "navigation": {
         "rankings": "Classements",

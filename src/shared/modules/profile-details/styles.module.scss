@@ -86,6 +86,25 @@
     &_button {
         width: 100%;
     }
+
+    &_button_link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border-radius: 8px;
+        background-color: var(--blue-grey);
+        color: var(--white);
+        font-weight: 500;
+        font-size: 16px;
+        text-decoration: none;
+        transition: opacity 0.2s;
+
+        &:hover {
+            opacity: 0.9;
+            color: var(--white);
+        }
+    }
 }
 
 .profile_details_right {

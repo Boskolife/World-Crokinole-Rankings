@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import css from "./styles.module.scss";
 import { FormField } from "@/shared/ui/input";
 import { useForm } from "react-hook-form";
@@ -19,26 +20,28 @@ import {
 type ProfileEditProps = {
     credentialsReadOnly?: boolean;
     onCountryChange?: (country: string) => void;
+    successRedirect?: string;
+    showSkip?: boolean;
 };
 
 export const ProfileEdit: React.FC<ProfileEditProps> = ({
     credentialsReadOnly = false,
     onCountryChange,
+    successRedirect,
+    showSkip = true,
 }) => {
     const { user } = useAuth();
     const { profile } = useUserProfile();
     const [formError, setFormError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const currentEmail = user?.email ?? "";
     const defaultValues = useMemo<IProfileEditFormData>(
         () => ({
             fullName: profile?.full_name?.trim() ?? "",
             country: profile?.country?.trim() ?? "",
-            email: currentEmail,
             password: "",
         }),
-        [profile?.full_name, profile?.country, currentEmail]
+        [profile?.full_name, profile?.country]
     );
 
     const {
@@ -47,7 +50,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
         handleSubmit,
         watch,
         reset,
-    } = useForm<IProfileEditFormData>({ defaultValues });
+        } = useForm<IProfileEditFormData>({ defaultValues });
 
     const hasSyncedProfile = useRef(false);
     useEffect(() => {
@@ -73,23 +76,21 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
         onCountryChange(watchedCountry ?? "");
     }, [credentialsReadOnly, onCountryChange, watchedCountry]);
 
-    const { countries } = useProfileInfo();
+    const {
+        countries,
+        imageSrc: avatarSrc,
+        fileInputRef: avatarFileInputRef,
+        handleButtonClick: avatarButtonClick,
+        handleFileChange: avatarFileChange,
+        isUploading: avatarUploading,
+        uploadError: avatarUploadError,
+    } = useProfileInfo();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale || (localeConfig.defaultLocale as string);
 
     const isAuthed = Boolean(user);
     const canUseSupabase = isSupabaseConfigured && isAuthed;
-
-    const emailRules = useMemo(
-        () => ({
-            pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Invalid email address",
-            },
-        }),
-        []
-    );
 
     const passwordRules = useMemo(
         () => ({
@@ -130,23 +131,21 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                     setFormError(upsertError.message);
                     return;
                 }
-                router.push(`/${locale}${clientRoutes.steps(5)}`);
+                if (successRedirect) {
+                    router.push(`/${locale}${successRedirect}`);
+                } else {
+                    router.push(`/${locale}${clientRoutes.steps(5)}`);
+                }
                 return;
             }
 
-            const nextEmail = data.email?.trim();
             const nextPassword = data.password?.trim();
-            const shouldUpdateEmail =
-                Boolean(nextEmail) && nextEmail !== currentEmail;
             const shouldUpdatePassword = Boolean(nextPassword);
 
-            if (shouldUpdateEmail || shouldUpdatePassword) {
+            if (shouldUpdatePassword) {
                 const { error: updateAuthError } =
                     await supabase.auth.updateUser({
-                        ...(shouldUpdateEmail ? { email: nextEmail } : {}),
-                        ...(shouldUpdatePassword
-                            ? { password: nextPassword }
-                            : {}),
+                        password: nextPassword,
                     });
                 if (updateAuthError) {
                     setFormError(updateAuthError.message);
@@ -170,7 +169,11 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 return;
             }
 
-            router.push(`/${locale}/new-visitor/save-continue`);
+            if (successRedirect) {
+                router.push(`/${locale}${successRedirect}`);
+            } else {
+                router.push(`/${locale}/new-visitor/save-continue`);
+            }
         } catch {
             setFormError(
                 "Could not reach Supabase. Please check NEXT_PUBLIC_SUPABASE_URL and your DNS/Internet connection."
@@ -187,106 +190,113 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 className={css.profile_edit_form}
                 onSubmit={handleSubmit(onSubmit)}
             >
-                <div className={css.profile_edit_form_items}>
-                    <div className={css.profile_edit_form_item}>
-                        <FormField
-                            id="email"
-                            name="email"
-                            label="Email"
-                            placeholder="Enter your email"
-                            type="email"
-                            register={credentialsReadOnly ? undefined : register}
-                            defaultValue={credentialsReadOnly ? undefined : currentEmail}
-                            rules={credentialsReadOnly ? undefined : emailRules}
-                            error={errors?.email?.message as string}
-                            disabled={!canUseSupabase}
-                            readOnly={credentialsReadOnly}
-                            value={credentialsReadOnly ? currentEmail : undefined}
-                        />
-                        <button
-                            className={css.profile_edit_form_item_button}
-                            type="button"
-                            disabled={credentialsReadOnly || !canUseSupabase}
-                        >
-                            Change email
-                        </button>
+                <div className={css.profile_edit_content}>
+                    <div className={css.profile_edit_left}>
+                        <div className={css.profile_edit_avatar}>
+                            <div className={css.profile_edit_avatar_preview}>
+                                <Image
+                                    src={avatarSrc}
+                                    alt="Avatar"
+                                    width={164}
+                                    height={164}
+                                    className={css.profile_edit_avatar_img}
+                                    unoptimized={avatarSrc.includes("supabase.co")}
+                                />
+                                <input
+                                    ref={avatarFileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className={css.profile_edit_avatar_input}
+                                    onChange={avatarFileChange}
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                className={css.profile_edit_form_item_button}
+                                disabled={!canUseSupabase || avatarUploading}
+                                onClick={avatarButtonClick}
+                            >
+                                {avatarUploading ? "Uploading..." : "Change photo"}
+                            </button>
+                            {avatarUploadError && (
+                                <div className={css.profile_edit_error}>
+                                    {avatarUploadError}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className={css.profile_edit_form_item}>
-                        <FormField
-                            id="password"
-                            name="password"
-                            label="Password"
-                            placeholder="Enter your password"
-                            type={credentialsReadOnly ? "text" : "password"}
-                            register={credentialsReadOnly ? undefined : register}
-                            rules={credentialsReadOnly ? undefined : passwordRules}
-                            error={errors?.password?.message as string}
-                            disabled={!canUseSupabase}
-                            readOnly={credentialsReadOnly}
-                            value={credentialsReadOnly ? "••••••••" : undefined}
-                        />
-                        <button
-                            className={css.profile_edit_form_item_button}
-                            type="button"
-                            disabled={credentialsReadOnly || !canUseSupabase}
-                        >
-                            Change password
-                        </button>
+                    <div className={css.profile_edit_right}>
+                        <div className={css.profile_edit_form_items}>
+                            <div className={css.profile_edit_form_item}>
+                                <FormField
+                                    id="password"
+                                    name="password"
+                                    label="Password"
+                                    placeholder="••••••••"
+                                    type="password"
+                                    register={credentialsReadOnly ? undefined : register}
+                                    rules={credentialsReadOnly ? undefined : passwordRules}
+                                    error={errors?.password?.message as string}
+                                    disabled={!canUseSupabase}
+                                />
+                            </div>
+                            <div className={css.profile_edit_form_item}>
+                                <FormField
+                                    id="full_name"
+                                    name="fullName"
+                                    label="Full Name*"
+                                    placeholder="Enter your full name"
+                                    type="text"
+                                    register={register}
+                                    rules={{
+                                        required: "Full name is required",
+                                    }}
+                                    error={errors?.fullName?.message as string}
+                                    disabled={!canUseSupabase}
+                                />
+                            </div>
+                            <div className={css.profile_edit_form_item}>
+                                <CustomDropdown
+                                    id="country"
+                                    name="country"
+                                    options={countries}
+                                    register={register}
+                                    value={watchedCountry ?? ""}
+                                    label="Kingdom (State/Country)*"
+                                    placeholder="Select your country"
+                                    rules={{
+                                        required: "Country is required",
+                                    }}
+                                    error={errors?.country?.message as string}
+                                    disabled={!canUseSupabase}
+                                />
+                            </div>
+                        </div>
+                        <div className={css.profile_edit_form_buttons}>
+                            {!credentialsReadOnly && showSkip && (
+                                <Button
+                                    type="button"
+                                    buttonType="primary"
+                                    className={css.profile_edit_form_buttons_button}
+                                    disabled={isSubmitting}
+                                >
+                                    Skip for now
+                                </Button>
+                            )}
+                            <Button
+                                type="submit"
+                                buttonType={credentialsReadOnly ? "primary" : "secondary"}
+                                className={css.profile_edit_form_buttons_button}
+                                disabled={
+                                    isSubmitting ||
+                                    !canUseSupabase ||
+                                    (credentialsReadOnly && !canSubmitStep4)
+                                }
+                            >
+                                {isSubmitting ? "Saving..." : successRedirect ? "Save" : "Save & Continue"}
+                            </Button>
+                        </div>
                     </div>
-                    <div className={css.profile_edit_form_item}>
-                        <FormField
-                            id="full_name"
-                            name="fullName"
-                            label="Full Name*"
-                            placeholder="Enter your full name"
-                            type="text"
-                            register={register}
-                            rules={{
-                                required: "Full name is required",
-                            }}
-                            error={errors?.fullName?.message as string}
-                            disabled={!canUseSupabase}
-                        />
-                    </div>
-                    <div className={css.profile_edit_form_item}>
-                        <CustomDropdown
-                            id="country"
-                            name="country"
-                            options={countries}
-                            register={register}
-                            label="Kingdom (State/Country)*"
-                            placeholder="Select your country"
-                            rules={{
-                                required: "Country is required",
-                            }}
-                            error={errors?.country?.message as string}
-                            disabled={!canUseSupabase}
-                        />
-                    </div>
-                </div>
-                <div className={css.profile_edit_form_buttons}>
-                    {!credentialsReadOnly && (
-                        <Button
-                            type="button"
-                            buttonType="primary"
-                            className={css.profile_edit_form_buttons_button}
-                            disabled={isSubmitting}
-                        >
-                            Skip for now
-                        </Button>
-                    )}
-                    <Button
-                        type="submit"
-                        buttonType={credentialsReadOnly ? "primary" : "secondary"}
-                        className={css.profile_edit_form_buttons_button}
-                        disabled={
-                            isSubmitting ||
-                            !canUseSupabase ||
-                            (credentialsReadOnly && !canSubmitStep4)
-                        }
-                    >
-                        {isSubmitting ? "Saving..." : "Save & Continue"}
-                    </Button>
                 </div>
             </form>
         </div>

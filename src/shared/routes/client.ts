@@ -6,6 +6,7 @@ export const clientRoutes = {
     membershipPlans: "/membership-plans",
     players: "/players",
     profile: "/profile",
+    profileEdit: "/profile/edit",
     signIn: "/auth/sign-in",
     signUp: "/auth/sign-up",
     admin: "/admin",

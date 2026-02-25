@@ -1,0 +1,31 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+.profile_edit_page {
+    padding-top: 32px;
+    padding-bottom: 60px;
+}
+
+.profile_edit_page_header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.profile_edit_page_title {
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--blue-grey);
+    margin: 0;
+}
+
+.profile_edit_page_back {
+    font-size: 16px;
+    color: var(--gold-dark);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+        color: var(--gold);
+    }
+}

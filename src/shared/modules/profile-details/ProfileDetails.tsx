@@ -4,6 +4,8 @@ import css from "./styles.module.scss";
 import Image from "next/image";
 import { Button } from "@/shared/ui/buttons";
 import { RootLink } from "@/shared/ui";
+import { clientRoutes } from "@/shared/routes/client";
+import cn from "classnames";
 import { useUserProfile } from "@/shared/hooks";
 
 export const ProfileDetails: React.FC = () => {
@@ -43,12 +45,12 @@ export const ProfileDetails: React.FC = () => {
                         </div>
                     </div>
                     <div className={css.profile_details_left_buttons}>
-                        <Button
-                            buttonType="primary"
-                            className={css.profile_details_left_button}
+                        <RootLink
+                            href={clientRoutes.profileEdit}
+                            className={cn(css.profile_details_left_button, css.profile_details_left_button_link)}
                         >
                             Edit profile
-                        </Button>
+                        </RootLink>
                         <Button
                             buttonType="primary"
                             className={css.profile_details_left_button}
@@ -63,12 +65,6 @@ export const ProfileDetails: React.FC = () => {
                             <b>Email:</b>
                             <span>{email || "-"}</span>
                         </p>
-                        <RootLink
-                            href="#"
-                            className={css.profile_details_right_header_link}
-                        >
-                            Change email or password
-                        </RootLink>
                     </div>
                     <div className={css.profile_details_right_info}>
                         <div className={css.profile_details_right_info_item}>

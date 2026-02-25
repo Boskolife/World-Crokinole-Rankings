@@ -1,3 +1,5 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
 .profile_edit {
     width: 100%;
 
@@ -14,44 +16,120 @@
     }
 
     &_form {
+        width: 100%;
+    }
 
-        &_items {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+    &_content {
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+        border: 1px solid var(--black-20);
+        border-radius: 12px;
+        @include adaptive-value("padding", 32, 16, 1);
+        min-height: 400px;
 
-        &_item {
-            width: 100%;
-            display: flex;
+        @include media-down(lg) {
             flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
+        }
+    }
 
-            &_button {
-                font-weight: 500;
-                font-size: 16px;
-                text-decoration: underline;
+    &_left {
+        max-width: max-content;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
 
-                &:disabled {
-                    color: var(--blue-grey);
-                    cursor: not-allowed;
-                    opacity: 0.7;
-                }
-            }
+        @include media-down(sm) {
+            max-width: 100%;
+            align-items: center;
+        }
+    }
+
+    &_avatar {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+
+        @include media-down(sm) {
+            align-items: center;
         }
 
-        &_buttons {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px;
+        &_preview {
+            position: relative;
+            @include adaptive-value("width", 164, 100, 1);
+            @include adaptive-value("height", 164, 100, 1);
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--black-10);
+        }
 
-            &_button {
-                width: 100%;
-                max-width: 195px;
+        &_img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        &_input {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+    }
+
+    &_right {
+        max-width: 720px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    &_form_items {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+
+        @include media-down(sm) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &_form_item {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+
+        &_button {
+            font-weight: 500;
+            font-size: 16px;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+
+            &:disabled {
+                color: var(--blue-grey);
+                cursor: not-allowed;
+                opacity: 0.7;
             }
+        }
+    }
+
+    &_form_buttons {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+
+        &_button {
+            width: 100%;
+            max-width: 195px;
         }
     }
 }
