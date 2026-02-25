@@ -22,6 +22,7 @@ type ProfileEditProps = {
     onCountryChange?: (country: string) => void;
     successRedirect?: string;
     showSkip?: boolean;
+    hideAvatarBlock?: boolean;
 };
 
 export const ProfileEdit: React.FC<ProfileEditProps> = ({
@@ -29,6 +30,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
     onCountryChange,
     successRedirect,
     showSkip = true,
+    hideAvatarBlock = false,
 }) => {
     const { user } = useAuth();
     const { profile } = useUserProfile();
@@ -207,40 +209,42 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 onSubmit={handleSubmit(onSubmit)}
             >
                 <div className={css.profile_edit_content}>
-                    <div className={css.profile_edit_left}>
-                        <div className={css.profile_edit_avatar}>
-                            <div className={css.profile_edit_avatar_preview}>
-                                <Image
-                                    src={avatarSrc}
-                                    alt="Avatar"
-                                    width={164}
-                                    height={164}
-                                    className={css.profile_edit_avatar_img}
-                                    unoptimized={avatarSrc.includes("supabase.co")}
-                                />
-                                <input
-                                    ref={avatarFileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className={css.profile_edit_avatar_input}
-                                    onChange={avatarFileChange}
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                className={css.profile_edit_form_item_button}
-                                disabled={!canUseSupabase || avatarUploading}
-                                onClick={avatarButtonClick}
-                            >
-                                {avatarUploading ? "Uploading..." : "Change photo"}
-                            </button>
-                            {avatarUploadError && (
-                                <div className={css.profile_edit_error}>
-                                    {avatarUploadError}
+                    {!hideAvatarBlock && (
+                        <div className={css.profile_edit_left}>
+                            <div className={css.profile_edit_avatar}>
+                                <div className={css.profile_edit_avatar_preview}>
+                                    <Image
+                                        src={avatarSrc}
+                                        alt="Avatar"
+                                        width={164}
+                                        height={164}
+                                        className={css.profile_edit_avatar_img}
+                                        unoptimized={avatarSrc.includes("supabase.co")}
+                                    />
+                                    <input
+                                        ref={avatarFileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className={css.profile_edit_avatar_input}
+                                        onChange={avatarFileChange}
+                                    />
                                 </div>
-                            )}
+                                <button
+                                    type="button"
+                                    className={css.profile_edit_form_item_button}
+                                    disabled={!canUseSupabase || avatarUploading}
+                                    onClick={avatarButtonClick}
+                                >
+                                    {avatarUploading ? "Uploading..." : "Change photo"}
+                                </button>
+                                {avatarUploadError && (
+                                    <div className={css.profile_edit_error}>
+                                        {avatarUploadError}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                     <div className={css.profile_edit_right}>
                         <div className={css.profile_edit_form_items}>
                             {!credentialsReadOnly && (

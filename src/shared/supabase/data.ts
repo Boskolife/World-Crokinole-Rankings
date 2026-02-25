@@ -134,6 +134,100 @@ export async function getPastEvents(): Promise<IEventCardProps[]> {
     return (data?.map((e) => mapEventRowToCard(e)) ?? []);
 }
 
+const EVENT_COVERS_BUCKET = "event-covers";
+
+export interface CreateEventParams {
+    title: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    format: string;
+    isRanked: boolean;
+    isRegistrationRequired: boolean;
+    price: string;
+    structure: string;
+    coverFile: File | null;
+    capacity: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
+}
+
+export async function createEvent(params: CreateEventParams): Promise<IEventCardProps> {
+    const {
+        title,
+        startDate,
+        endDate,
+        location,
+        format,
+        isRanked,
+        isRegistrationRequired,
+        price,
+        structure,
+        coverFile,
+        capacity,
+        latitude,
+        longitude,
+    } = params;
+
+    const { data: newEvent, error: insertError } = await supabase
+        .from("events")
+        .insert({
+            title: title.trim(),
+            price: (price || "0").trim(),
+            location: (location || "").trim(),
+            format: format.trim(),
+            is_ranked: !!isRanked,
+            is_registration_required: !!isRegistrationRequired,
+            start_date: startDate,
+            end_date: endDate,
+            structure: (structure || "").trim() || null,
+            capacity: capacity ?? null,
+            latitude: latitude ?? null,
+            longitude: longitude ?? null,
+            image: null,
+            winner: null,
+            current_rank: null,
+            total_participants: null,
+            strength_of_field: null,
+            tournament_points_available: null,
+        })
+        .select("id")
+        .single();
+
+    if (insertError || !newEvent?.id) {
+        throw new Error(insertError?.message ?? "Failed to create event");
+    }
+
+    const eventId = newEvent.id;
+    let imageUrl: string | null = null;
+
+    if (coverFile) {
+        const ext = getFileExtension(coverFile.name);
+        const path = `${eventId}/cover.${ext}`;
+        const { error: uploadError } = await supabase.storage
+            .from(EVENT_COVERS_BUCKET)
+            .upload(path, coverFile, { upsert: true });
+
+        if (!uploadError) {
+            const { data: urlData } = supabase.storage
+                .from(EVENT_COVERS_BUCKET)
+                .getPublicUrl(path);
+            imageUrl = urlData.publicUrl;
+        }
+    }
+
+    if (imageUrl) {
+        await supabase
+            .from("events")
+            .update({ image: imageUrl })
+            .eq("id", eventId);
+    }
+
+    const event = await getEventById(eventId);
+    if (!event) throw new Error("Event not found after creation");
+    return event;
+}
+
 export async function getPlayers(): Promise<IPlayer[]> {
     const { data, error } = await supabase
         .from("players")

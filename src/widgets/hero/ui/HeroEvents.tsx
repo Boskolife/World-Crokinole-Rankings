@@ -3,17 +3,23 @@
 import css from "./styles.module.scss";
 import React from "react";
 import cn from "classnames";
+import Image from "next/image";
+import { useRouter, useParams } from "next/navigation";
 import { CustomButton } from "@/shared/ui/buttons";
 import { Button } from "@/shared/ui/buttons";
-import Image from "next/image";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
+import { localeConfig } from "@/app/localization/config";
 
 export const HeroEvents: React.FC = () => {
+    const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale ?? localeConfig.defaultLocale;
     const { profile } = useUserProfile();
     const isCommunityAdmin =
         profile?.subscription_plan === "administrator";
     const canCreateEvent =
         profile?.subscription_plan === "premium" || isCommunityAdmin;
+    const createEventPath = `/${locale}/events/create`;
 
     return (
         <section className={css.hero}>
@@ -55,7 +61,7 @@ export const HeroEvents: React.FC = () => {
                                 buttonType="secondary"
                                 icon="plus"
                                 className={css.hero_create_club_btn}
-                                onClick={() => {}}
+                                onClick={() => router.push(createEventPath)}
                             >
                                 Create new event
                             </Button>
@@ -65,7 +71,7 @@ export const HeroEvents: React.FC = () => {
                                 buttonType="secondary"
                                 icon="plus"
                                 className={css.hero_create_club_btn}
-                                onClick={() => {}}
+                                onClick={() => router.push(createEventPath)}
                             >
                                 Create Ranked Tournament
                             </Button>

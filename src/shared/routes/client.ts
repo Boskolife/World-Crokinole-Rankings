@@ -11,6 +11,7 @@ export const clientRoutes = {
     signIn: "/auth/sign-in",
     signUp: "/auth/sign-up",
     admin: "/admin",
+    eventsCreate: "/events/create",
     dashboard: "/dashboard",
 
     steps: (step: number) => `/new-visitor/step-${step}`,

@@ -33,6 +33,17 @@ export const clubFilterOptions: DropdownOption[] = [
 export const formatOptions: DropdownOption[] = [
     { value: "singles", label: "Singles" },
     { value: "doubles", label: "Doubles" },
+    { value: "singles_or_doubles", label: "Singles or Doubles" },
+];
+
+export const eventTypeOptions: DropdownOption[] = [
+    { value: "ranked", label: "Ranked" },
+    { value: "unranked", label: "Unranked" },
+];
+
+export const needToRegisterOptions: DropdownOption[] = [
+    { value: "yes", label: "Yes" },
+    { value: "no", label: "No" },
 ];
 
 // Rankings category switcher options

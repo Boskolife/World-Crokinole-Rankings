@@ -28,6 +28,7 @@ export const CompleteProfile: React.FC<CompleteProfileProps> = ({
                         onCountryChange={
                             credentialsReadOnly ? handleCountryChange : undefined
                         }
+                        hideAvatarBlock={credentialsReadOnly}
                     />
                 </div>
             </div>
