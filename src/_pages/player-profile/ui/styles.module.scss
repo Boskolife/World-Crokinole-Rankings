@@ -1,0 +1,10 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+.wrapper {
+    @include adaptive-value("padding-top", 80, 40, 1);
+    padding-bottom: 30px;
+}
+
+.title {
+    margin-bottom: 20px;
+}

@@ -5,6 +5,7 @@ export const clientRoutes = {
     clubs: "/clubs",
     membershipPlans: "/membership-plans",
     players: "/players",
+    playerProfile: (id: string) => `/players/${id}`,
     profile: "/profile",
     profileEdit: "/profile/edit",
     signIn: "/auth/sign-in",

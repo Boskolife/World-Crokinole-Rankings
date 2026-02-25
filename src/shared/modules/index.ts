@@ -2,6 +2,7 @@ export { SwitcherModule } from "./switcher/Switcher";
 export { Pagination } from "./pagination";
 export { SubscribePlans } from "./subscribe-plans/SubscribePlans";
 export { ProfileDetails } from "./profile-details/ProfileDetails";
+export { PlayerProfileView } from "./player-profile-view/PlayerProfileView";
 export { ProfileMyClubs } from "./profile-my-clubs/ProfileMyClubs";
 export { PlayerTable } from "./player-table/PlayerTable";
 export { TournamentTable } from "./tournament-table/TournamentTable";

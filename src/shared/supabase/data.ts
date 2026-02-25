@@ -158,6 +158,29 @@ export async function getPlayers(): Promise<IPlayer[]> {
     );
 }
 
+export async function getPlayerById(id: string): Promise<IPlayer | null> {
+    const { data, error } = await supabase
+        .from("players")
+        .select("*, profiles(avatar_url)")
+        .eq("user_id", id)
+        .maybeSingle();
+
+    if (error || !data) return null;
+
+    const profile = data.profiles as { avatar_url?: string | null } | null;
+    const avatarUrl = profile?.avatar_url ?? null;
+
+    return {
+        id: String(data.user_id ?? data.id),
+        name: data.name,
+        countryCode: data.country_code,
+        kingdom: data.kingdom,
+        club: data.club,
+        rating: data.rating,
+        avatarUrl: avatarUrl?.trim() || null,
+    };
+}
+
 export interface GetPlayersParams {
     search?: string;
     kingdom?: string;

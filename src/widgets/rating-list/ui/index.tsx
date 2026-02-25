@@ -20,19 +20,18 @@ export const RatingList: React.FC = () => {
     return (
         <div className={css.rating_list}>
             <div className="container">
-                <h3 className={css.rating_list_title}>
-                    My rating list (24 months)
-                </h3>
-                <p className={css.rating_list_description}>
-                    Monitor the dynamics of your game at all times
-                </p>
                 <div className={css.rating_list_head}>
-                    <SwitcherModule
-                        className={css.rating_list_switcher}
-                        options={ratingListSwitcherOptions}
-                        value={selectedType}
-                        onChange={(value) => setSelectedType(value)}
-                    />
+                    <div className={css.rating_list_title_row}>
+                        <h3 className={css.rating_list_title}>
+                            My rating list (24 months)
+                        </h3>
+                        <SwitcherModule
+                            className={css.rating_list_switcher}
+                            options={ratingListSwitcherOptions}
+                            value={selectedType}
+                            onChange={(value) => setSelectedType(value)}
+                        />
+                    </div>
                     <CustomRoundedDropdown
                         className={css.rating_list_dropdown}
                         options={ratingListDropdownOptions}
@@ -40,6 +39,9 @@ export const RatingList: React.FC = () => {
                         id="rating-list-switcher"
                     />
                 </div>
+                <p className={css.rating_list_description}>
+                    Monitor the dynamics of your game at all times
+                </p>
                 <div className={css.rating_list_chart_wrapper}>
                     <RatingChart
                         key={selectedType}

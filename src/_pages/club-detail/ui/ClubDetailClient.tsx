@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/shared/ui/icons";
 import { RootLink } from "@/shared/ui/links/root-link";
+import { clientRoutes } from "@/shared/routes/client";
 import { useTableSort } from "@/shared/hooks";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
@@ -452,7 +453,11 @@ export function ClubDetailClient({
                                                         #{index + 1}
                                                     </span>{" "}
                                                     <RootLink
-                                                        href={`/players?search=${encodeURIComponent(member.name)}`}
+                                                        href={
+                                                            member.userId
+                                                                ? clientRoutes.playerProfile(member.userId)
+                                                                : `/players?search=${encodeURIComponent(member.name)}`
+                                                        }
                                                         className={css.club_detail_player_link}
                                                     >
                                                         {member.name}

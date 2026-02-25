@@ -7,6 +7,7 @@ import cn from "classnames";
 import { RootLink } from "@/shared/ui/links/root-link";
 import Image from "next/image";
 import { useTableSort } from "@/shared/hooks";
+import { clientRoutes } from "@/shared/routes/client";
 
 interface IPlayerTableProps {
     players: IPlayer[];
@@ -140,7 +141,10 @@ export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
                             })}
                         >
                             <td className={css.player_table_cell}>
-                                <div className={css.player_table_cell_name}>
+                                <RootLink
+                                    href={clientRoutes.playerProfile(player.id)}
+                                    className={css.player_table_cell_name}
+                                >
                                     <Image
                                         src={getCountryFlagUrl(
                                             player.countryCode
@@ -151,7 +155,7 @@ export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
                                         height={36}
                                     />
                                     <span>{player.name}</span>
-                                </div>
+                                </RootLink>
                             </td>
                             <td className={css.player_table_cell}>
                                 {player.kingdom}
@@ -164,7 +168,7 @@ export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
                             </td>
                             <td className={css.player_table_cell}>
                                 <RootLink
-                                    href={`/players/${player.id}`}
+                                    href={clientRoutes.playerProfile(player.id)}
                                     className={css.player_table_cell_link}
                                 >
                                     View profile

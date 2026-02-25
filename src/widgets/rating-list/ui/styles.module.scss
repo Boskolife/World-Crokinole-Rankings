@@ -3,13 +3,21 @@
 .rating_list {
     padding: 30px 0;
 
+    &_title_row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
     &_title {
         @include adaptive-value("font-size", 32, 24, 1);
-        margin-bottom: 8px;
+        margin: 0;
     }
 
     &_description {
         @include adaptive-value("font-size", 18, 16, 1);
+        margin-top: 8px;
     }
 
     &_head {
@@ -17,7 +25,6 @@
         align-items: center;
         justify-content: space-between;
         gap: 20px;
-        margin-top: 20px;
 
         @include media-down(md) {
             flex-direction: column;

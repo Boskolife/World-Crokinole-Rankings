@@ -76,6 +76,13 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.2s ease;
+
+            &:hover {
+                color: var(--gold);
+            }
         }
 
         &_flag {
