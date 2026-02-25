@@ -123,7 +123,7 @@ export const InviteMemberPopup: React.FC = () => {
                                                 type="button"
                                                 className={cn(
                                                     css.popup_button,
-                                                    css.popup_button_primary,
+                                                    !pendingIds.has(player.id) && css.popup_button_primary,
                                                     css.invite_member_btn,
                                                     pendingIds.has(player.id) && css.invite_member_btn_pending
                                                 )}
@@ -133,7 +133,7 @@ export const InviteMemberPopup: React.FC = () => {
                                                 {invitingId === player.id
                                                     ? "Inviting…"
                                                     : pendingIds.has(player.id)
-                                                      ? "Pending"
+                                                      ? "Invite sent"
                                                       : "Invite"}
                                             </button>
                                         </td>

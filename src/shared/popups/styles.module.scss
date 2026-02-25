@@ -749,7 +749,8 @@
 
 .invite_member_btn_pending {
     background: var(--black-10) !important;
-    border-color: var(--black-10) !important;
-    color: var(--black-50) !important;
+    border: 1px solid var(--black-20) !important;
+    color: var(--black-60) !important;
     cursor: default;
+    font-style: italic;
 }

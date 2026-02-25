@@ -16,7 +16,7 @@ import type {
     IClubAdmin,
     IClubDiscount,
 } from "@/shared/supabase/data";
-import { getClubJoinRequestCount, leaveClub, acceptClubInvite, rejectClubInvite } from "@/shared/supabase/data";
+import { getClubJoinRequestCount, acceptClubInvite, rejectClubInvite } from "@/shared/supabase/data";
 import css from "./styles.module.scss";
 import cn from "classnames";
 
@@ -92,7 +92,6 @@ export function ClubDetailClient({
         initialDiscounts
     );
     const [joinRequestCount, setJoinRequestCount] = useState<number | null>(null);
-    const [isLeaving, setIsLeaving] = useState(false);
     const [isHandlingInvite, setIsHandlingInvite] = useState(false);
 
     useEffect(() => {
@@ -187,19 +186,15 @@ export function ClubDetailClient({
         openPopup("invite-member", { club, onClosed: () => router.refresh() });
     }, [openPopup, club, router]);
 
-    const handleLeaveClub = useCallback(async () => {
-        if (!user?.id || !confirm("Leave this club? You can request to join again later.")) return;
-        setIsLeaving(true);
-        try {
-            const ok = await leaveClub(club.id, club.title);
-            if (ok) {
+    const handleOpenLeaveConfirm = useCallback(() => {
+        openPopup("leave-club-confirm", {
+            club,
+            onLeft: async () => {
                 await refetchJoinRequest();
                 router.refresh();
-            }
-        } finally {
-            setIsLeaving(false);
-        }
-    }, [user?.id, club.id, club.title, router, refetchJoinRequest]);
+            },
+        });
+    }, [openPopup, club, router, refetchJoinRequest]);
 
     const handleAcceptInvite = useCallback(async () => {
         if (!user?.id) return;
@@ -271,10 +266,9 @@ export function ClubDetailClient({
                                     <button
                                         type="button"
                                         className={css.club_detail_leave_btn}
-                                        onClick={handleLeaveClub}
-                                        disabled={isLeaving}
+                                        onClick={handleOpenLeaveConfirm}
                                     >
-                                        {isLeaving ? "Leaving…" : "Leave the club"}
+                                        Leave the club
                                     </button>
                                 )}
                             </>
@@ -286,10 +280,9 @@ export function ClubDetailClient({
                             <button
                                 type="button"
                                 className={css.club_detail_leave_btn}
-                                onClick={handleLeaveClub}
-                                disabled={isLeaving}
+                                onClick={handleOpenLeaveConfirm}
                             >
-                                {isLeaving ? "Leaving…" : "Leave the club"}
+                                Leave the club
                             </button>
                         ) : joinRequestStatus === "invited" ? (
                             <>
