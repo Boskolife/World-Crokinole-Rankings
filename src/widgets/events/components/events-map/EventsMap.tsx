@@ -109,18 +109,21 @@ function createLabelOverlay(
         private position: { lat: number; lng: number };
         private text: string;
         private div: HTMLDivElement | null = null;
+        private mapInstance: google.maps.Map;
         private marker: google.maps.Marker;
         private infoWindow: google.maps.InfoWindow;
 
         constructor(
             pos: { lat: number; lng: number },
             labelText: string,
+            mapInst: google.maps.Map,
             m: google.maps.Marker,
             iw: google.maps.InfoWindow
         ) {
             super();
             this.position = pos;
             this.text = labelText;
+            this.mapInstance = mapInst;
             this.marker = m;
             this.infoWindow = iw;
         }
@@ -133,7 +136,7 @@ function createLabelOverlay(
             Object.assign(div.style, LABEL_STYLE);
             div.textContent = this.text;
             div.addEventListener("click", () => {
-                this.infoWindow.open(this.getMap()!, this.marker);
+                this.infoWindow.open(this.mapInstance, this.marker);
             });
             this.div = div;
             const panes = this.getPanes();
@@ -148,8 +151,8 @@ function createLabelOverlay(
                 new window.google.maps.LatLng(this.position.lat, this.position.lng)
             );
             if (point) {
-                const x = typeof point.x === "function" ? point.x() : point.x;
-                const y = typeof point.y === "function" ? point.y() : point.y;
+                const x = point.x;
+                const y = point.y;
                 this.div.style.left = `${x}px`;
                 this.div.style.top = `${y}px`;
                 this.div.style.transform = "translate(-50%, -50%)";
@@ -162,7 +165,7 @@ function createLabelOverlay(
         }
     }
 
-    const overlay = new MapLabelOverlay(position, text, marker, infoWindow);
+    const overlay = new MapLabelOverlay(position, text, map, marker, infoWindow);
     overlay.setMap(map);
     return overlay;
 }
