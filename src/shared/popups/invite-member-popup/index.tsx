@@ -6,7 +6,7 @@ import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
 import {
     getPlayersForInvite,
-    invitePlayerToClub,
+    createClubInvite,
 } from "@/shared/supabase/data";
 import type { IClub } from "@/shared/types";
 import type { IPlayer } from "@/shared/types";
@@ -51,9 +51,9 @@ export const InviteMemberPopup: React.FC = () => {
     }, [loadPlayers]);
 
     const handleInvite = async (player: IPlayer) => {
-        if (!data?.club?.title || !player.id) return;
+        if (!data?.club?.id || !data?.club?.title || !player.id) return;
         setInvitingId(player.id);
-        const ok = await invitePlayerToClub(data.club.title, player.id);
+        const ok = await createClubInvite(data.club.id, data.club.title, player.id);
         setInvitingId(null);
         if (ok) {
             setPendingIds((prev) => new Set(prev).add(player.id));

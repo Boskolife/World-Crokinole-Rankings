@@ -135,6 +135,10 @@ export const ClubCard: React.FC<IClub & { showJoinButton?: boolean; isAuth?: boo
                         <span className={cn(css.club_card_button, css.club_card_button_static)}>
                             Pending
                         </span>
+                    ) : joinStatus === "invited" ? (
+                        <span className={cn(css.club_card_button, css.club_card_button_static)}>
+                            Invited
+                        </span>
                     ) : joinStatus === "approved" ? (
                         <span className={cn(css.club_card_button, css.club_card_button_static)}>
                             Member

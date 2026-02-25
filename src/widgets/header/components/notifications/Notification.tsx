@@ -75,15 +75,17 @@ export const Notification: React.FC = () => {
                                 <button
                                     type="button"
                                     className={css.notification_dropdown_content_item}
-                                    key={item.type === "club_join_approved" ? `approved-${item.id}` : `request-${item.clubId}`}
+                                    key={item.type === "club_join_approved" ? `approved-${item.id}` : item.type === "club_invite" ? `invite-${item.id}` : `request-${item.clubId}`}
                                     onClick={() => handleNotificationClick(item.clubId, item)}
                                 >
                                     <p className={css.notification_dropdown_content_text}>
                                         {item.type === "club_join_approved"
                                             ? `You were accepted to club «${item.clubTitle}»`
-                                            : item.count === 1
-                                              ? `Join request for club «${item.clubTitle}»`
-                                              : `${item.count} join requests for club «${item.clubTitle}»`}
+                                            : item.type === "club_invite"
+                                              ? `You're invited to join club «${item.clubTitle}»`
+                                              : item.count === 1
+                                                ? `Join request for club «${item.clubTitle}»`
+                                                : `${item.count} join requests for club «${item.clubTitle}»`}
                                     </p>
                                     <div className={css.notification_dropdown_content_date}>
                                         <span>{item.date}</span>

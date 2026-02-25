@@ -16,7 +16,7 @@ import type {
     IClubAdmin,
     IClubDiscount,
 } from "@/shared/supabase/data";
-import { getClubJoinRequestCount, leaveClub } from "@/shared/supabase/data";
+import { getClubJoinRequestCount, leaveClub, acceptClubInvite, rejectClubInvite } from "@/shared/supabase/data";
 import css from "./styles.module.scss";
 import cn from "classnames";
 
@@ -54,6 +54,7 @@ export function ClubDetailClient({
         canJoin,
         createRequest,
         isSubmitting,
+        refetch: refetchJoinRequest,
     } = useClubJoinRequest(club.id);
     const isAdmin = Boolean(user?.id && admins.some((a) => a.userId === user.id));
     const isClubOwner = Boolean(user?.id && admins.some((a) => a.userId === user.id && a.isOwner));
@@ -92,6 +93,7 @@ export function ClubDetailClient({
     );
     const [joinRequestCount, setJoinRequestCount] = useState<number | null>(null);
     const [isLeaving, setIsLeaving] = useState(false);
+    const [isHandlingInvite, setIsHandlingInvite] = useState(false);
 
     useEffect(() => {
         setDiscounts(initialDiscounts);
@@ -190,11 +192,42 @@ export function ClubDetailClient({
         setIsLeaving(true);
         try {
             const ok = await leaveClub(club.id, club.title);
-            if (ok) router.refresh();
+            if (ok) {
+                await refetchJoinRequest();
+                router.refresh();
+            }
         } finally {
             setIsLeaving(false);
         }
-    }, [user?.id, club.id, club.title, router]);
+    }, [user?.id, club.id, club.title, router, refetchJoinRequest]);
+
+    const handleAcceptInvite = useCallback(async () => {
+        if (!user?.id) return;
+        setIsHandlingInvite(true);
+        try {
+            const ok = await acceptClubInvite(club.id, club.title, user.id);
+            if (ok) {
+                await refetchJoinRequest();
+                router.refresh();
+            }
+        } finally {
+            setIsHandlingInvite(false);
+        }
+    }, [user?.id, club.id, club.title, router, refetchJoinRequest]);
+
+    const handleRejectInvite = useCallback(async () => {
+        if (!user?.id) return;
+        setIsHandlingInvite(true);
+        try {
+            const ok = await rejectClubInvite(club.id, user.id);
+            if (ok) {
+                await refetchJoinRequest();
+                router.refresh();
+            }
+        } finally {
+            setIsHandlingInvite(false);
+        }
+    }, [user?.id, club.id, router, refetchJoinRequest]);
 
     return (
         <section className={css.club_detail}>
@@ -258,6 +291,25 @@ export function ClubDetailClient({
                             >
                                 {isLeaving ? "Leaving…" : "Leave the club"}
                             </button>
+                        ) : joinRequestStatus === "invited" ? (
+                            <>
+                                <button
+                                    type="button"
+                                    className={css.club_detail_join_btn}
+                                    disabled={isHandlingInvite}
+                                    onClick={handleAcceptInvite}
+                                >
+                                    {isHandlingInvite ? "…" : "Accept"}
+                                </button>
+                                <button
+                                    type="button"
+                                    className={css.club_detail_leave_btn}
+                                    disabled={isHandlingInvite}
+                                    onClick={handleRejectInvite}
+                                >
+                                    Reject
+                                </button>
+                            </>
                         ) : joinRequestStatus === "pending" ? (
                             <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_static)}>
                                 Under consideration

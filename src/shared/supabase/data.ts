@@ -551,6 +551,109 @@ export async function invitePlayerToClub(
     return !profilesErr;
 }
 
+export async function createClubInvite(
+    clubId: number,
+    clubTitle: string,
+    userId: string
+): Promise<boolean> {
+    const { error: reqError } = await supabase
+        .from("club_join_requests")
+        .upsert(
+            { user_id: userId, club_id: clubId, status: "invited", reviewed_at: null, reviewed_by: null },
+            { onConflict: "user_id,club_id" }
+        );
+    if (reqError) return false;
+    const { error: notifError } = await supabase
+        .from("user_notifications")
+        .insert({ user_id: userId, type: "club_invite", club_id: clubId });
+    return !notifError;
+}
+
+export interface IClubInviteNotification {
+    id: number;
+    clubId: number;
+    clubTitle: string;
+    createdAt: string;
+    readAt: string | null;
+}
+
+export async function getClubInviteNotifications(userId: string): Promise<IClubInviteNotification[]> {
+    const { data, error } = await supabase
+        .from("user_notifications")
+        .select("id, club_id, created_at, read_at")
+        .eq("user_id", userId)
+        .eq("type", "club_invite")
+        .order("created_at", { ascending: false });
+    if (error || !data?.length) return [];
+    const rows = data as { id: number; club_id: number; created_at: string; read_at: string | null }[];
+    const clubIds = [...new Set(rows.map((r) => r.club_id))];
+    const { data: clubsData } = await supabase
+        .from("clubs")
+        .select("id, title")
+        .in("id", clubIds);
+    const titleByClubId = new Map((clubsData ?? []).map((c) => [c.id, c.title]));
+    return rows.map((r) => ({
+        id: r.id,
+        clubId: r.club_id,
+        clubTitle: titleByClubId.get(r.club_id) ?? "",
+        createdAt: r.created_at,
+        readAt: r.read_at,
+    }));
+}
+
+export async function acceptClubInvite(clubId: number, clubTitle: string, userId: string): Promise<boolean> {
+    const request = await getClubJoinRequest(userId, clubId);
+    if (!request || request.status !== "invited") return false;
+    const { error: updateErr } = await supabase
+        .from("club_join_requests")
+        .update({
+            status: "approved",
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: userId,
+        })
+        .eq("id", request.id);
+    if (updateErr) return false;
+    const added = await invitePlayerToClub(clubTitle, userId);
+    if (!added) return false;
+    await insertClubJoinApprovedNotification(userId, clubId);
+    const { data: notifRows } = await supabase
+        .from("user_notifications")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("type", "club_invite")
+        .eq("club_id", clubId)
+        .is("read_at", null);
+    for (const row of notifRows ?? []) {
+        await markUserNotificationRead(row.id);
+    }
+    return true;
+}
+
+export async function rejectClubInvite(clubId: number, userId: string): Promise<boolean> {
+    const request = await getClubJoinRequest(userId, clubId);
+    if (!request || request.status !== "invited") return false;
+    const { error: updateErr } = await supabase
+        .from("club_join_requests")
+        .update({
+            status: "rejected",
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: userId,
+        })
+        .eq("id", request.id);
+    if (updateErr) return false;
+    const { data: notifRows } = await supabase
+        .from("user_notifications")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("type", "club_invite")
+        .eq("club_id", clubId)
+        .is("read_at", null);
+    for (const row of notifRows ?? []) {
+        await markUserNotificationRead(row.id);
+    }
+    return true;
+}
+
 export async function incrementClubMembers(clubId: number): Promise<boolean> {
     const { data: club } = await supabase
         .from("clubs")
@@ -691,7 +794,7 @@ export async function deleteClubDiscountById(id: number): Promise<boolean> {
     return !error;
 }
 
-export type ClubJoinRequestStatus = "pending" | "approved" | "rejected";
+export type ClubJoinRequestStatus = "pending" | "approved" | "rejected" | "invited";
 
 export interface IClubJoinRequest {
     id: number;
@@ -1112,9 +1215,14 @@ export async function createClub(params: CreateClubParams): Promise<IClub> {
         throw new Error(adminError.message);
     }
 
+    const titleTrimmed = title.trim();
+    await supabase
+        .from("profiles")
+        .update({ club: titleTrimmed, updated_at: new Date().toISOString() })
+        .eq("id", userId);
     await supabase
         .from("players")
-        .update({ club: title.trim() })
+        .update({ club: titleTrimmed, updated_at: new Date().toISOString() })
         .eq("user_id", userId);
 
     const club = await getClubById(clubId);

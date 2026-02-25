@@ -4,6 +4,7 @@ import {
     getPendingClubJoinRequestsForAdminUser,
     getReadClubJoinNotificationClubIds,
     getClubJoinApprovedNotifications,
+    getClubInviteNotifications,
     markClubJoinNotificationRead,
     markAllClubJoinNotificationsRead,
     markUserNotificationRead,
@@ -28,6 +29,15 @@ export type NotificationItem =
           date: string;
           isRead: boolean;
           sortAt: string;
+      }
+    | {
+          type: "club_invite";
+          id: number;
+          clubId: number;
+          clubTitle: string;
+          date: string;
+          isRead: boolean;
+          sortAt: string;
       };
 
 export function useClubJoinRequestNotifications() {
@@ -42,10 +52,11 @@ export function useClubJoinRequestNotifications() {
             return;
         }
         setIsLoading(true);
-        const [requests, readClubIds, approvedList] = await Promise.all([
+        const [requests, readClubIds, approvedList, inviteList] = await Promise.all([
             getPendingClubJoinRequestsForAdminUser(user.id),
             getReadClubJoinNotificationClubIds(user.id),
             getClubJoinApprovedNotifications(user.id),
+            getClubInviteNotifications(user.id),
         ]);
         const readSet = new Set(readClubIds);
         const byClub = new Map<number, { clubTitle: string; count: number; latest: string }>();
@@ -83,7 +94,16 @@ export function useClubJoinRequestNotifications() {
             isRead: !!a.readAt,
             sortAt: a.createdAt,
         }));
-        const merged = [...requestItems, ...approvedItems].sort(
+        const inviteItems: NotificationItem[] = inviteList.map((a) => ({
+            type: "club_invite" as const,
+            id: a.id,
+            clubId: a.clubId,
+            clubTitle: a.clubTitle,
+            date: formatNotificationDate(a.createdAt),
+            isRead: !!a.readAt,
+            sortAt: a.createdAt,
+        }));
+        const merged = [...requestItems, ...approvedItems, ...inviteItems].sort(
             (a, b) => new Date(b.sortAt).getTime() - new Date(a.sortAt).getTime()
         );
         setItems(merged);
@@ -103,7 +123,7 @@ export function useClubJoinRequestNotifications() {
     const markAsRead = useCallback(
         async (item: NotificationItem) => {
             if (!user?.id) return;
-            if (item.type === "club_join_approved") {
+            if (item.type === "club_join_approved" || item.type === "club_invite") {
                 await markUserNotificationRead(item.id);
             } else {
                 await markClubJoinNotificationRead(user.id, item.clubId);
@@ -111,6 +131,8 @@ export function useClubJoinRequestNotifications() {
             setItems((prev) =>
                 prev.map((p) => {
                     if (p.type === "club_join_approved" && item.type === "club_join_approved" && p.id === item.id)
+                        return { ...p, isRead: true };
+                    if (p.type === "club_invite" && item.type === "club_invite" && p.id === item.id)
                         return { ...p, isRead: true };
                     if (p.type === "club_join_request" && item.type === "club_join_request" && p.clubId === item.clubId)
                         return { ...p, isRead: true };
