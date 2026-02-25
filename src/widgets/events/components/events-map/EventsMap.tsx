@@ -109,31 +109,11 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
     const [error, setError] = useState<string | null>(null);
 
     const initializeMap = React.useCallback(() => {
-        console.log("initializeMap called", {
-            hasRef: !!mapRef.current,
-            hasGoogle: !!window.google,
-            hasMaps: !!(window.google && window.google.maps),
-            hasMapClass: !!(window.google && window.google.maps && window.google.maps.Map),
-        });
-
-        if (!mapRef.current) {
-            console.error("Map ref is not available");
-            return false;
-        }
-
-        if (!window.google || !window.google.maps || !window.google.maps.Map) {
-            console.error("Google Maps API is not loaded", {
-                google: !!window.google,
-                maps: !!(window.google && window.google.maps),
-                Map: !!(window.google && window.google.maps && window.google.maps.Map),
-            });
-            return false;
-        }
+        if (!mapRef.current) return false;
+        if (!window.google?.maps?.Map) return false;
 
         try {
             const defaultCenter = { lat: 40.7128, lng: -74.0060 };
-
-            console.log("Creating map instance...");
             const mapInstance = new window.google.maps.Map(mapRef.current, {
                 center: defaultCenter,
                 zoom: 3,
@@ -146,7 +126,6 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
                 ],
             });
 
-            console.log("Map instance created successfully");
             setMap(mapInstance);
             setIsLoading(false);
             return true;
@@ -163,48 +142,24 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
         let retryCount = 0;
         const maxRetries = 20;
 
-        console.log("Starting Google Maps load...");
-        
         loadGoogleMaps()
             .then(() => {
-                console.log("Google Maps script loaded");
                 if (!isMounted) return;
-                
+
                 const tryInitialize = () => {
                     retryCount++;
-                    console.log(`Attempt ${retryCount} to initialize map`, {
-                        hasRef: !!mapRef.current,
-                        hasGoogle: !!window.google,
-                        hasMaps: !!(window.google && window.google.maps),
-                        hasMapClass: !!(window.google && window.google.maps && window.google.maps.Map),
-                    });
-
                     if (!mapRef.current) {
-                        if (retryCount < maxRetries) {
-                            setTimeout(tryInitialize, 100);
-                        } else {
-                            console.error("Map ref not available after max retries");
-                            setError("Map container not found");
-                            setIsLoading(false);
-                        }
+                        if (retryCount < maxRetries) setTimeout(tryInitialize, 100);
+                        else setError("Map container not found"), setIsLoading(false);
                         return;
                     }
-
-                    if (!window.google || !window.google.maps || !window.google.maps.Map) {
-                        if (retryCount < maxRetries) {
-                            setTimeout(tryInitialize, 100);
-                        } else {
-                            console.error("Google Maps API not available after max retries");
-                            setError("Google Maps API failed to load");
-                            setIsLoading(false);
-                        }
+                    if (!window.google?.maps?.Map) {
+                        if (retryCount < maxRetries) setTimeout(tryInitialize, 100);
+                        else setError("Google Maps API failed to load"), setIsLoading(false);
                         return;
                     }
-
                     const success = initializeMap();
-                    if (!success && retryCount < maxRetries) {
-                        setTimeout(tryInitialize, 100);
-                    }
+                    if (!success && retryCount < maxRetries) setTimeout(tryInitialize, 100);
                 };
 
                 setTimeout(tryInitialize, 200);
@@ -227,16 +182,14 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
         }
 
         const loadMarkers = async () => {
-            markers.forEach((marker) => marker.setMap(null));
+            markers.forEach((m) => m.setMap(null));
 
             const newMarkers: google.maps.Marker[] = [];
             const bounds = new window.google.maps.LatLngBounds();
             let hasValidLocation = false;
 
             for (const event of events) {
-                if (!event.location || event.location.toLowerCase().includes("online") || event.location.toLowerCase().includes("virtual")) {
-                    continue;
-                }
+                if (!event.location || /online|virtual/i.test(event.location)) continue;
 
                 const coordinates = await geocodeLocation(event.location);
                 if (coordinates) {
@@ -271,17 +224,17 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
                     bounds.extend(coordinates);
                     hasValidLocation = true;
                 }
+                await new Promise((r) => setTimeout(r, 60));
             }
 
             setMarkers(newMarkers);
 
             if (hasValidLocation) {
+                window.google.maps.event.trigger(map, "resize");
                 map.fitBounds(bounds);
                 const listener = window.google.maps.event.addListener(map, "bounds_changed", () => {
-                    const currentZoom = map.getZoom();
-                    if (currentZoom && currentZoom > 15) {
-                        map.setZoom(15);
-                    }
+                    const z = map.getZoom();
+                    if (z != null && z > 15) map.setZoom(15);
                     window.google.maps.event.removeListener(listener as unknown as google.maps.MapsEventListener);
                 }) as unknown as google.maps.MapsEventListener;
             } else if (events.length === 0) {
@@ -292,6 +245,14 @@ export const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
 
         loadMarkers();
     }, [map, events]);
+
+    useEffect(() => {
+        if (!map || isLoading) return;
+        const t = setTimeout(() => {
+            window.google?.maps?.event?.trigger(map, "resize");
+        }, 100);
+        return () => clearTimeout(t);
+    }, [map, isLoading]);
 
     if (error) {
         return (
