@@ -39,6 +39,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
         () => ({
             fullName: profile?.full_name?.trim() ?? "",
             country: profile?.country?.trim() ?? "",
+            currentPassword: "",
             password: "",
         }),
         [profile?.full_name, profile?.country]
@@ -50,7 +51,8 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
         handleSubmit,
         watch,
         reset,
-        } = useForm<IProfileEditFormData>({ defaultValues });
+        getValues,
+    } = useForm<IProfileEditFormData>({ defaultValues });
 
     const hasSyncedProfile = useRef(false);
     useEffect(() => {
@@ -92,12 +94,12 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
     const isAuthed = Boolean(user);
     const canUseSupabase = isSupabaseConfigured && isAuthed;
 
-    const passwordRules = useMemo(
+    const newPasswordRules = useMemo(
         () => ({
-            minLength: {
-                value: 8,
-                message: "Password must be at least 8 characters long",
-            },
+            validate: (v: string) =>
+                !v?.trim() ||
+                v.trim().length >= 8 ||
+                "Password must be at least 8 characters long",
         }),
         []
     );
@@ -143,6 +145,20 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
             const shouldUpdatePassword = Boolean(nextPassword);
 
             if (shouldUpdatePassword) {
+                const currentPassword = data.currentPassword?.trim();
+                if (!user.email) {
+                    setFormError("Cannot verify password: user email is missing");
+                    return;
+                }
+                const { error: signInError } =
+                    await supabase.auth.signInWithPassword({
+                        email: user.email,
+                        password: currentPassword ?? "",
+                    });
+                if (signInError) {
+                    setFormError("Current password is incorrect");
+                    return;
+                }
                 const { error: updateAuthError } =
                     await supabase.auth.updateUser({
                         password: nextPassword,
@@ -227,19 +243,48 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                     </div>
                     <div className={css.profile_edit_right}>
                         <div className={css.profile_edit_form_items}>
-                            <div className={css.profile_edit_form_item}>
-                                <FormField
-                                    id="password"
-                                    name="password"
-                                    label="Password"
-                                    placeholder="••••••••"
-                                    type="password"
-                                    register={credentialsReadOnly ? undefined : register}
-                                    rules={credentialsReadOnly ? undefined : passwordRules}
-                                    error={errors?.password?.message as string}
-                                    disabled={!canUseSupabase}
-                                />
-                            </div>
+                            {!credentialsReadOnly && (
+                                <>
+                                    <div className={css.profile_edit_form_item}>
+                                        <FormField
+                                            id="currentPassword"
+                                            name="currentPassword"
+                                            label="Current password"
+                                            placeholder="••••••••"
+                                            type="password"
+                                            register={register}
+                                            rules={{
+                                                validate: (v) =>
+                                                    getValues("password")?.trim()
+                                                        ? (v?.trim()
+                                                            ? true
+                                                            : "Current password is required to set a new one")
+                                                        : true,
+                                            }}
+                                            error={
+                                                errors?.currentPassword
+                                                    ?.message as string
+                                            }
+                                            disabled={!canUseSupabase}
+                                        />
+                                    </div>
+                                    <div className={css.profile_edit_form_item}>
+                                        <FormField
+                                            id="password"
+                                            name="password"
+                                            label="New password"
+                                            placeholder="••••••••"
+                                            type="password"
+                                            register={register}
+                                            rules={newPasswordRules}
+                                            error={
+                                                errors?.password?.message as string
+                                            }
+                                            disabled={!canUseSupabase}
+                                        />
+                                    </div>
+                                </>
+                            )}
                             <div className={css.profile_edit_form_item}>
                                 <FormField
                                     id="full_name"
