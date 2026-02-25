@@ -121,7 +121,8 @@ export const SignInForm: React.FC = () => {
                     setFormError(null);
                     setIsSubmitting(true);
                     try {
-                        const redirectTo = `${window.location.origin}/${locale}${clientRoutes.dashboard}`;
+                        const next = `/${locale}${clientRoutes.dashboard}`;
+                        const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
                         const { error } = await supabase.auth.signInWithOAuth({
                             provider: "google",
                             options: { redirectTo },
