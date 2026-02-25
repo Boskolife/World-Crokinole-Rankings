@@ -74,6 +74,7 @@ export const EditMemberAccessPopup: React.FC = () => {
             return;
         }
         setError(null);
+        handleClose();
         openPopup("remove-member-confirm", {
             club: data.club,
             member: data.member,
@@ -81,7 +82,6 @@ export const EditMemberAccessPopup: React.FC = () => {
                 const ok = await removeClubMember(data.club.id, data.member.userId!, data.club.title);
                 if (ok) {
                     data.onRemoved?.();
-                    handleClose();
                 } else {
                     throw new Error("Failed to remove member");
                 }

@@ -44,6 +44,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const baseUrl =
+            process.env.NEXT_PUBLIC_BASE_URL ||
+            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: [
@@ -53,8 +57,8 @@ export async function POST(request: NextRequest) {
                 },
             ],
             mode: "subscription",
-            success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/membership-plans?success=true`,
-            cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/membership-plans?canceled=true`,
+            success_url: `${baseUrl}/membership-plans?success=true`,
+            cancel_url: `${baseUrl}/membership-plans?canceled=true`,
             client_reference_id: userId,
             metadata: {
                 userId,
