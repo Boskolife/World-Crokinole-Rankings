@@ -94,6 +94,7 @@ declare namespace google {
                 handler: () => void
             ): void;
             function removeListener(listener: MapsEventListener): void;
+            function trigger(instance: Map, eventName: string): void;
         }
 
         interface MapsEventListener {}
