@@ -1305,16 +1305,40 @@ export async function deleteClub(clubId: number, userId: string): Promise<boolea
     if (!ownerRow) return false;
 
     const title = club.title;
+    const userIdsToClear = new Set<string>();
 
-    await supabase
-        .from("players")
-        .update({ club: "", updated_at: new Date().toISOString() })
-        .eq("club", title);
-    await supabase
+    const { data: adminRows } = await supabase
+        .from("club_admins")
+        .select("user_id")
+        .eq("club_id", clubId);
+    (adminRows ?? []).forEach((r: { user_id: string }) => userIdsToClear.add(r.user_id));
+
+    const { data: profilesWithClub } = await supabase
         .from("profiles")
-        .update({ club: null, updated_at: new Date().toISOString() })
+        .select("id")
         .eq("club", title);
+    (profilesWithClub ?? []).forEach((p: { id: string }) => userIdsToClear.add(p.id));
 
+    const { data: playersWithClub } = await supabase
+        .from("players")
+        .select("user_id")
+        .eq("club", title);
+    (playersWithClub ?? []).forEach((p: { user_id: string }) => userIdsToClear.add(p.user_id));
+
+    const ids = [...userIdsToClear];
+    if (ids.length > 0) {
+        await supabase
+            .from("profiles")
+            .update({ club: null, updated_at: new Date().toISOString() })
+            .in("id", ids);
+        await supabase
+            .from("players")
+            .update({ club: "", updated_at: new Date().toISOString() })
+            .in("user_id", ids);
+    }
+
+    await supabase.from("user_notifications").delete().eq("club_id", clubId);
+    await supabase.from("club_join_notification_reads").delete().eq("club_id", clubId);
     await supabase.from("club_join_requests").delete().eq("club_id", clubId);
     await supabase.from("club_discounts").delete().eq("club_id", clubId);
     await supabase.from("club_admins").delete().eq("club_id", clubId);
