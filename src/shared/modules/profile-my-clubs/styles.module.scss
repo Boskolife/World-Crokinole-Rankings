@@ -1,0 +1,234 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+.profile_my_clubs {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 40px;
+    padding-bottom: 60px;
+
+    @include media-down(lg) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.profile_my_clubs_header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.profile_my_clubs_title {
+    font-family: "Aleo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: var(--blue-grey);
+    margin: 0;
+}
+
+.profile_my_clubs_subtitle {
+    font-size: 18px;
+    line-height: 1.35;
+    color: var(--black);
+    margin: 0;
+}
+
+.profile_my_clubs_card {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background: var(--white);
+    border: 1px solid var(--black-20);
+    border-radius: 12px;
+    width: 100%;
+
+    @include media-down(md) {
+        flex-direction: column;
+        max-width: 100%;
+    }
+}
+
+.profile_my_clubs_card_image_wrap {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 459px;
+    height: 262px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--black-5);
+
+    @include media-down(md) {
+        max-width: 100%;
+    }
+}
+
+.profile_my_clubs_card_image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile_my_clubs_card_content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    flex: 1;
+}
+
+.profile_my_clubs_card_title {
+    font-family: "Aleo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.25;
+    color: var(--black);
+    margin: 0;
+}
+
+.profile_my_clubs_card_description {
+    font-size: 18px;
+    line-height: 1.35;
+    color: var(--black);
+    margin: 0;
+}
+
+.profile_my_clubs_card_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.profile_my_clubs_card_meta_item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    line-height: 1.35;
+    color: var(--black-70);
+}
+
+.profile_my_clubs_card_meta_icon {
+    width: 24px;
+    height: 24px;
+    color: var(--black-70);
+}
+
+.profile_my_clubs_card_flag {
+    flex-shrink: 0;
+}
+
+.profile_my_clubs_card_flag_emoji {
+    font-size: 18px;
+}
+
+.profile_my_clubs_card_tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.profile_my_clubs_card_tag {
+    padding: 7px 12px;
+    background: var(--white);
+    border: 1px solid var(--black-10);
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.25;
+    color: var(--black);
+}
+
+.profile_my_clubs_card_tag_meta {
+    padding: 7px 12px;
+    background: var(--black-5);
+    border: 1px solid var(--black-10);
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.25;
+    color: var(--black);
+}
+
+.profile_my_clubs_card_actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.profile_my_clubs_btn_primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    min-width: 180px;
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 120px;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--white);
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+
+    &:hover {
+        background: var(--gold-dark);
+        border-color: var(--gold-dark);
+        color: var(--white);
+    }
+}
+
+.profile_my_clubs_btn_outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    min-width: 180px;
+    background: transparent;
+    border: 1px solid var(--gold-dark);
+    border-radius: 120px;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--gold-dark);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+        background: rgba(212, 143, 31, 0.08);
+    }
+}
+
+.profile_my_clubs_card_wrapper {
+    flex: 1;
+    min-width: 0;
+    max-width: 970px;
+}
+
+.profile_my_clubs_create_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    max-width: max-content;
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 120px;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--white);
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+
+    &:hover {
+        background: var(--gold-dark);
+        border-color: var(--gold-dark);
+        color: var(--white);
+    }
+}

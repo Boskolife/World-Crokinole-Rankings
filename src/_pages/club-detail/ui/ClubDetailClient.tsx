@@ -437,7 +437,7 @@ export function ClubDetailClient({
                                         const isCurrentUser =
                                             (isAdmin || isMember) &&
                                             Boolean(fullName && member.name === fullName);
-                                        const canEdit = isAdmin && member.userId && !isCurrentUser;
+                                        const canEdit = isAdmin && member.userId && !isCurrentUser && (isClubOwner || !member.isAdmin);
                                         return (
                                             <tr
                                                 key={member.userId ?? `${member.name}-${index}`}

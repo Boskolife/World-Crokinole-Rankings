@@ -387,6 +387,19 @@ export async function getClubsWhereUserIsAdmin(userId: string): Promise<IClub[]>
     return clubsData.map(mapClubRow);
 }
 
+export async function getClubOwnedByUser(userId: string): Promise<IClub | null> {
+    const { data: ownerRow, error: ownerError } = await supabase
+        .from("club_admins")
+        .select("club_id")
+        .eq("user_id", userId)
+        .eq("is_owner", true)
+        .maybeSingle();
+
+    if (ownerError || !ownerRow?.club_id) return null;
+
+    return getClubById(ownerRow.club_id);
+}
+
 export interface IClubMember {
     name: string;
     laurels: number;

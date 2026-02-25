@@ -3,7 +3,7 @@ import { MatchHistory } from "@/widgets/match-history";
 import { Tournaments } from "@/widgets/tournaments";
 import { RatingList } from "@/widgets/rating-list";
 import { Badges } from "@/widgets/badges";
-import { SubscriptionManagement } from "@/shared/modules";
+import { SubscriptionManagement, ProfileMyClubs } from "@/shared/modules";
 import { getTournaments, getMatchHistory } from "@/shared/supabase/data";
 import { TournamentsClient } from "./TournamentsClient";
 import { MatchHistoryClient } from "./MatchHistoryClient";
@@ -24,6 +24,9 @@ export async function ProfilePage() {
             <RatingList />
             <MatchHistoryClient matches={matchHistory} />
             <Badges />
+            <div className="container">
+                <ProfileMyClubs />
+            </div>
         </>
     );
 }

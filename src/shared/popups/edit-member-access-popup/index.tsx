@@ -27,14 +27,13 @@ function getCountryFlagSrc(country: string | null): string {
 }
 
 export const EditMemberAccessPopup: React.FC = () => {
-    const { closePopup, getPopupData } = usePopup();
+    const { openPopup, closePopup, getPopupData } = usePopup();
     const router = useRouter();
     const data = getPopupData("edit-member-access") as EditMemberAccessPopupData | undefined;
     const [role, setRole] = useState<"admin" | "member">(
         data?.member?.isAdmin ? "admin" : "member"
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isRemoving, setIsRemoving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -69,27 +68,25 @@ export const EditMemberAccessPopup: React.FC = () => {
         }
     };
 
-    const handleRemove = async () => {
+    const handleRemoveClick = () => {
         if (data.member.isAdmin && (data.adminCount ?? 0) <= 1) {
             setError("Cannot remove the last admin.");
             return;
         }
-        if (!confirm("Remove this member from the club? This cannot be undone.")) return;
         setError(null);
-        setIsRemoving(true);
-        try {
-            const ok = await removeClubMember(data.club.id, data.member.userId!, data.club.title);
-            if (ok) {
-                data.onRemoved?.();
-                handleClose();
-            } else {
-                setError("Failed to remove member");
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to remove");
-        } finally {
-            setIsRemoving(false);
-        }
+        openPopup("remove-member-confirm", {
+            club: data.club,
+            member: data.member,
+            onConfirm: async () => {
+                const ok = await removeClubMember(data.club.id, data.member.userId!, data.club.title);
+                if (ok) {
+                    data.onRemoved?.();
+                    handleClose();
+                } else {
+                    throw new Error("Failed to remove member");
+                }
+            },
+        });
     };
 
     return (
@@ -98,7 +95,7 @@ export const EditMemberAccessPopup: React.FC = () => {
                 <Icon
                     name="x"
                     className={css.popup_close_icon}
-                    onClick={() => !isSubmitting && !isRemoving && handleClose()}
+                    onClick={() => !isSubmitting && handleClose()}
                 />
             </div>
             <div className={css.popup_content}>
@@ -128,7 +125,7 @@ export const EditMemberAccessPopup: React.FC = () => {
                                 name="role"
                                 checked={role === "admin"}
                                 onChange={() => setRole("admin")}
-                                disabled={isSubmitting || isRemoving}
+                                disabled={isSubmitting}
                             />
                             <span className={css.edit_member_radio_text}>Admin</span>
                         </span>
@@ -143,7 +140,7 @@ export const EditMemberAccessPopup: React.FC = () => {
                                 name="role"
                                 checked={role === "member"}
                                 onChange={() => setRole("member")}
-                                disabled={isSubmitting || isRemoving}
+                                disabled={isSubmitting}
                             />
                             <span className={css.edit_member_radio_text}>Member</span>
                         </span>
@@ -158,7 +155,7 @@ export const EditMemberAccessPopup: React.FC = () => {
                         type="button"
                         className={cn(css.popup_button, css.popup_button_secondary)}
                         onClick={handleClose}
-                        disabled={isSubmitting || isRemoving}
+                        disabled={isSubmitting}
                     >
                         Cancel
                     </button>
@@ -166,7 +163,7 @@ export const EditMemberAccessPopup: React.FC = () => {
                         type="button"
                         className={cn(css.popup_button, css.popup_button_primary)}
                         onClick={handleSave}
-                        disabled={isSubmitting || isRemoving}
+                        disabled={isSubmitting}
                     >
                         {isSubmitting ? "Saving…" : "Save Changes"}
                     </button>
@@ -174,10 +171,10 @@ export const EditMemberAccessPopup: React.FC = () => {
                 <button
                     type="button"
                     className={css.edit_member_remove}
-                    onClick={handleRemove}
-                    disabled={isSubmitting || isRemoving}
+                    onClick={handleRemoveClick}
+                    disabled={isSubmitting}
                 >
-                    {isRemoving ? "Removing…" : "Remove Member"}
+                    Remove Member
                 </button>
             </div>
         </div>
