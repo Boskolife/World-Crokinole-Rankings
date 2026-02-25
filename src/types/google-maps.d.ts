@@ -31,6 +31,39 @@ declare namespace google {
             map?: Map | null;
             title?: string;
             animation?: Animation;
+            icon?: string | Icon;
+            visible?: boolean;
+        }
+
+        interface Icon {
+            url?: string;
+            size?: Size;
+            anchor?: Point;
+        }
+
+        interface Size {
+            width: number;
+            height: number;
+        }
+
+        interface Point {
+            x: number;
+            y: number;
+        }
+
+        class OverlayView {
+            setMap(map: Map | null): void;
+            getPanes(): MapPanes;
+            getProjection(): MapCanvasProjection;
+        }
+
+        interface MapPanes {
+            overlayLayer: HTMLElement;
+            overlayMouseTarget: HTMLElement;
+        }
+
+        interface MapCanvasProjection {
+            fromLatLngToDivPixel(latlng: LatLng | LatLngLiteral): Point;
         }
 
         enum Animation {
