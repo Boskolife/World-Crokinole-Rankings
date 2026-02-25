@@ -2,34 +2,10 @@ import React from "react";
 import css from "./styles.module.scss";
 import { Icon } from "@/shared/ui/icons";
 import cn from "classnames";
-import { useNotificationDropdown } from "@/shared/hooks";
-
-const notifications = [
-    {
-        id: 1,
-        text: "🥇 New record! You beat your previous result by +15 points!",
-        date: "Oct 3",
-        isUnread: true,
-    },
-    {
-        id: 2,
-        text: "👋 Ava joined the game!",
-        date: "Oct 1",
-        isUnread: true,
-    },
-    {
-        id: 3,
-        text: "🏆 Congratulations, Joe won with a score of 115:80!",
-        date: "Sep 28",
-        isUnread: false,
-    },
-    {
-        id: 4,
-        text: "🔁 New match created. Waiting for opponent...",
-        date: "Sep 28",
-        isUnread: false,
-    },
-];
+import { useNotificationDropdown, useClubJoinRequestNotifications, type NotificationItem } from "@/shared/hooks";
+import { useParams, useRouter } from "next/navigation";
+import { clientRoutes } from "@/shared/routes/client";
+import { localeConfig } from "@/app/localization/config";
 
 export const Notification: React.FC = () => {
     const {
@@ -37,7 +13,18 @@ export const Notification: React.FC = () => {
         isClosing,
         dropdownRef,
         handleDropdownOpen,
+        handleDropdownClose,
     } = useNotificationDropdown();
+    const { items, unreadCount, isLoading, markAsRead, markAllAsRead } = useClubJoinRequestNotifications();
+    const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale ?? (localeConfig.defaultLocale as string);
+
+    const handleNotificationClick = (clubId: number, item: NotificationItem) => {
+        markAsRead(item);
+        router.push(`/${locale}${clientRoutes.clubDetail(clubId)}`);
+        handleDropdownClose();
+    };
 
     return (
         <div className={css.notification} ref={dropdownRef}>
@@ -52,7 +39,9 @@ export const Notification: React.FC = () => {
                     name="bell_ring"
                     className={css.notification_button_icon}
                 />
-                <span className={css.notification_button_count}>2</span>
+                {unreadCount > 0 && (
+                    <span className={css.notification_button_count}>{unreadCount}</span>
+                )}
             </button>
             {isDropdownOpen && (
                 <div
@@ -60,69 +49,52 @@ export const Notification: React.FC = () => {
                         [css.notification_dropdown_closing]: isClosing,
                     })}
                 >
-                <div className={css.notification_dropdown_header}>
-                    <span>All notification</span>
-                </div>
-                <div className={css.notification_dropdown_buttons}>
-                    <button
-                        type="button"
-                        className={css.notification_dropdown_button}
-                    >
-                        All
-                    </button>
-                    <button
-                        type="button"
-                        className={css.notification_dropdown_button}
-                    >
-                        <span className={css.notification_dropdown_button_text}>
-                            Unread
-                        </span>
-                        <span
-                            className={css.notification_dropdown_button_count}
-                        >
-                            (2)
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        className={css.notification_dropdown_button_unread} 
-                    >
-                        <span>Mark all unread</span>
-                    </button>
-                </div>
-                <div className={css.notification_dropdown_content}>
-                    {notifications.map((notification) => (
-                        <button
-                            type="button"
-                            className={cn(
-                                css.notification_dropdown_content_item
-                            )}
-                            key={notification.id}
-                        >
-                            <p
-                                className={
-                                    css.notification_dropdown_content_text
-                                }
+                    <div className={css.notification_dropdown_header}>
+                        <span>All notification</span>
+                        {items.length > 0 && unreadCount > 0 && (
+                            <button
+                                type="button"
+                                className={cn(css.notification_dropdown_button, css.notification_dropdown_button_unread)}
+                                onClick={() => markAllAsRead()}
                             >
-                                {notification.text}
-                            </p>
-                            <div
-                                className={
-                                    css.notification_dropdown_content_date
-                                }
-                            >
-                                <span>{notification.date}</span>
-                                {notification.isUnread === true && (
-                                    <div
-                                        className={
-                                            css.notification_dropdown_content_marker
-                                        }
-                                    ></div>
-                                )}
+                                <span>Read all</span>
+                            </button>
+                        )}
+                    </div>
+                    <div className={css.notification_dropdown_content}>
+                        {isLoading ? (
+                            <div className={css.notification_dropdown_content_item}>
+                                <p className={css.notification_dropdown_content_text}>Loading...</p>
                             </div>
-                        </button>
-                    ))}
-                </div>
+                        ) : items.length === 0 ? (
+                            <div className={css.notification_dropdown_content_item}>
+                                <p className={css.notification_dropdown_content_text}>No new notifications</p>
+                            </div>
+                        ) : (
+                            items.map((item) => (
+                                <button
+                                    type="button"
+                                    className={css.notification_dropdown_content_item}
+                                    key={item.type === "club_join_approved" ? `approved-${item.id}` : `request-${item.clubId}`}
+                                    onClick={() => handleNotificationClick(item.clubId, item)}
+                                >
+                                    <p className={css.notification_dropdown_content_text}>
+                                        {item.type === "club_join_approved"
+                                            ? `You were accepted to club «${item.clubTitle}»`
+                                            : item.count === 1
+                                              ? `Join request for club «${item.clubTitle}»`
+                                              : `${item.count} join requests for club «${item.clubTitle}»`}
+                                    </p>
+                                    <div className={css.notification_dropdown_content_date}>
+                                        <span>{item.date}</span>
+                                        {!item.isRead && (
+                                            <div className={css.notification_dropdown_content_marker} />
+                                        )}
+                                    </div>
+                                </button>
+                            ))
+                        )}
+                    </div>
                 </div>
             )}
         </div>

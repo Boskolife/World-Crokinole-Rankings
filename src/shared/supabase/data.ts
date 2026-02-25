@@ -829,6 +829,113 @@ export async function getClubJoinRequestsForAdmin(
     });
 }
 
+export async function getPendingClubJoinRequestsForAdminUser(
+    userId: string
+): Promise<ClubJoinRequestWithUser[]> {
+    const adminClubs = await getClubsWhereUserIsAdmin(userId);
+    if (!adminClubs.length) return [];
+    const adminClubIds = new Set(adminClubs.map((c) => c.id));
+    const allPending = await getClubJoinRequestsForAdmin(undefined, "pending");
+    return allPending.filter((r) => adminClubIds.has(r.clubId));
+}
+
+export async function getReadClubJoinNotificationClubIds(userId: string): Promise<number[]> {
+    const { data, error } = await supabase
+        .from("club_join_notification_reads")
+        .select("club_id")
+        .eq("user_id", userId);
+    if (error) return [];
+    return (data ?? []).map((r) => r.club_id);
+}
+
+export async function markClubJoinNotificationRead(
+    userId: string,
+    clubId: number
+): Promise<boolean> {
+    const { error } = await supabase
+        .from("club_join_notification_reads")
+        .upsert({ user_id: userId, club_id: clubId, read_at: new Date().toISOString() }, {
+            onConflict: "user_id,club_id",
+        });
+    return !error;
+}
+
+export async function markAllClubJoinNotificationsRead(userId: string): Promise<boolean> {
+    const pending = await getPendingClubJoinRequestsForAdminUser(userId);
+    const clubIds = [...new Set(pending.map((r) => r.clubId))];
+    if (!clubIds.length) return true;
+    const rows = clubIds.map((clubId) => ({
+        user_id: userId,
+        club_id: clubId,
+        read_at: new Date().toISOString(),
+    }));
+    const { error } = await supabase
+        .from("club_join_notification_reads")
+        .upsert(rows, { onConflict: "user_id,club_id" });
+    return !error;
+}
+
+export async function insertClubJoinApprovedNotification(
+    userId: string,
+    clubId: number
+): Promise<boolean> {
+    const { error } = await supabase
+        .from("user_notifications")
+        .insert({ user_id: userId, type: "club_join_approved", club_id: clubId });
+    return !error;
+}
+
+export interface IUserNotificationClubJoinApproved {
+    id: number;
+    clubId: number;
+    clubTitle: string;
+    createdAt: string;
+    readAt: string | null;
+}
+
+export async function getClubJoinApprovedNotifications(
+    userId: string
+): Promise<IUserNotificationClubJoinApproved[]> {
+    const { data, error } = await supabase
+        .from("user_notifications")
+        .select("id, club_id, created_at, read_at")
+        .eq("user_id", userId)
+        .eq("type", "club_join_approved")
+        .order("created_at", { ascending: false });
+    if (error || !data?.length) return [];
+    const rows = data as { id: number; club_id: number; created_at: string; read_at: string | null }[];
+    const clubIds = [...new Set(rows.map((r) => r.club_id))];
+    const { data: clubsData } = await supabase
+        .from("clubs")
+        .select("id, title")
+        .in("id", clubIds);
+    const titleByClubId = new Map((clubsData ?? []).map((c) => [c.id, c.title]));
+    return rows.map((r) => ({
+        id: r.id,
+        clubId: r.club_id,
+        clubTitle: titleByClubId.get(r.club_id) ?? "",
+        createdAt: r.created_at,
+        readAt: r.read_at,
+    }));
+}
+
+export async function markUserNotificationRead(notificationId: number): Promise<boolean> {
+    const { error } = await supabase
+        .from("user_notifications")
+        .update({ read_at: new Date().toISOString() })
+        .eq("id", notificationId);
+    return !error;
+}
+
+export async function markAllUserNotificationsRead(userId: string): Promise<boolean> {
+    const { error } = await supabase
+        .from("user_notifications")
+        .update({ read_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .is("read_at", null);
+    return !error;
+}
+
 export interface GetClubsParams {
     search?: string;
     location?: string;

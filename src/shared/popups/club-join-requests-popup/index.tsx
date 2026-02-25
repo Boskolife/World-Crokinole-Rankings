@@ -10,6 +10,7 @@ import {
     updateClubJoinRequestStatus,
     invitePlayerToClub,
     incrementClubMembers,
+    insertClubJoinApprovedNotification,
     type ClubJoinRequestWithUser,
 } from "@/shared/supabase/data";
 import type { IClub } from "@/shared/types";
@@ -50,6 +51,7 @@ export const ClubJoinRequestsPopup: React.FC = () => {
         if (ok) {
             await invitePlayerToClub(data.club.title, request.userId);
             await incrementClubMembers(data.club.id);
+            await insertClubJoinApprovedNotification(request.userId, data.club.id);
             data.onApproved?.();
         }
         await loadRequests();
