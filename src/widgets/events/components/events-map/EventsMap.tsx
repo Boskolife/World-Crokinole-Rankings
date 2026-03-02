@@ -50,11 +50,9 @@ function buildEventCardInfoContent(event: IEventCardProps, eventDetailUrl: strin
     const location = escapeHtml(event.location);
     const date = escapeHtml(event.date);
     const format = escapeHtml(event.format || "");
-    const price =
-        !event.price || event.price.toLowerCase() === "free"
-            ? "Free"
-            : escapeHtml(event.price);
-    const isFree = !event.price || event.price.toLowerCase() === "free";
+    const priceTrimmed = (event.price ?? "").trim().toLowerCase();
+    const isFree = priceTrimmed === "" || priceTrimmed === "free" || priceTrimmed === "0";
+    const price = isFree ? "Free" : escapeHtml(event.price ?? "");
     const registrationText = event.isRegistrationRequired
         ? "Registration is Required"
         : "No registration required";

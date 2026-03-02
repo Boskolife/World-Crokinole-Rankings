@@ -7,6 +7,12 @@ import { IEventCardProps } from "@/shared/types";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
 
+const isFreePrice = (p: string | undefined) => {
+    if (p == null) return true;
+    const s = String(p).trim().toLowerCase();
+    return s === "" || s === "free" || s === "0";
+};
+
 export const EventCard: React.FC<IEventCardProps> = ({
     id,
     image,
@@ -22,6 +28,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
     currentRank,
     totalParticipants,
 }) => {
+    const free = isFreePrice(price);
     return (
         <div className={css.event_card}>
             <div className={css.event_card_image}>
@@ -43,9 +50,9 @@ export const EventCard: React.FC<IEventCardProps> = ({
                             })}
                         />
                     </span>
-                    {currentRank && totalParticipants && (
+                    {totalParticipants != null && (
                         <div className={css.event_card_ranking_value_wrapper}>
-                            <span>{currentRank}</span>
+                            <span>{currentRank ?? 0}</span>
                             <span>/</span>
                             <span>{totalParticipants}</span>
                         </div>
@@ -77,10 +84,10 @@ export const EventCard: React.FC<IEventCardProps> = ({
                     </RootLink>
                     <span
                         className={cn(css.event_card_price, {
-                            [css._free]: price === "free" || price === "Free",
+                            [css._free]: free,
                         })}
                     >
-                        {price === "free" ? "Free" : price}
+                        {free ? "Free" : price}
                     </span>
                 </div>
                 <div className={css.event_card_content_info}>
