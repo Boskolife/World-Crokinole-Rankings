@@ -1,0 +1,47 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+$title-color: #00284b;
+
+.section {
+    padding: 60px 0;
+    background: #ffffff;
+
+    @include media-down(sm) {
+        padding: 40px 0;
+    }
+}
+
+.title {
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: $title-color;
+    margin: 0 0 20px 0;
+
+    @include media-down(sm) {
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+
+    @include media-down(sm) {
+        gap: 16px;
+    }
+
+    > * {
+        flex: 1 1 300px;
+        max-width: 420px;
+        min-width: 0;
+
+        @include media-down(sm) {
+            flex: 1 1 100%;
+            max-width: none;
+        }
+    }
+}

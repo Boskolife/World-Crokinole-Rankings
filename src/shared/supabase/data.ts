@@ -126,6 +126,32 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
     return (data?.map((e) => mapEventRowToCard(e)) ?? []);
 }
 
+const UPCOMING_AT_LOCATION_LIMIT = 6;
+
+export async function getUpcomingEventsAtLocation(
+    location: string,
+    excludeEventId: number,
+    limit: number = UPCOMING_AT_LOCATION_LIMIT
+): Promise<IEventCardProps[]> {
+    if (!location?.trim()) return [];
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .gte("start_date", now)
+        .neq("id", excludeEventId)
+        .ilike("location", location.trim())
+        .order("start_date", { ascending: true })
+        .limit(limit);
+
+    if (error) {
+        console.error("Error fetching upcoming events at location:", error);
+        return [];
+    }
+
+    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
+}
+
 export async function getPastEvents(): Promise<IEventCardProps[]> {
     const now = new Date().toISOString();
     const { data, error } = await supabase
@@ -405,6 +431,42 @@ export async function getUniqueClubs(): Promise<
         value: club,
         label: club,
     }));
+}
+
+export async function getEventRegisteredPlayers(eventId: number): Promise<IPlayer[]> {
+    try {
+        const { data: regs, error: regError } = await supabase
+            .from("event_registrations")
+            .select("user_id")
+            .eq("event_id", eventId);
+
+        if (regError || !regs?.length) return [];
+
+        const userIds = regs.map((r) => r.user_id);
+        const { data: playersData, error: playersError } = await supabase
+            .from("players")
+            .select("*, profiles(avatar_url)")
+            .in("user_id", userIds)
+            .order("rating", { ascending: false });
+
+        if (playersError || !playersData?.length) return [];
+
+        return playersData.map((p: { user_id?: string; name: string; country_code: string; kingdom: string; club: string; rating: number; profiles?: { avatar_url?: string | null } | null }) => {
+            const profile = p.profiles as { avatar_url?: string | null } | null;
+            const avatarUrl = profile?.avatar_url ?? null;
+            return {
+                id: String(p.user_id ?? ""),
+                name: p.name,
+                countryCode: p.country_code,
+                kingdom: p.kingdom,
+                club: p.club,
+                rating: p.rating,
+                avatarUrl: avatarUrl?.trim() || null,
+            };
+        });
+    } catch {
+        return [];
+    }
 }
 
 export async function getClubs(): Promise<IClub[]> {

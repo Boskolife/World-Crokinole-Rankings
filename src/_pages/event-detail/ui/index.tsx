@@ -1,5 +1,14 @@
-import { EventDetailHero, EventQualifyingHeats } from "@/widgets/event-detail";
-import { getEventById } from "@/shared/supabase/data";
+import {
+    EventDetailHero,
+    EventQualifyingHeats,
+    EventRegisteredPlayers,
+    EventDetailUpcomingEvents,
+} from "@/widgets/event-detail";
+import {
+    getEventById,
+    getEventRegisteredPlayers,
+    getUpcomingEventsAtLocation,
+} from "@/shared/supabase/data";
 import { notFound } from "next/navigation";
 
 interface EventDetailPageProps {
@@ -12,6 +21,11 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
 
     const event = await getEventById(eventId);
     if (!event) notFound();
+
+    const [registeredPlayers, upcomingAtLocation] = await Promise.all([
+        getEventRegisteredPlayers(eventId),
+        getUpcomingEventsAtLocation(event.location, event.id),
+    ]);
 
     const hasQualifyingHeats =
         event.qualifyingHeats?.heats?.length != null &&
@@ -27,6 +41,8 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     qualifyingHeats={event.qualifyingHeats}
                 />
             )}
+            <EventRegisteredPlayers players={registeredPlayers} />
+            <EventDetailUpcomingEvents events={upcomingAtLocation} />
         </>
     );
 }

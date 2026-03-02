@@ -1,0 +1,231 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+$title-color: #00284b;
+$body-color: #0e0e0e;
+$border: #d2d2d2;
+$row-alt-bg: #ecf5fd;
+$avatar-bg: #737373;
+
+.section {
+    padding: 60px 0;
+    background: #ffffff;
+
+    @include media-down(sm) {
+        padding: 40px 0;
+    }
+}
+
+.title {
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: $title-color;
+    margin: 0 0 30px 0;
+
+    @include media-down(sm) {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+}
+
+.tableWrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tableHeader {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 0 8px 12px 8px;
+    border-bottom: 1px solid $border;
+
+    @include media-down(sm) {
+        gap: 16px;
+        padding: 0 6px 10px 6px;
+    }
+}
+
+.thName,
+.thKingdom,
+.thClub,
+.thRating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.35;
+    color: $body-color;
+    text-align: left;
+
+    @include media-down(sm) {
+        font-size: 16px;
+    }
+}
+
+.thName {
+    min-width: 242px;
+    border-right: 1px solid $border;
+}
+
+.thKingdom {
+    min-width: 126px;
+    border-right: 1px solid $border;
+}
+
+.thClub {
+    min-width: 300px;
+    border-right: 1px solid $border;
+
+    @include media-down(sm) {
+        min-width: 140px;
+    }
+}
+
+.thRating {
+    min-width: 56px;
+}
+
+.thProfile {
+    flex: 1;
+    min-width: 100px;
+}
+
+.thIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: $border;
+    transition: color 0.2s ease;
+
+    &_active {
+        color: $title-color;
+    }
+}
+
+.tableBody {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 8px;
+    min-width: min-content;
+
+    @include media-down(sm) {
+        gap: 16px;
+        padding: 6px;
+    }
+
+    &_alt {
+        background: $row-alt-bg;
+    }
+}
+
+.cellName {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 242px;
+}
+
+.avatarWrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.avatar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarPlaceholder {
+    position: absolute;
+    inset: 0;
+    background: $avatar-bg;
+}
+
+.flag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.name {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: $body-color;
+}
+
+.cellKingdom {
+    min-width: 126px;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: $body-color;
+}
+
+.cellClub {
+    min-width: 300px;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: $body-color;
+
+    @include media-down(sm) {
+        min-width: 140px;
+    }
+}
+
+.cellRating {
+    min-width: 56px;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: $body-color;
+}
+
+.cellProfile {
+    flex: 1;
+    min-width: 100px;
+}
+
+.profileLink {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: $body-color;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: $title-color;
+    }
+}
