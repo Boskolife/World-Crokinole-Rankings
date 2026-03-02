@@ -47,7 +47,11 @@ export async function getEvents(): Promise<IEventCardProps[]> {
         return [];
     }
 
-    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
+    if (!data?.length) return [];
+    const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
+    return data.map((e) =>
+        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
+    );
 }
 
 const mapEventRowToCard = (event: {
@@ -99,6 +103,36 @@ const mapEventRowToCard = (event: {
 };
 };
 
+export async function getEventRegistrationCount(eventId: number): Promise<number> {
+    const { count, error } = await supabase
+        .from("event_registrations")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", eventId);
+
+    if (error) return 0;
+    return count ?? 0;
+}
+
+export async function getEventRegistrationCounts(
+    eventIds: number[]
+): Promise<Map<number, number>> {
+    const map = new Map<number, number>();
+    if (eventIds.length === 0) return map;
+
+    const { data, error } = await supabase
+        .from("event_registrations")
+        .select("event_id")
+        .in("event_id", eventIds);
+
+    if (error) return map;
+
+    for (const row of data ?? []) {
+        const id = (row as { event_id: number }).event_id;
+        map.set(id, (map.get(id) ?? 0) + 1);
+    }
+    return map;
+}
+
 export async function getEventById(id: number): Promise<IEventCardProps | null> {
     const { data, error } = await supabase
         .from("events")
@@ -107,7 +141,16 @@ export async function getEventById(id: number): Promise<IEventCardProps | null> 
         .single();
 
     if (error || !data) return null;
-    return mapEventRowToCard(data);
+
+    const registeredCount = await getEventRegistrationCount(id);
+    const totalParticipants = data.total_participants ?? data.capacity ?? undefined;
+    const currentRank =
+        totalParticipants != null ? registeredCount : (data.current_rank ?? undefined);
+
+    return mapEventRowToCard({
+        ...data,
+        current_rank: currentRank ?? null,
+    });
 }
 
 export async function getFutureEvents(): Promise<IEventCardProps[]> {
@@ -123,7 +166,11 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
         return [];
     }
 
-    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
+    if (!data?.length) return [];
+    const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
+    return data.map((e) =>
+        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
+    );
 }
 
 const UPCOMING_AT_LOCATION_LIMIT = 6;
@@ -149,7 +196,11 @@ export async function getUpcomingEventsAtLocation(
         return [];
     }
 
-    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
+    if (!data?.length) return [];
+    const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
+    return data.map((e) =>
+        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
+    );
 }
 
 export async function getPastEvents(): Promise<IEventCardProps[]> {
@@ -165,7 +216,11 @@ export async function getPastEvents(): Promise<IEventCardProps[]> {
         return [];
     }
 
-    return (data?.map((e) => mapEventRowToCard(e)) ?? []);
+    if (!data?.length) return [];
+    const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
+    return data.map((e) =>
+        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
+    );
 }
 
 const EVENT_COVERS_BUCKET = "event-covers";
@@ -433,6 +488,24 @@ export async function getUniqueClubs(): Promise<
     }));
 }
 
+function mapRegsToPlayers(
+    playersData: { user_id?: string; name: string; country_code: string; kingdom: string; club: string; rating: number; profiles?: { avatar_url?: string | null } | null }[]
+): IPlayer[] {
+    return playersData.map((p) => {
+        const profile = p.profiles as { avatar_url?: string | null } | null;
+        const avatarUrl = profile?.avatar_url ?? null;
+        return {
+            id: String(p.user_id ?? ""),
+            name: p.name,
+            countryCode: p.country_code,
+            kingdom: p.kingdom,
+            club: p.club,
+            rating: p.rating,
+            avatarUrl: avatarUrl?.trim() || null,
+        };
+    });
+}
+
 export async function getEventRegisteredPlayers(eventId: number): Promise<IPlayer[]> {
     try {
         const { data: regs, error: regError } = await supabase
@@ -451,19 +524,35 @@ export async function getEventRegisteredPlayers(eventId: number): Promise<IPlaye
 
         if (playersError || !playersData?.length) return [];
 
-        return playersData.map((p: { user_id?: string; name: string; country_code: string; kingdom: string; club: string; rating: number; profiles?: { avatar_url?: string | null } | null }) => {
-            const profile = p.profiles as { avatar_url?: string | null } | null;
-            const avatarUrl = profile?.avatar_url ?? null;
-            return {
-                id: String(p.user_id ?? ""),
-                name: p.name,
-                countryCode: p.country_code,
-                kingdom: p.kingdom,
-                club: p.club,
-                rating: p.rating,
-                avatarUrl: avatarUrl?.trim() || null,
-            };
-        });
+        return mapRegsToPlayers(playersData);
+    } catch {
+        return [];
+    }
+}
+
+export async function getEventRegisteredPlayersByHeat(
+    eventId: number,
+    heatIndex: number
+): Promise<IPlayer[]> {
+    try {
+        const { data: regs, error: regError } = await supabase
+            .from("event_registrations")
+            .select("user_id")
+            .eq("event_id", eventId)
+            .eq("heat_index", heatIndex);
+
+        if (regError || !regs?.length) return [];
+
+        const userIds = regs.map((r) => r.user_id);
+        const { data: playersData, error: playersError } = await supabase
+            .from("players")
+            .select("*, profiles(avatar_url)")
+            .in("user_id", userIds)
+            .order("rating", { ascending: false });
+
+        if (playersError || !playersData?.length) return [];
+
+        return mapRegsToPlayers(playersData);
     } catch {
         return [];
     }

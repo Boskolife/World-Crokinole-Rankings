@@ -7,8 +7,10 @@ import {
 import {
     getEventById,
     getEventRegisteredPlayers,
+    getEventRegisteredPlayersByHeat,
     getUpcomingEventsAtLocation,
 } from "@/shared/supabase/data";
+import type { IPlayer } from "@/shared/types";
 import { notFound } from "next/navigation";
 
 interface EventDetailPageProps {
@@ -22,14 +24,21 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
     const event = await getEventById(eventId);
     if (!event) notFound();
 
-    const [registeredPlayers, upcomingAtLocation] = await Promise.all([
-        getEventRegisteredPlayers(eventId),
-        getUpcomingEventsAtLocation(event.location, event.id),
-    ]);
-
     const hasQualifyingHeats =
         event.qualifyingHeats?.heats?.length != null &&
         event.qualifyingHeats.heats.length > 0;
+
+    const [registeredPlayers, upcomingAtLocation, playersByHeat] = await Promise.all([
+        getEventRegisteredPlayers(eventId),
+        getUpcomingEventsAtLocation(event.location, event.id),
+        hasQualifyingHeats && event.qualifyingHeats
+            ? Promise.all(
+                  event.qualifyingHeats.heats.map((_, i) =>
+                      getEventRegisteredPlayersByHeat(eventId, i + 1)
+                  )
+              )
+            : Promise.resolve([] as IPlayer[][]),
+    ]);
 
     return (
         <>
@@ -39,6 +48,13 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     eventId={event.id}
                     eventTitle={event.title}
                     qualifyingHeats={event.qualifyingHeats}
+                    playersByHeat={playersByHeat}
+                    isFull={
+                        event.totalParticipants != null &&
+                        event.currentRank != null &&
+                        event.currentRank >= event.totalParticipants
+                    }
+                    totalParticipants={event.totalParticipants}
                 />
             )}
             <EventRegisteredPlayers players={registeredPlayers} />

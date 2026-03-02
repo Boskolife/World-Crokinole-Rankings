@@ -118,6 +118,13 @@ $final-border: #d6e7f6;
     align-items: center;
 }
 
+.heatError {
+    font-size: 14px;
+    color: #c00;
+}
+
+$border: #d2d2d2;
+
 .btnPrimary {
     padding: 8px 16px;
     border-radius: 9999px;
@@ -133,6 +140,18 @@ $final-border: #d6e7f6;
 
     &:hover {
         filter: brightness(1.05);
+    }
+
+    &_registered {
+        background: transparent;
+        color: $body-color;
+        border-color: $border;
+        cursor: default;
+        pointer-events: none;
+
+        &:hover {
+            filter: none;
+        }
     }
 }
 

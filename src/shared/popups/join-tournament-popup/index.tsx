@@ -1,41 +1,58 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import css from "../styles.module.scss";
 import { Icon } from "@/shared/ui/icons";
-import { FormField } from "@/shared/ui";
 import { CustomRoundedDropdown } from "@/shared/ui";
-import { useForm } from "react-hook-form";
 import { usePopup } from "@/shared/contexts/popup-context";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { useEventRegistration } from "@/shared/hooks/use-event-registration";
+import type { QualifyingHeatsData } from "@/shared/types";
 import cn from "classnames";
 
-const qualifyingHeatsOptions = [
-    { value: "heat-1", label: "Heat 1" },
-    { value: "heat-2", label: "Heat 2" },
-    { value: "heat-3", label: "Heat 3" },
-];
-
-interface JoinTournamentForm {
-    name: string;
-    email: string;
-}
+type JoinTournamentPopupData = {
+    eventId?: number;
+    title?: string;
+    qualifyingHeats?: QualifyingHeatsData;
+    heatIndex?: number;
+    totalParticipants?: number;
+};
 
 export const JoinTournamentPopup: React.FC = () => {
+    const router = useRouter();
     const { closePopup, getPopupData } = usePopup();
-    const data = getPopupData("join-tournament") as { title?: string } | undefined;
+    const { isAuth, user } = useAuth();
+    const { registerForEvent, state, resetState } = useEventRegistration();
+    const data = getPopupData("join-tournament") as JoinTournamentPopupData | undefined;
     const title = data?.title ?? "Tournament";
+    const eventId = data?.eventId ?? 0;
+    const qualifyingHeats = data?.qualifyingHeats;
+    const heats = qualifyingHeats?.heats ?? [];
 
-    const [qualifyingHeat, setQualifyingHeat] = useState("");
+    const heatOptions = heats.map((_, i) => ({
+        value: String(i + 1),
+        label: `Qualifying Heat ${i + 1}`,
+    }));
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<JoinTournamentForm>();
+    const [selectedHeat, setSelectedHeat] = useState(() => {
+        const hi = data?.heatIndex;
+        if (hi != null && hi >= 1 && hi <= heats.length) return String(hi);
+        return "";
+    });
 
-    const onSubmit = (formData: JoinTournamentForm) => {
-        console.log("Register for tournament", { ...formData, qualifyingHeat });
-        closePopup("join-tournament");
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isAuth || !user?.id || !eventId) return;
+        if (heats.length > 0 && !selectedHeat) return;
+        const heatIndex = selectedHeat ? parseInt(selectedHeat, 10) : undefined;
+        const ok = await registerForEvent(eventId, user.id, heatIndex, data?.totalParticipants);
+        if (ok) {
+            resetState();
+            closePopup("join-tournament");
+            window.dispatchEvent(new CustomEvent("event-registration-updated", { detail: { eventId } }));
+            router.refresh();
+        }
     };
 
     return (
@@ -44,68 +61,61 @@ export const JoinTournamentPopup: React.FC = () => {
                 <Icon
                     name="x"
                     className={css.popup_close_icon}
-                    onClick={() => closePopup("join-tournament")}
+                    onClick={() => {
+                        resetState();
+                        closePopup("join-tournament");
+                    }}
                 />
             </div>
             <div className={css.popup_content}>
                 <h2 className={css.join_tournament_title}>{title}</h2>
-                <p className={css.join_tournament_description}>
-                    Participation in this tournament is free.
-                </p>
-                <form
-                    noValidate
-                    onSubmit={handleSubmit(onSubmit)}
-                    className={css.popup_form}
-                >
-                    <FormField
-                        className={css.popup_form_field}
-                        id="join-name"
-                        name="name"
-                        type="text"
-                        placeholder="John Smith"
-                        register={register}
-                        rules={{ required: "Name is required" }}
-                        error={errors.name?.message}
-                    />
-                    <FormField
-                        className={css.popup_form_field}
-                        id="join-email"
-                        name="email"
-                        type="email"
-                        placeholder="johnsmith.business@gmail.com"
-                        register={register}
-                        rules={{
-                            required: "Email is required",
-                            pattern: {
-                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                message: "Invalid email address",
-                            },
-                        }}
-                        error={errors.email?.message}
-                    />
-                    <div className={css.join_tournament_dropdown_wrap}>
-                        <label
-                            className={css.join_tournament_dropdown_label}
-                            htmlFor="qualifying-heats"
+                {!isAuth ? (
+                    <p className={css.join_tournament_description}>
+                        Sign in to register for this tournament.
+                    </p>
+                ) : (
+                    <>
+                        <p className={css.join_tournament_description}>
+                            Choose a qualifying heat to register.
+                        </p>
+                        <form
+                            noValidate
+                            onSubmit={handleSubmit}
+                            className={css.popup_form}
                         >
-                            Qualifying heats to the tournament
-                        </label>
-                        <CustomRoundedDropdown
-                            id="qualifying-heats"
-                            placeholder="Choose a qualifying heats to the tournament"
-                            options={qualifyingHeatsOptions}
-                            value={qualifyingHeat}
-                            onChange={setQualifyingHeat}
-                            className={css.join_tournament_dropdown}
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className={cn(css.popup_button, css.join_tournament_submit)}
-                    >
-                        Register for a tournament
-                    </button>
-                </form>
+                            <div className={css.join_tournament_dropdown_wrap}>
+                                <label
+                                    className={css.join_tournament_dropdown_label}
+                                    htmlFor="qualifying-heats"
+                                >
+                                    Qualifying heats to the tournament
+                                </label>
+                                <CustomRoundedDropdown
+                                    id="qualifying-heats"
+                                    placeholder="Choose a qualifying heat"
+                                    options={heatOptions}
+                                    value={selectedHeat}
+                                    onChange={setSelectedHeat}
+                                    className={css.join_tournament_dropdown}
+                                />
+                            </div>
+                            {state.status === "error" && (
+                                <p className={css.join_tournament_error}>
+                                    {state.message}
+                                </p>
+                            )}
+                            <button
+                                type="submit"
+                                disabled={state.status === "loading" || (heats.length > 0 && !selectedHeat)}
+                                className={cn(css.popup_button, css.join_tournament_submit)}
+                            >
+                                {state.status === "loading"
+                                    ? "Registering…"
+                                    : "Register for tournament"}
+                            </button>
+                        </form>
+                    </>
+                )}
             </div>
         </div>
     );

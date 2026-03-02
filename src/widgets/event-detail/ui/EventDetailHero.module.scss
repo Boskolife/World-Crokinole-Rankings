@@ -7,6 +7,7 @@ $emblem-bg: #192f48;
 $emblem-pattern: #365272;
 $accent: #f9c24c;
 $registration-note: #888888;
+$border: #d2d2d2;
 
 .hero {
     padding-bottom: 40px;
@@ -185,10 +186,38 @@ $registration-note: #888888;
     cursor: pointer;
     transition: filter 0.2s ease, background 0.2s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
         filter: brightness(1.05);
         background: $accent;
     }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    &_disabled {
+        cursor: default;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    &_registered {
+        background: transparent;
+        color: $label;
+        border: 1px solid $border;
+        cursor: default;
+        pointer-events: none;
+
+        &:hover {
+            filter: none;
+        }
+    }
+}
+
+.join_error {
+    font-size: 14px;
+    color: #c00;
 }
 
 .registration_note {

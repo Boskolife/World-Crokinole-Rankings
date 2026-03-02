@@ -57,6 +57,10 @@
             flex-direction: column;
         }
     }
+
+    &_wide {
+        max-width: 900px;
+    }
 }
 
 @keyframes backdropFadeIn {
@@ -480,6 +484,12 @@
 
 .join_tournament_dropdown {
     width: 100%;
+}
+
+.join_tournament_error {
+    font-size: 14px;
+    color: #c00;
+    margin: 8px 0 0 0;
 }
 
 .join_tournament_submit {

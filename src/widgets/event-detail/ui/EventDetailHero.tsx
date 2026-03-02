@@ -2,9 +2,13 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { useEventRegistration } from "@/shared/hooks/use-event-registration";
+import { useEventRegistrationStatus } from "@/shared/hooks/use-event-registration-status";
 import type { IEventCardProps } from "@/shared/types";
 import css from "./EventDetailHero.module.scss";
 
@@ -31,8 +35,12 @@ function DetailRow({
 }
 
 export function EventDetailHero({ event }: EventDetailHeroProps) {
+    const router = useRouter();
     const { openPopup } = usePopup();
+    const { isAuth, user } = useAuth();
+    const { registerForEvent, state, resetState } = useEventRegistration();
     const {
+        id: eventId,
         image,
         title,
         price,
@@ -46,12 +54,41 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         structure,
         strengthOfField,
         tournamentPointsAvailable,
+        qualifyingHeats,
     } = event;
+
+    const { status: regStatus, refetch: refetchRegStatus } = useEventRegistrationStatus(eventId, user?.id);
+
+    const hasQualifyingHeats =
+        qualifyingHeats?.heats != null && qualifyingHeats.heats.length > 0;
+
+    const handleJoinClick = () => {
+        if (!isAuth || !user?.id) return;
+        if (hasQualifyingHeats) {
+            openPopup("join-tournament", {
+                eventId,
+                title,
+                qualifyingHeats,
+                totalParticipants: totalParticipants ?? undefined,
+            });
+        } else {
+            registerForEvent(eventId, user.id, undefined, totalParticipants ?? undefined).then((ok) => {
+                if (ok) {
+                    refetchRegStatus();
+                    router.refresh();
+                } else resetState();
+            });
+        }
+    };
 
     const capacityStr =
         currentRank != null && totalParticipants != null
             ? `${currentRank}/${totalParticipants}`
             : undefined;
+    const isFull =
+        totalParticipants != null &&
+        currentRank != null &&
+        currentRank >= totalParticipants;
     const feeStr = price === "free" || price === "Free" ? "Free" : price;
 
     return (
@@ -113,15 +150,44 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                             </div>
                         </div>
                         <div className={css.card_actions}>
-                            <button
-                                type="button"
-                                className={css.join_button}
-                                onClick={() =>
-                                    openPopup("join-tournament", { title })
-                                }
-                            >
-                                Join tournament
-                            </button>
+                            {!isAuth ? (
+                                <span
+                                    className={cn(css.join_button, css.join_button_disabled)}
+                                    title="Sign in to join"
+                                >
+                                    Join tournament
+                                </span>
+                            ) : regStatus?.isRegistered ? (
+                                <span
+                                    className={cn(css.join_button, css.join_button_registered)}
+                                >
+                                    Registered
+                                </span>
+                            ) : isFull ? (
+                                <span
+                                    className={cn(css.join_button, css.join_button_registered)}
+                                >
+                                    Full
+                                </span>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        className={css.join_button}
+                                        disabled={state.status === "loading"}
+                                        onClick={handleJoinClick}
+                                    >
+                                        {state.status === "loading"
+                                            ? "Joining…"
+                                            : "Join tournament"}
+                                    </button>
+                                    {state.status === "error" && (
+                                        <span className={css.join_error}>
+                                            {state.message}
+                                        </span>
+                                    )}
+                                </>
+                            )}
                             <span
                                 className={cn(css.registration_note, {
                                     [css._required]: isRegistrationRequired,

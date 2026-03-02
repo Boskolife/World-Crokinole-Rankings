@@ -1,15 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
-import type { QualifyingHeatsData } from "@/shared/types";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { useEventRegistration } from "@/shared/hooks/use-event-registration";
+import { useEventRegistrationStatus } from "@/shared/hooks/use-event-registration-status";
+import type { QualifyingHeatsData, IPlayer } from "@/shared/types";
 import css from "./EventQualifyingHeats.module.scss";
 
 export interface EventQualifyingHeatsProps {
     eventId: number;
     eventTitle: string;
     qualifyingHeats: QualifyingHeatsData;
+    playersByHeat?: IPlayer[][];
+    isFull?: boolean;
+    totalParticipants?: number | null;
 }
 
 function formatHeatDateTime(start: string, end: string): string {
@@ -36,10 +44,39 @@ export function EventQualifyingHeats({
     eventId,
     eventTitle,
     qualifyingHeats,
+    playersByHeat = [],
+    isFull = false,
+    totalParticipants,
 }: EventQualifyingHeatsProps) {
+    const router = useRouter();
     const { openPopup } = usePopup();
+    const { user } = useAuth();
+    const { status: regStatus } = useEventRegistrationStatus(eventId, user?.id);
+    const { registerForEvent, state: regState, resetState } = useEventRegistration();
     const [isOpen, setIsOpen] = useState(true);
+    const [registeringHeatIndex, setRegisteringHeatIndex] = useState<number | null>(null);
     const { heats, final } = qualifyingHeats;
+
+    const handleSignUp = (heatIndex: number) => {
+        if (!user?.id) return;
+        setRegisteringHeatIndex(heatIndex);
+        registerForEvent(
+            eventId,
+            user.id,
+            heatIndex,
+            totalParticipants ?? undefined
+        ).then((ok) => {
+            setRegisteringHeatIndex(null);
+            if (ok) {
+                window.dispatchEvent(
+                    new CustomEvent("event-registration-updated", { detail: { eventId } })
+                );
+                router.refresh();
+            } else {
+                resetState();
+            }
+        });
+    };
 
     if (!heats?.length) return null;
 
@@ -80,21 +117,55 @@ export function EventQualifyingHeats({
                                     </p>
                                 </div>
                                 <div className={css.heatActions}>
-                                    <button
-                                        type="button"
-                                        className={css.btnPrimary}
-                                        onClick={() =>
-                                            openPopup("join-tournament", {
-                                                title: eventTitle,
-                                                heatIndex: i + 1,
-                                            })
-                                        }
-                                    >
-                                        Sign Up
-                                    </button>
+                                    {regStatus?.isRegistered && regStatus.heatIndex === i + 1 ? (
+                                        <span
+                                            className={cn(css.btnPrimary, css.btnPrimary_registered)}
+                                        >
+                                            Registered
+                                        </span>
+                                    ) : regStatus?.isRegistered && regStatus.heatIndex != null ? (
+                                        <span
+                                            className={cn(css.btnPrimary, css.btnPrimary_registered)}
+                                        >
+                                            Registered for Heat {regStatus.heatIndex}
+                                        </span>
+                                    ) : isFull ? (
+                                        <span
+                                            className={cn(css.btnPrimary, css.btnPrimary_registered)}
+                                        >
+                                            Full
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <button
+                                                type="button"
+                                                className={css.btnPrimary}
+                                                disabled={registeringHeatIndex !== null}
+                                                onClick={() => handleSignUp(i + 1)}
+                                            >
+                                                {registeringHeatIndex === i + 1 &&
+                                                regState.status === "loading"
+                                                    ? "Registering…"
+                                                    : "Sign Up"}
+                                            </button>
+                                            {registeringHeatIndex === i + 1 &&
+                                                regState.status === "error" && (
+                                                    <span className={css.heatError}>
+                                                        {regState.message}
+                                                    </span>
+                                                )}
+                                        </>
+                                    )}
                                     <button
                                         type="button"
                                         className={css.btnOutline}
+                                        onClick={() =>
+                                            openPopup("view-heat-participants", {
+                                                heatLabel: `Qualifying Heat ${i + 1}`,
+                                                heatDateTime: formatHeatDateTime(slot.start, slot.end),
+                                                players: playersByHeat[i] ?? [],
+                                            })
+                                        }
                                     >
                                         View participants
                                     </button>

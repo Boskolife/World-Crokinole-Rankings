@@ -22,6 +22,7 @@ import { RemoveMemberConfirmPopup } from "./remove-member-confirm-popup";
 import { ClubJoinRequestsPopup } from "./club-join-requests-popup";
 import { EditMemberAccessPopup } from "./edit-member-access-popup";
 import { InviteMemberPopup } from "./invite-member-popup";
+import { ViewHeatParticipantsPopup } from "./view-heat-participants-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -69,7 +70,8 @@ export const PopupContainer: React.FC = () => {
                 className={cn(
                     css.popup_container,
                     (isPopupOpen("create-club") || isPopupOpen("edit-club")) &&
-                    cn(css.popup_container_no_scroll, css.popup_container_fixed_height)
+                        cn(css.popup_container_no_scroll, css.popup_container_fixed_height),
+                    isPopupOpen("view-heat-participants") && css.popup_container_wide
                 )}
             >
                 {isPopupOpen("verify") && <VerifyPopup />}
@@ -105,6 +107,9 @@ export const PopupContainer: React.FC = () => {
                 )}
                 {isPopupOpen("invite-member") && (
                     <InviteMemberPopup />
+                )}
+                {isPopupOpen("view-heat-participants") && (
+                    <ViewHeatParticipantsPopup />
                 )}
             </div>
         </div>
