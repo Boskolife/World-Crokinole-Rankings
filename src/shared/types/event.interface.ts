@@ -1,3 +1,13 @@
+export interface QualifyingHeatSlot {
+    start: string;
+    end: string;
+}
+
+export interface QualifyingHeatsData {
+    heats: QualifyingHeatSlot[];
+    final?: QualifyingHeatSlot;
+}
+
 export interface IEventCardProps {
     id: number;
     image: string;
@@ -18,4 +28,5 @@ export interface IEventCardProps {
     structure?: string;
     strengthOfField?: number;
     tournamentPointsAvailable?: number;
+    qualifyingHeats?: QualifyingHeatsData | null;
 }

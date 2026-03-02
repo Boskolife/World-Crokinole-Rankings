@@ -1,6 +1,7 @@
 import { supabase } from "./client";
 import type {
     IEventCardProps,
+    QualifyingHeatsData,
     IPlayer,
     IClub,
     ITournament,
@@ -63,12 +64,17 @@ const mapEventRowToCard = (event: {
     winner: string | null;
     current_rank: number | null;
     total_participants: number | null;
+    capacity?: number | null;
     strength_of_field?: number | null;
     tournament_points_available?: number | null;
     structure?: string | null;
     latitude?: number | null;
     longitude?: number | null;
-}): IEventCardProps => ({
+    qualifying_heats?: QualifyingHeatsData | null;
+}): IEventCardProps => {
+    const totalParticipants = event.total_participants ?? event.capacity ?? undefined;
+    const currentRank = totalParticipants != null ? (event.current_rank ?? 0) : (event.current_rank ?? undefined);
+    return {
     id: event.id,
     image: event.image || "",
     title: event.title,
@@ -81,15 +87,17 @@ const mapEventRowToCard = (event: {
     isRanked: event.is_ranked,
     isRegistrationRequired: event.is_registration_required,
     winner: event.winner || undefined,
-    currentRank: event.current_rank ?? undefined,
-    totalParticipants: event.total_participants ?? undefined,
+    currentRank,
+    totalParticipants,
     startDate: event.start_date || undefined,
     strengthOfField: event.strength_of_field ?? undefined,
     tournamentPointsAvailable: event.tournament_points_available ?? undefined,
     structure: event.structure ?? undefined,
     latitude: event.latitude ?? undefined,
     longitude: event.longitude ?? undefined,
-});
+    qualifyingHeats: event.qualifying_heats ?? undefined,
+};
+};
 
 export async function getEventById(id: number): Promise<IEventCardProps | null> {
     const { data, error } = await supabase
@@ -150,6 +158,7 @@ export interface CreateEventParams {
     capacity: number | null;
     latitude?: number | null;
     longitude?: number | null;
+    qualifyingHeats?: QualifyingHeatsData | null;
 }
 
 export async function createEvent(params: CreateEventParams): Promise<IEventCardProps> {
@@ -167,6 +176,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
         capacity,
         latitude,
         longitude,
+        qualifyingHeats,
     } = params;
 
     const { data: newEvent, error: insertError } = await supabase
@@ -184,10 +194,11 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
             capacity: capacity ?? null,
             latitude: latitude ?? null,
             longitude: longitude ?? null,
+            qualifying_heats: qualifyingHeats ?? null,
             image: null,
             winner: null,
-            current_rank: null,
-            total_participants: null,
+            current_rank: 0,
+            total_participants: capacity ?? null,
             strength_of_field: null,
             tournament_points_available: null,
         })

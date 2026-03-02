@@ -160,6 +160,34 @@ export function CreateEventForm({
             const numCap = cap !== null && !Number.isNaN(cap) ? cap : null;
             const formatLabel = data.format === "singles_or_doubles" ? "Singles or Doubles" : (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
+            const heatsCountNum = Math.max(0, parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0);
+            let qualifyingHeats: { heats: { start: string; end: string }[]; final?: { start: string; end: string } } | undefined;
+            if (heatsCountNum > 0) {
+                const twoHoursMs = 2 * 60 * 60 * 1000;
+                const heats: { start: string; end: string }[] = [];
+                for (let n = 1; n <= heatsCountNum; n++) {
+                    const startStr = heatDateTimes[n];
+                    if (startStr) {
+                        const start = new Date(startStr).getTime();
+                        heats.push({
+                            start: new Date(start).toISOString(),
+                            end: new Date(start + twoHoursMs).toISOString(),
+                        });
+                    }
+                }
+                let finalSlot: { start: string; end: string } | undefined;
+                if (finalDateTime) {
+                    const start = new Date(finalDateTime).getTime();
+                    finalSlot = {
+                        start: new Date(start).toISOString(),
+                        end: new Date(start + twoHoursMs).toISOString(),
+                    };
+                }
+                if (heats.length > 0) {
+                    qualifyingHeats = { heats, final: finalSlot };
+                }
+            }
+
             await createEvent({
                 title: (data.title ?? "").trim(),
                 startDate,
@@ -172,6 +200,7 @@ export function CreateEventForm({
                 structure: (data.additionalInfo ?? "").trim(),
                 coverFile,
                 capacity: numCap,
+                qualifyingHeats: qualifyingHeats ?? null,
             });
             const redirectPath = successRedirect ?? `/${locale}/events`;
             router.push(redirectPath);
