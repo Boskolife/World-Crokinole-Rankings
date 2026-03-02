@@ -46,6 +46,18 @@ export const needToRegisterOptions: DropdownOption[] = [
     { value: "no", label: "No" },
 ];
 
+const QUALIFYING_HEATS_MAX = 10;
+export const qualifyingHeatsOptions: DropdownOption[] = [
+    { value: "0", label: "No qualifying heats" },
+    ...Array.from({ length: QUALIFYING_HEATS_MAX }, (_, i) => {
+        const n = i + 1;
+        return {
+            value: String(n),
+            label: n === 1 ? "1 qualifying heat" : `${n} qualifying heats`,
+        };
+    }),
+];
+
 // Rankings category switcher options
 export type RankingsCategoryValue = "laurels" | "singles" | "doubles";
 

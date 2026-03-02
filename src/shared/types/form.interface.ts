@@ -77,6 +77,7 @@ export interface ICustomDropdownProps<
     error?: string;
     labelClassName?: string;
     className?: string;
+    buttonClassName?: string;
     disabled?: boolean;
 }
 

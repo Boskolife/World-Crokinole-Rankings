@@ -22,6 +22,7 @@ export function CustomDropdown<TFieldValues extends FieldValues = FieldValues>(
         error,
         labelClassName,
         className,
+        buttonClassName,
         disabled = false,
     } = props;
 
@@ -147,7 +148,7 @@ export function CustomDropdown<TFieldValues extends FieldValues = FieldValues>(
                 <button
                     id={id}
                     type="button"
-                    className={cn(css.custom_dropdown_button, {
+                    className={cn(css.custom_dropdown_button, buttonClassName, {
                         [css.error]: error,
                         [css.filled]: isFilled,
                         [css.disabled]: disabled,

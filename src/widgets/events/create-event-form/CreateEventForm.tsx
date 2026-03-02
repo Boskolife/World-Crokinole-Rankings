@@ -15,6 +15,7 @@ import {
     formatOptions,
     eventTypeOptions,
     needToRegisterOptions,
+    qualifyingHeatsOptions,
 } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import css from "./styles.module.scss";
@@ -34,6 +35,7 @@ type CreateEventFormValues = {
     fee: string;
     capacity: string;
     needToRegister: string;
+    qualifyingHeatsCount: string;
 };
 
 const defaultValues: CreateEventFormValues = {
@@ -47,6 +49,7 @@ const defaultValues: CreateEventFormValues = {
     fee: "",
     capacity: "",
     needToRegister: "no",
+    qualifyingHeatsCount: "0",
 };
 
 type CreateEventFormProps = {
@@ -74,6 +77,13 @@ export function CreateEventForm({
     const watchedEventType = watch("eventType");
     const watchedFormat = watch("format");
     const watchedNeedToRegister = watch("needToRegister");
+    const watchedHeatsCount = watch("qualifyingHeatsCount");
+    const heatsCount = Math.max(0, parseInt(watchedHeatsCount ?? "0", 10) || 0);
+
+    const [heatDateTimes, setHeatDateTimes] = useState<Record<number, string>>({});
+    const [finalDateTime, setFinalDateTime] = useState<string>("");
+    const heatDateInputId = (n: number) => `create-event-heat-${n}-date`;
+    const finalDateInputId = "create-event-final-date";
 
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
@@ -366,6 +376,59 @@ export function CreateEventForm({
                             rules={{ required: "Please select" }}
                             error={errors.needToRegister?.message}
                         />
+
+                        <div className={css.heatsSection}>
+                            <div className={css.heatsDropdownWrap}>
+                                <CustomDropdown
+                                    id="create-event-qualifying-heats"
+                                    name="qualifyingHeatsCount"
+                                    label="Add qualifying heats to the tournament"
+                                    placeholder="Select"
+                                    options={qualifyingHeatsOptions}
+                                    value={watchedHeatsCount ?? "0"}
+                                    register={register}
+                                    buttonClassName={css.heatsDropdownButton}
+                                />
+                            </div>
+                            {heatsCount > 0 && (
+                                <div className={css.heatsGrid}>
+                                    {Array.from({ length: heatsCount }, (_, i) => i + 1).map((n) => (
+                                        <div key={n} className={css.heatField}>
+                                            <label className={css.heatFieldLabel} htmlFor={heatDateInputId(n)}>
+                                                Qualifying Heat {n}
+                                            </label>
+                                            <div className={css.heatDateTimeWrap}>
+                                                <input
+                                                    id={heatDateInputId(n)}
+                                                    type="datetime-local"
+                                                    value={heatDateTimes[n] ?? ""}
+                                                    onChange={(e) =>
+                                                        setHeatDateTimes((prev) => ({ ...prev, [n]: e.target.value }))
+                                                    }
+                                                    className={css.heatDateTimeInput}
+                                                />
+                                                <Icon name="calendar" className={css.heatCalendarIcon} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className={css.heatField}>
+                                        <label className={css.heatFieldLabel} htmlFor={finalDateInputId}>
+                                            Final
+                                        </label>
+                                        <div className={css.heatDateTimeWrap}>
+                                            <input
+                                                id={finalDateInputId}
+                                                type="datetime-local"
+                                                value={finalDateTime}
+                                                onChange={(e) => setFinalDateTime(e.target.value)}
+                                                className={css.heatDateTimeInput}
+                                            />
+                                            <Icon name="calendar" className={css.heatCalendarIcon} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <button
                         type="submit"
