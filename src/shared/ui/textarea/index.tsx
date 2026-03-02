@@ -37,6 +37,7 @@ export function TextareaField<TFieldValues extends FieldValues = FieldValues>(
         className,
         maxLength,
         minLength,
+        hideClearButton,
         ...restProps
     } = props;
 
@@ -138,7 +139,7 @@ export function TextareaField<TFieldValues extends FieldValues = FieldValues>(
                     className={cn(css.form_field_input, {
                         [css.error]: error,
                         [css.filled]: isFilled,
-                        [css.form_field_input_with_icon]: isFilled,
+                        [css.form_field_input_with_icon]: isFilled && !hideClearButton,
                     })}
                     placeholder={placeholder}
                     aria-invalid={!!error}
@@ -166,7 +167,7 @@ export function TextareaField<TFieldValues extends FieldValues = FieldValues>(
                               ref: assignRef,
                           })}
                 />
-                {isFilled && (
+                {isFilled && !hideClearButton && (
                     <button
                         type="button"
                         className={css.form_field_clear}

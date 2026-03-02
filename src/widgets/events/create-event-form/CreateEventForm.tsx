@@ -3,9 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { FormField, TextareaField, CustomDropdown } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
 import { createEvent } from "@/shared/supabase/data";
+import {
+    isSupabaseConfigured,
+    supabaseConfigError,
+} from "@/shared/supabase/client";
 import {
     formatOptions,
     eventTypeOptions,
@@ -17,6 +22,32 @@ import { localeConfig } from "@/app/localization/config";
 
 const COVER_MAX_SIZE = 5 * 1024 * 1024;
 const COVER_ACCEPT = ".png,.jpeg,.jpg";
+
+type CreateEventFormValues = {
+    title: string;
+    startDateTime: string;
+    endDateTime: string;
+    location: string;
+    eventType: string;
+    format: string;
+    additionalInfo: string;
+    fee: string;
+    capacity: string;
+    needToRegister: string;
+};
+
+const defaultValues: CreateEventFormValues = {
+    title: "",
+    startDateTime: "",
+    endDateTime: "",
+    location: "",
+    eventType: "ranked",
+    format: "singles_or_doubles",
+    additionalInfo: "",
+    fee: "",
+    capacity: "",
+    needToRegister: "no",
+};
 
 type CreateEventFormProps = {
     backLinkHref?: string;
@@ -33,21 +64,20 @@ export function CreateEventForm({
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
 
-    const [title, setTitle] = useState("");
-    const [startDateTime, setStartDateTime] = useState("");
-    const [endDateTime, setEndDateTime] = useState("");
-    const [location, setLocation] = useState("");
-    const [eventType, setEventType] = useState("ranked");
-    const [format, setFormat] = useState("singles_or_doubles");
-    const [additionalInfo, setAdditionalInfo] = useState("");
-    const [fee, setFee] = useState("");
-    const [capacity, setCapacity] = useState("");
-    const [needToRegister, setNeedToRegister] = useState("no");
+    const {
+        register,
+        handleSubmit: formHandleSubmit,
+        watch,
+        formState: { errors },
+    } = useForm<CreateEventFormValues>({ defaultValues });
+
+    const watchedEventType = watch("eventType");
+    const watchedFormat = watch("format");
+    const watchedNeedToRegister = watch("needToRegister");
 
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
     const [coverError, setCoverError] = useState<string | null>(null);
-
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,23 +130,14 @@ export function CreateEventForm({
 
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: CreateEventFormValues) => {
         setSubmitError(null);
-        if (!title.trim()) {
-            setSubmitError("Title is required");
+        if (!isSupabaseConfigured) {
+            setSubmitError(supabaseConfigError ?? "Supabase is not configured");
             return;
         }
-        if (!startDateTime) {
-            setSubmitError("Start date & time is required");
-            return;
-        }
-        if (!endDateTime) {
-            setSubmitError("End date & time is required");
-            return;
-        }
-        const startDate = new Date(startDateTime).toISOString();
-        const endDate = new Date(endDateTime).toISOString();
+        const startDate = new Date(data.startDateTime).toISOString();
+        const endDate = new Date(data.endDateTime).toISOString();
         if (endDate <= startDate) {
             setSubmitError("End date & time must be after start date & time");
             return;
@@ -124,27 +145,32 @@ export function CreateEventForm({
 
         setIsSubmitting(true);
         try {
-            const price = fee.trim() === "" ? "0" : fee.trim();
-            const cap = capacity.trim() === "" ? null : parseInt(capacity, 10);
+            const price = (data.fee ?? "").trim() === "" ? "0" : (data.fee ?? "").trim();
+            const cap = (data.capacity ?? "").trim() === "" ? null : parseInt(data.capacity, 10);
             const numCap = cap !== null && !Number.isNaN(cap) ? cap : null;
+            const formatLabel = data.format === "singles_or_doubles" ? "Singles or Doubles" : (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
             await createEvent({
-                title: title.trim(),
+                title: (data.title ?? "").trim(),
                 startDate,
                 endDate,
-                location: location.trim(),
-                format: format === "singles_or_doubles" ? "Singles or Doubles" : format.charAt(0).toUpperCase() + format.slice(1),
-                isRanked: eventType === "ranked",
-                isRegistrationRequired: needToRegister === "yes",
+                location: (data.location ?? "").trim(),
+                format: formatLabel,
+                isRanked: data.eventType === "ranked",
+                isRegistrationRequired: data.needToRegister === "yes",
                 price,
-                structure: additionalInfo.trim(),
+                structure: (data.additionalInfo ?? "").trim(),
                 coverFile,
                 capacity: numCap,
             });
             const redirectPath = successRedirect ?? `/${locale}/events`;
             router.push(redirectPath);
         } catch (err: unknown) {
-            setSubmitError(err instanceof Error ? err.message : "Failed to create event");
+            const msg =
+                err instanceof Error
+                    ? err.message
+                    : "Failed to create event. Check NEXT_PUBLIC_SUPABASE_URL and connection.";
+            setSubmitError(msg);
         } finally {
             setIsSubmitting(false);
         }
@@ -161,7 +187,7 @@ export function CreateEventForm({
                 <div className={css.header}>
                     <h1 className={css.title}>Create Event Form</h1>
                 </div>
-                <form onSubmit={handleSubmit} className={css.formWrap}>
+                <form onSubmit={formHandleSubmit(onSubmit)} className={css.formWrap}>
                     {submitError && (
                         <div className={css.formError} role="alert">
                             {submitError}
@@ -239,8 +265,10 @@ export function CreateEventForm({
                             name="title"
                             label="Title"
                             placeholder="Enter the event name"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            register={register}
+                            rules={{ required: "Title is required" }}
+                            error={errors.title?.message}
+                            hideClearButton
                         />
                         <FormField
                             id="create-event-start"
@@ -248,8 +276,10 @@ export function CreateEventForm({
                             label="Start date & time"
                             type="datetime-local"
                             placeholder="mm/dd/yyyy, 10:00 am"
-                            value={startDateTime}
-                            onChange={(e) => setStartDateTime(e.target.value)}
+                            register={register}
+                            rules={{ required: "Start date & time is required" }}
+                            error={errors.startDateTime?.message}
+                            hideClearButton
                         />
                         <FormField
                             id="create-event-end"
@@ -257,16 +287,19 @@ export function CreateEventForm({
                             label="End date & time"
                             type="datetime-local"
                             placeholder="mm/dd/yyyy, 10:00 am"
-                            value={endDateTime}
-                            onChange={(e) => setEndDateTime(e.target.value)}
+                            register={register}
+                            rules={{ required: "End date & time is required" }}
+                            error={errors.endDateTime?.message}
+                            hideClearButton
                         />
                         <FormField
                             id="create-event-location"
                             name="location"
                             label="Location"
                             placeholder="Choose location"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
+                            register={register}
+                            error={errors.location?.message}
+                            hideClearButton
                         />
                         <CustomDropdown
                             id="create-event-type"
@@ -274,8 +307,10 @@ export function CreateEventForm({
                             label="Type"
                             placeholder="Select type"
                             options={eventTypeOptions}
-                            value={eventType}
-                            onChange={setEventType}
+                            value={watchedEventType ?? ""}
+                            register={register}
+                            rules={{ required: "Type is required" }}
+                            error={errors.eventType?.message}
                         />
                         <CustomDropdown
                             id="create-event-format"
@@ -283,18 +318,20 @@ export function CreateEventForm({
                             label="Format"
                             placeholder="Select format"
                             options={formatOptions}
-                            value={format}
-                            onChange={setFormat}
+                            value={watchedFormat ?? ""}
+                            register={register}
+                            rules={{ required: "Format is required" }}
+                            error={errors.format?.message}
                         />
                         <TextareaField
                             id="create-event-additional"
                             name="additionalInfo"
                             label="Additional Event Information"
                             placeholder="Enter match details (structure, seeding, requires convention badge, contests, prizes, giveaway)"
-                            value={additionalInfo}
-                            onChange={(e) => setAdditionalInfo(e.target.value)}
+                            register={register}
                             rows={5}
                             className={css.additionalInfoField}
+                            hideClearButton
                         />
                         <FormField
                             id="create-event-fee"
@@ -303,8 +340,9 @@ export function CreateEventForm({
                             type="text"
                             inputMode="numeric"
                             placeholder="Enter 0 if participation is free"
-                            value={fee}
-                            onChange={(e) => setFee(e.target.value)}
+                            register={register}
+                            error={errors.fee?.message}
+                            hideClearButton
                         />
                         <FormField
                             id="create-event-capacity"
@@ -313,8 +351,9 @@ export function CreateEventForm({
                             type="text"
                             inputMode="numeric"
                             placeholder="Max number of participants (0 for unlimited)"
-                            value={capacity}
-                            onChange={(e) => setCapacity(e.target.value)}
+                            register={register}
+                            error={errors.capacity?.message}
+                            hideClearButton
                         />
                         <CustomDropdown
                             id="create-event-register"
@@ -322,17 +361,24 @@ export function CreateEventForm({
                             label="Need to register?"
                             placeholder="Select"
                             options={needToRegisterOptions}
-                            value={needToRegister}
-                            onChange={setNeedToRegister}
+                            value={watchedNeedToRegister ?? ""}
+                            register={register}
+                            rules={{ required: "Please select" }}
+                            error={errors.needToRegister?.message}
                         />
                     </div>
                     <button
                         type="submit"
                         className={css.submitBtn}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !isSupabaseConfigured}
                     >
                         {isSubmitting ? "Creating…" : "Create Events"}
                     </button>
+                    {!isSupabaseConfigured && (
+                        <p className={css.formError} style={{ marginTop: 8 }}>
+                            {supabaseConfigError ?? "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."}
+                        </p>
+                    )}
                 </form>
             </div>
         </div>
