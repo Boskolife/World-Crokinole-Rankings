@@ -210,12 +210,14 @@ export function QualifyingHeatsResultsCreatorView({
     qualifyingHeats,
     playersByHeat = [],
 }: QualifyingHeatsResultsCreatorViewProps) {
-    const [mainOpen, setMainOpen] = useState(true);
-    const [heatOpen, setHeatOpen] = useState<Record<number, boolean>>({ 0: true });
     const { heats, final } = qualifyingHeats;
     const heatIndices = final
         ? [...heats.map((_, i) => i), heats.length]
         : heats.map((_, i) => i);
+    const [mainOpen, setMainOpen] = useState(true);
+    const [heatOpen, setHeatOpen] = useState<Record<number, boolean>>(() =>
+        Object.fromEntries(heatIndices.map((i) => [i, true]))
+    );
     const [roundsByHeat, setRoundsByHeat] = useState<Record<number, number[]>>(() =>
         Object.fromEntries(heatIndices.map((i) => [i, [0]]))
     );
@@ -469,7 +471,7 @@ export function QualifyingHeatsResultsCreatorView({
                     {mainOpen && (
                         <div className={css.accordionBody}>
                             {heats.map((_, heatIndex) => {
-                                const isHeatOpen = heatOpen[heatIndex] ?? heatIndex === 0;
+                                const isHeatOpen = heatOpen[heatIndex] ?? true;
                                 const players = heatPlayers(heatIndex);
                                 return (
                                     <div key={heatIndex} className={css.heatBlock}>
@@ -766,12 +768,12 @@ export function QualifyingHeatsResultsCreatorView({
                                 <div className={css.heatBlock}>
                                     <AccordionHeader
                                         className={css.heatTitleRow}
-                                        isOpen={heatOpen[heats.length] ?? false}
+                                        isOpen={heatOpen[heats.length] ?? true}
                                         onToggle={() => toggleHeat(heats.length)}
                                     >
                                         <h3 className={css.heatTitle}>Final</h3>
                                     </AccordionHeader>
-                                    {heatOpen[heats.length] && (
+                                    {(heatOpen[heats.length] ?? true) && (
                                         <div className={css.heatBody}>
                                             <div className={css.manualSection}>
                                                 <div className={css.headRow}>

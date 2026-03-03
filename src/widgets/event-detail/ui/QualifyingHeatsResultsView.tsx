@@ -67,12 +67,19 @@ export function QualifyingHeatsResultsView({
         : heats.map((_, i) => i);
 
     const [mainOpen, setMainOpen] = useState(true);
-    const [heatOpen, setHeatOpen] = useState<Record<number, boolean>>(() => {
-        const open: Record<number, boolean> = { 0: true };
-        if (final && heats?.length != null) open[heats.length] = true;
+    const [heatOpen, setHeatOpen] = useState<Record<number, boolean>>(() =>
+        Object.fromEntries(heatIndices.map((i) => [i, true]))
+    );
+    const [roundOpen, setRoundOpen] = useState<Record<string, boolean>>(() => {
+        const open: Record<string, boolean> = {};
+        heatIndices.forEach((heatIndex) => {
+            const rounds = heatResults.roundsByHeat[heatIndex] ?? [0];
+            rounds.forEach((roundIndex) => {
+                open[`${heatIndex}-${roundIndex}`] = true;
+            });
+        });
         return open;
     });
-    const [roundOpen, setRoundOpen] = useState<Record<string, boolean>>({ "0-0": true });
 
     const getMatches = (heatIndex: number, roundIndex: number) =>
         heatResults.matchesByHeatRound[`${heatIndex}-${roundIndex}`] ?? [];
@@ -119,7 +126,7 @@ export function QualifyingHeatsResultsView({
 
     const roundKey = (heatIndex: number, roundIndex: number) => `${heatIndex}-${roundIndex}`;
     const isRoundOpen = (heatIndex: number, roundIndex: number) =>
-        roundOpen[roundKey(heatIndex, roundIndex)] ?? (heatIndex === 0 && roundIndex === 0);
+        roundOpen[roundKey(heatIndex, roundIndex)] ?? true;
     const toggleRound = (heatIndex: number, roundIndex: number) =>
         setRoundOpen((prev) => ({ ...prev, [roundKey(heatIndex, roundIndex)]: !prev[roundKey(heatIndex, roundIndex)] }));
 
@@ -137,7 +144,7 @@ export function QualifyingHeatsResultsView({
 
                     {mainOpen &&
                         heatIndices.map((heatIndex) => {
-                            const isHeatOpen = heatOpen[heatIndex] ?? heatIndex === 0;
+                            const isHeatOpen = heatOpen[heatIndex] ?? true;
                             const rounds = heatResults.roundsByHeat[heatIndex] ?? [0];
                             const isFinal = final && heatIndex === heats.length;
 
