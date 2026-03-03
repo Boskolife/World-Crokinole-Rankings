@@ -99,12 +99,12 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         />
                         {location}
                     </span>
-                    {isPastEvent && winner ? (
+                    {isPastEvent && (
                         <div className={css.event_card_status}>
                             <b>Winner:</b>
-                            <span>{winner}</span>
+                            <span>{winner?.trim() || "—"}</span>
                         </div>
-                    ) : null}
+                    )}
                     {!isPastEvent && (
                         <span className={css.event_card_format}>{format}</span>
                     )}

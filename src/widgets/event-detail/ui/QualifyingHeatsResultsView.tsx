@@ -70,7 +70,7 @@ export function QualifyingHeatsResultsView({
         const rounds = heatResults.roundsByHeat[heatIndex] ?? [];
         return rounds.some((roundIndex) => {
             const matches = heatResults.matchesByHeatRound[`${heatIndex}-${roundIndex}`] ?? [];
-            return matches.length > 0;
+            return matches.some((m) => Boolean(m.player1Id && m.player2Id));
         });
     });
 

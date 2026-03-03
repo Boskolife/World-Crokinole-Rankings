@@ -229,7 +229,7 @@ export function CreateEventForm({
                 }
             }
 
-            await createEvent({
+            const createdEvent = await createEvent({
                 title: (data.title ?? "").trim(),
                 startDate,
                 endDate,
@@ -244,8 +244,7 @@ export function CreateEventForm({
                 qualifyingHeats: qualifyingHeats ?? null,
                 createdByUserId: user?.id ?? undefined,
             });
-            const redirectPath = successRedirect ?? `/${locale}/events`;
-            router.push(redirectPath);
+            router.push(successRedirect ?? `/${locale}/events/${createdEvent.id}`);
         } catch (err: unknown) {
             const msg =
                 err instanceof Error
