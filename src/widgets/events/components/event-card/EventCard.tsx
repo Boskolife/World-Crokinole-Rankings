@@ -99,15 +99,13 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         />
                         {location}
                     </span>
-                    {isPastEvent ? (
-                        <>
-                            <div className={css.event_card_status}>
-                                <b>Winner:</b>
-                                <span>{winner}</span>
-                            </div>
-                            <RootLink href={clientRoutes.eventDetail(id)} className={css.event_card_status_link}>Tournament Page</RootLink>
-                        </>
-                    ) : (
+                    {isPastEvent && winner ? (
+                        <div className={css.event_card_status}>
+                            <b>Winner:</b>
+                            <span>{winner}</span>
+                        </div>
+                    ) : null}
+                    {!isPastEvent && (
                         <span className={css.event_card_format}>{format}</span>
                     )}
                 </div>

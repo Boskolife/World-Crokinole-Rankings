@@ -66,13 +66,21 @@ export function QualifyingHeatsResultsView({
         ? [...heats.map((_, i) => i), heats.length]
         : heats.map((_, i) => i);
 
+    const heatIndicesWithResults = heatIndices.filter((heatIndex) => {
+        const rounds = heatResults.roundsByHeat[heatIndex] ?? [];
+        return rounds.some((roundIndex) => {
+            const matches = heatResults.matchesByHeatRound[`${heatIndex}-${roundIndex}`] ?? [];
+            return matches.length > 0;
+        });
+    });
+
     const [mainOpen, setMainOpen] = useState(true);
     const [heatOpen, setHeatOpen] = useState<Record<number, boolean>>(() =>
-        Object.fromEntries(heatIndices.map((i) => [i, true]))
+        Object.fromEntries(heatIndicesWithResults.map((i) => [i, true]))
     );
     const [roundOpen, setRoundOpen] = useState<Record<string, boolean>>(() => {
         const open: Record<string, boolean> = {};
-        heatIndices.forEach((heatIndex) => {
+        heatIndicesWithResults.forEach((heatIndex) => {
             const rounds = heatResults.roundsByHeat[heatIndex] ?? [0];
             rounds.forEach((roundIndex) => {
                 open[`${heatIndex}-${roundIndex}`] = true;
@@ -143,7 +151,7 @@ export function QualifyingHeatsResultsView({
                     </AccordionHeader>
 
                     {mainOpen &&
-                        heatIndices.map((heatIndex) => {
+                        heatIndicesWithResults.map((heatIndex) => {
                             const isHeatOpen = heatOpen[heatIndex] ?? true;
                             const rounds = heatResults.roundsByHeat[heatIndex] ?? [0];
                             const isFinal = final && heatIndex === heats.length;
