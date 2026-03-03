@@ -19,17 +19,19 @@ function fetchRegistration(
         .eq("event_id", eventId)
         .eq("user_id", userId)
         .maybeSingle()
-        .then(({ data }) => {
-            if (!data) {
-                setStatus({ isRegistered: false, heatIndex: null });
-                return;
-            }
-            setStatus({
-                isRegistered: true,
-                heatIndex: data.heat_index ?? null,
-            });
-        })
-        .catch(() => setStatus({ isRegistered: false, heatIndex: null }));
+        .then(
+            ({ data }) => {
+                if (!data) {
+                    setStatus({ isRegistered: false, heatIndex: null });
+                    return;
+                }
+                setStatus({
+                    isRegistered: true,
+                    heatIndex: data.heat_index ?? null,
+                });
+            },
+            () => setStatus({ isRegistered: false, heatIndex: null })
+        );
 }
 
 export function useEventRegistrationStatus(
@@ -55,20 +57,22 @@ export function useEventRegistrationStatus(
             .eq("event_id", eventId)
             .eq("user_id", userId)
             .maybeSingle()
-            .then(({ data }) => {
-                if (cancelled) return;
-                if (!data) {
-                    setStatus({ isRegistered: false, heatIndex: null });
-                    return;
+            .then(
+                ({ data }) => {
+                    if (cancelled) return;
+                    if (!data) {
+                        setStatus({ isRegistered: false, heatIndex: null });
+                        return;
+                    }
+                    setStatus({
+                        isRegistered: true,
+                        heatIndex: data.heat_index ?? null,
+                    });
+                },
+                () => {
+                    if (!cancelled) setStatus({ isRegistered: false, heatIndex: null });
                 }
-                setStatus({
-                    isRegistered: true,
-                    heatIndex: data.heat_index ?? null,
-                });
-            })
-            .catch(() => {
-                if (!cancelled) setStatus({ isRegistered: false, heatIndex: null });
-            });
+            );
         return () => {
             cancelled = true;
         };
