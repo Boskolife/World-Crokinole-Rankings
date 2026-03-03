@@ -12,6 +12,7 @@ interface ICustomRoundedDropdownProps {
     onChange?: (value: string) => void;
     className?: string;
     disabled?: boolean;
+    defaultOpen?: boolean;
 }
 
 export function CustomRoundedDropdown(props: ICustomRoundedDropdownProps) {
@@ -23,9 +24,10 @@ export function CustomRoundedDropdown(props: ICustomRoundedDropdownProps) {
         onChange,
         className,
         disabled = false,
+        defaultOpen = false,
     } = props;
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(defaultOpen);
     const [isClosing, setIsClosing] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);

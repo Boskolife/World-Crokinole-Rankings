@@ -175,6 +175,7 @@ export const Events: React.FC<IEventsProps> = ({
                             className={css.events_head_dropdown}
                             value={dateFilter}
                             onChange={setDateFilter}
+                            defaultOpen
                         />
                         <CustomRoundedDropdown
                             id="Location"
@@ -183,6 +184,7 @@ export const Events: React.FC<IEventsProps> = ({
                             className={css.events_head_dropdown}
                             value={locationFilter}
                             onChange={setLocationFilter}
+                            defaultOpen
                         />
                         <CustomRoundedDropdown
                             id="Format"
@@ -191,6 +193,7 @@ export const Events: React.FC<IEventsProps> = ({
                             className={css.events_head_dropdown}
                             value={formatFilter}
                             onChange={setFormatFilter}
+                            defaultOpen
                         />
                         <CustomRoundedDropdown
                             id="Type"
@@ -199,6 +202,7 @@ export const Events: React.FC<IEventsProps> = ({
                             className={css.events_head_dropdown}
                             value={typeFilter}
                             onChange={setTypeFilter}
+                            defaultOpen
                         />
                     </div>
                     <div

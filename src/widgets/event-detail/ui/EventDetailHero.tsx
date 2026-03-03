@@ -106,7 +106,10 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         totalParticipants != null &&
         currentRank != null &&
         currentRank >= totalParticipants;
-    const feeStr = price === "free" || price === "Free" ? "Free" : price;
+    const feeStr = (() => {
+        const p = (price ?? "").toString().trim().toLowerCase();
+        return p === "" || p === "free" || p === "0" ? "Free" : price;
+    })();
 
     return (
         <section className={css.hero}>
@@ -115,14 +118,6 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                     <h1 className={css.page_title}>{title}</h1>
                     {isCreator && (
                         <div className={css.title_actions}>
-                            {isEventEnded && (
-                                <Link
-                                    href={`/${locale}/events/${eventId}/results`}
-                                    className={css.edit_button}
-                                >
-                                    Enter results
-                                </Link>
-                            )}
                             <Link
                                 href={`/${locale}/events/${eventId}/edit`}
                                 className={css.edit_button}
