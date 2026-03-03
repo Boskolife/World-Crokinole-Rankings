@@ -167,6 +167,8 @@ export function EventQualifyingHeats({
                                                 heatLabel: `Qualifying Heat ${i + 1}`,
                                                 heatDateTime: formatHeatDateTime(slot.start, slot.end),
                                                 players: playersByHeat[i] ?? [],
+                                                eventId,
+                                                createdBy,
                                             })
                                         }
                                     >

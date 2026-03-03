@@ -216,6 +216,42 @@ $avatar-bg: #737373;
     min-width: 100px;
 }
 
+.thRemove {
+    min-width: 44px;
+}
+
+.cellRemove {
+    min-width: 44px;
+}
+
+.removeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #737373;
+    transition: color 0.2s ease;
+
+    &:hover:not(:disabled) {
+        color: #c00;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.removeIcon {
+    width: 20px;
+    height: 20px;
+}
+
 .profileLink {
     font-family: "Inter", sans-serif;
     font-size: 16px;

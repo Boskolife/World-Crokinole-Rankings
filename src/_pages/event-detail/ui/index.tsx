@@ -58,7 +58,11 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     createdBy={event.createdBy}
                 />
             )}
-            <EventRegisteredPlayers players={registeredPlayers} />
+            <EventRegisteredPlayers
+                players={registeredPlayers}
+                eventId={event.id}
+                createdBy={event.createdBy}
+            />
             <EventDetailUpcomingEvents events={upcomingAtLocation} />
         </>
     );

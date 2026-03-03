@@ -67,3 +67,39 @@ export function useEventRegistration() {
 
     return { registerForEvent, state, resetState };
 }
+
+export function useRemoveEventRegistration() {
+    const [state, setState] = useState<EventRegistrationState>({ status: "idle" });
+
+    const removeFromEvent = useCallback(
+        async (eventId: number, userId: string) => {
+            setState({ status: "loading" });
+            try {
+                const { error } = await supabase
+                    .from("event_registrations")
+                    .delete()
+                    .eq("event_id", eventId)
+                    .eq("user_id", userId);
+                if (error) {
+                    setState({ status: "error", message: error.message });
+                    return false;
+                }
+                setState({ status: "success" });
+                return true;
+            } catch (err) {
+                setState({
+                    status: "error",
+                    message: err instanceof Error ? err.message : "Failed to remove",
+                });
+                return false;
+            }
+        },
+        []
+    );
+
+    const resetState = useCallback(() => {
+        setState({ status: "idle" });
+    }, []);
+
+    return { removeFromEvent, state, resetState };
+}

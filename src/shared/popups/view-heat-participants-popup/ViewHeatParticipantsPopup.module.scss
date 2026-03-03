@@ -6,11 +6,29 @@ $border: #d2d2d2;
 $row-alt-bg: #ecf5fd;
 $avatar-bg: #737373;
 
+.popupWithTable {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+
+    > div:last-child {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
 .section {
     display: flex;
     flex-direction: column;
     gap: 30px;
     width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .header {
@@ -40,6 +58,9 @@ $avatar-bg: #737373;
 .tableWrap {
     width: 100%;
     overflow-x: auto;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .tableHeader {
@@ -177,4 +198,42 @@ $avatar-bg: #737373;
     font-size: 16px;
     color: $body-color;
     padding: 16px 0;
+}
+
+.thRemove {
+    min-width: 44px;
+    flex-shrink: 0;
+}
+
+.cellRemove {
+    min-width: 44px;
+    flex-shrink: 0;
+}
+
+.removeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #737373;
+    transition: color 0.2s ease;
+
+    &:hover:not(:disabled) {
+        color: #c00;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.removeIcon {
+    width: 20px;
+    height: 20px;
 }

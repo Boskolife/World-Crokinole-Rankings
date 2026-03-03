@@ -2,9 +2,11 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
+import { useAuth } from "@/shared/hooks/use-auth";
 import type { IPlayer } from "@/shared/types";
 import css from "../styles.module.scss";
 import modCss from "./ViewHeatParticipantsPopup.module.scss";
@@ -16,17 +18,40 @@ type ViewHeatParticipantsPopupData = {
     heatLabel?: string;
     heatDateTime?: string;
     players?: IPlayer[];
+    eventId?: number;
+    createdBy?: string | null;
 };
 
 export const ViewHeatParticipantsPopup: React.FC = () => {
-    const { closePopup, getPopupData } = usePopup();
+    const router = useRouter();
+    const { openPopup, closePopup, getPopupData } = usePopup();
+    const { user } = useAuth();
     const data = getPopupData("view-heat-participants") as ViewHeatParticipantsPopupData | undefined;
     const heatLabel = data?.heatLabel ?? "Qualifying Heat";
     const heatDateTime = data?.heatDateTime ?? "";
     const players = data?.players ?? [];
+    const eventId = data?.eventId;
+    const createdBy = data?.createdBy;
+    const showRemove = Boolean(eventId && user?.id && createdBy === user?.id);
+
+    const handleRemoveClick = (player: IPlayer) => {
+        if (eventId == null) return;
+        closePopup("view-heat-participants");
+        openPopup("remove-event-participant-confirm", {
+            eventId,
+            userId: player.id,
+            playerName: player.name,
+            onSuccess: () => {
+                window.dispatchEvent(
+                    new CustomEvent("event-registration-updated", { detail: { eventId } })
+                );
+                router.refresh();
+            },
+        });
+    };
 
     return (
-        <div className={css.popup}>
+        <div className={cn(css.popup, modCss.popupWithTable)}>
             <div className={css.popup_close}>
                 <Icon
                     name="x"
@@ -48,6 +73,7 @@ export const ViewHeatParticipantsPopup: React.FC = () => {
                             <div className={modCss.thKingdom}>Kingdom</div>
                             <div className={modCss.thClub}>Club</div>
                             <div className={modCss.thRating}>Rating</div>
+                            {showRemove && <div className={modCss.thRemove} />}
                         </div>
                         <div className={modCss.tableBody}>
                             {players.length === 0 ? (
@@ -98,6 +124,22 @@ export const ViewHeatParticipantsPopup: React.FC = () => {
                                         <div className={modCss.cellRating}>
                                             {player.rating}
                                         </div>
+                                        {showRemove && eventId != null && (
+                                            <div className={modCss.cellRemove}>
+                                                <button
+                                                    type="button"
+                                                    className={modCss.removeBtn}
+                                                    title="Remove from event"
+                                                    onClick={() => handleRemoveClick(player)}
+                                                >
+                                                    <Icon
+                                                        name="trash"
+                                                        className={modCss.removeIcon}
+                                                        aria-hidden
+                                                    />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             )}

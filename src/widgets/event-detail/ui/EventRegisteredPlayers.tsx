@@ -2,9 +2,12 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import { useTableSort } from "@/shared/hooks";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { usePopup } from "@/shared/contexts/popup-context";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { clientRoutes } from "@/shared/routes/client";
 import type { IPlayer } from "@/shared/types";
@@ -12,12 +15,18 @@ import css from "./EventRegisteredPlayers.module.scss";
 
 export interface EventRegisteredPlayersProps {
     players: IPlayer[];
+    eventId?: number;
+    createdBy?: string | null;
 }
 
 const getCountryFlagUrl = (countryCode: string) =>
     `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
-export function EventRegisteredPlayers({ players }: EventRegisteredPlayersProps) {
+export function EventRegisteredPlayers({ players, eventId, createdBy }: EventRegisteredPlayersProps) {
+    const router = useRouter();
+    const { openPopup } = usePopup();
+    const { user } = useAuth();
+    const isCreator = Boolean(eventId && createdBy && user?.id && createdBy === user.id);
     const {
         sortColumn,
         sortDirection,
@@ -105,6 +114,7 @@ export function EventRegisteredPlayers({ players }: EventRegisteredPlayersProps)
                             />
                         </button>
                         <div className={css.thProfile} />
+                        {isCreator && <div className={css.thRemove} />}
                     </div>
                     <div className={css.tableBody}>
                         {sortedPlayers.map((player, index) => (
@@ -164,6 +174,36 @@ export function EventRegisteredPlayers({ players }: EventRegisteredPlayersProps)
                                         View profile
                                     </RootLink>
                                 </div>
+                                {isCreator && eventId != null && (
+                                    <div className={css.cellRemove}>
+                                        <button
+                                            type="button"
+                                            className={css.removeBtn}
+                                            title="Remove from event"
+                                            onClick={() => {
+                                                openPopup("remove-event-participant-confirm", {
+                                                    eventId,
+                                                    userId: player.id,
+                                                    playerName: player.name,
+                                                    onSuccess: () => {
+                                                        window.dispatchEvent(
+                                                            new CustomEvent("event-registration-updated", {
+                                                                detail: { eventId },
+                                                            })
+                                                        );
+                                                        router.refresh();
+                                                    },
+                                                });
+                                            }}
+                                        >
+                                            <Icon
+                                                name="trash"
+                                                className={css.removeIcon}
+                                                aria-hidden
+                                            />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

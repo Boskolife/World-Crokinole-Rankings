@@ -10,3 +10,4 @@ export { useProfileInfo } from "./use-profile-info";
 export { useUserProfile } from "./use-user-profile";
 export { useLanguageSwitcher } from "./use-language-switcher";
 export { useTableSort } from "./use-table-sort";
+export { useRemoveEventRegistration } from "./use-event-registration";
