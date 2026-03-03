@@ -191,6 +191,7 @@ export function ClubDetailClient({
             const res = await fetch(`/api/user-email?userId=${encodeURIComponent(admin.userId)}`);
             const data = await res.json().catch(() => ({}));
             if (res.ok && data?.email) {
+                console.log("Email (mailto):", data.email);
                 window.location.href = `mailto:${data.email}`;
             }
         } finally {
