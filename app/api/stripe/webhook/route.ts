@@ -13,6 +13,55 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
+async function applyEventRegistrationFromMetadata(metadata: { eventId?: string; userId?: string; heatIndex?: string }): Promise<void> {
+    const userId = metadata.userId;
+    const eventIdRaw = metadata.eventId;
+    if (!userId || !eventIdRaw) return;
+    const eventIdNum = parseInt(String(eventIdRaw), 10);
+    if (Number.isNaN(eventIdNum)) {
+        console.warn("Invalid eventId in event_registration metadata");
+        return;
+    }
+    const heatIndexStr = metadata.heatIndex;
+    const { data: eventData } = await supabase
+        .from("events")
+        .select("total_participants, capacity")
+        .eq("id", eventIdNum)
+        .single();
+    const capacity = eventData?.total_participants ?? eventData?.capacity ?? null;
+    let shouldInsert = true;
+    if (capacity != null) {
+        const { count, error: countError } = await supabase
+            .from("event_registrations")
+            .select("*", { count: "exact", head: true })
+            .eq("event_id", eventIdNum);
+        if (!countError && count != null && count >= capacity) {
+            console.warn(`Event ${eventIdNum} is full, skipping registration for user ${userId}`);
+            shouldInsert = false;
+        }
+    }
+    if (!shouldInsert) return;
+    const row: { event_id: number; user_id: string; heat_index?: number } = {
+        event_id: eventIdNum,
+        user_id: userId,
+    };
+    if (heatIndexStr !== "" && heatIndexStr != null) {
+        const hi = parseInt(String(heatIndexStr), 10);
+        if (!Number.isNaN(hi)) row.heat_index = hi;
+    }
+    const { error: insertError } = await supabase.from("event_registrations").insert(row);
+    if (insertError) {
+        if (insertError.code === "23505") {
+            console.warn(`User ${userId} already registered for event ${eventIdNum}`);
+        } else {
+            console.error("Event registration insert error:", insertError);
+            throw new Error(`Failed to register for event: ${insertError.message}`);
+        }
+    } else {
+        console.log(`Event registration completed for user ${userId}, event ${eventIdNum}`);
+    }
+}
+
 // Webhook configuration - disable body parsing
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -167,53 +216,11 @@ export async function POST(request: NextRequest) {
                 const metadataType = session.metadata?.type;
 
                 if (metadataType === "event_registration" && userId) {
-                    const eventIdRaw = session.metadata?.eventId;
-                    const heatIndexStr = session.metadata?.heatIndex;
-                    if (eventIdRaw) {
-                        const eventIdNum = parseInt(String(eventIdRaw), 10);
-                        if (Number.isNaN(eventIdNum)) {
-                            console.warn("Invalid eventId in event_registration metadata");
-                        } else {
-                            const { data: eventData } = await supabase
-                                .from("events")
-                                .select("total_participants, capacity")
-                                .eq("id", eventIdNum)
-                                .single();
-                            const capacity = eventData?.total_participants ?? eventData?.capacity ?? null;
-                            let shouldInsert = true;
-                            if (capacity != null) {
-                                const { count, error: countError } = await supabase
-                                    .from("event_registrations")
-                                    .select("*", { count: "exact", head: true })
-                                    .eq("event_id", eventIdNum);
-                                if (!countError && count != null && count >= capacity) {
-                                    console.warn(`Event ${eventIdNum} is full, skipping registration for user ${userId}`);
-                                    shouldInsert = false;
-                                }
-                            }
-                            if (shouldInsert) {
-                                const row: { event_id: number; user_id: string; heat_index?: number } = {
-                                    event_id: eventIdNum,
-                                    user_id: userId,
-                                };
-                                if (heatIndexStr !== "" && heatIndexStr != null) {
-                                    const hi = parseInt(String(heatIndexStr), 10);
-                                    if (!Number.isNaN(hi)) row.heat_index = hi;
-                                }
-                                const { error: insertError } = await supabase.from("event_registrations").insert(row);
-                                if (insertError) {
-                                    if (insertError.code === "23505") {
-                                        console.warn(`User ${userId} already registered for event ${eventIdNum}`);
-                                    } else {
-                                        console.error("Event registration insert error:", insertError);
-                                        throw new Error(`Failed to register for event: ${insertError.message}`);
-                                    }
-                                } else {
-                                    console.log(`Event registration completed for user ${userId}, event ${eventIdNum}`);
-                                }
-                            }
-                        }
-                    }
+                    await applyEventRegistrationFromMetadata({
+                        eventId: session.metadata?.eventId as string | undefined,
+                        userId,
+                        heatIndex: session.metadata?.heatIndex as string | undefined,
+                    });
                 } else {
                     const subscriptionId = session.subscription as string;
                     console.log(`Checkout completed - userId: ${userId}, subscriptionId: ${subscriptionId}`);
@@ -228,6 +235,18 @@ export async function POST(request: NextRequest) {
                     } else {
                         console.warn("Missing userId or subscriptionId in checkout.session.completed");
                     }
+                }
+            }
+
+            if (event.type === "payment_intent.succeeded") {
+                const paymentIntent = event.data.object as Stripe.PaymentIntent;
+                const metadataType = paymentIntent.metadata?.type;
+                if (metadataType === "event_registration") {
+                    await applyEventRegistrationFromMetadata({
+                        eventId: paymentIntent.metadata?.eventId as string | undefined,
+                        userId: paymentIntent.metadata?.userId as string | undefined,
+                        heatIndex: paymentIntent.metadata?.heatIndex as string | undefined,
+                    });
                 }
             }
 
