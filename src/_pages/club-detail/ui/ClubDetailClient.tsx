@@ -183,6 +183,21 @@ export function ClubDetailClient({
         [openPopup, club, admins.length, refreshAfterMemberChange]
     );
 
+    const [emailLoadingUserId, setEmailLoadingUserId] = useState<string | null>(null);
+    const handleEmailAdmin = useCallback(async (admin: IClubAdmin) => {
+        if (!admin.userId) return;
+        setEmailLoadingUserId(admin.userId);
+        try {
+            const res = await fetch(`/api/user-email?userId=${encodeURIComponent(admin.userId)}`);
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data?.email) {
+                window.location.href = `mailto:${data.email}`;
+            }
+        } finally {
+            setEmailLoadingUserId(null);
+        }
+    }, []);
+
     const handleOpenInviteMember = useCallback(() => {
         openPopup("invite-member", { club, onClosed: () => router.refresh() });
     }, [openPopup, club, router]);
@@ -528,10 +543,18 @@ export function ClubDetailClient({
                                                     <Icon name="edit_2" className={css.club_detail_admin_edit_icon} />
                                                 </button>
                                             )}
-                                            <button type="button" className={css.club_detail_chat_btn}>
-                                                <Icon name="share" className={css.club_detail_chat_icon} />
-                                                Chat
-                                            </button>
+                                            {admin.userId !== user?.id && (
+                                                <button
+                                                    type="button"
+                                                    className={css.club_detail_chat_btn}
+                                                    onClick={() => handleEmailAdmin(admin)}
+                                                    disabled={emailLoadingUserId === admin.userId}
+                                                    aria-label="Send email"
+                                                >
+                                                    <Icon name="mail" className={css.club_detail_chat_icon} />
+                                                    {emailLoadingUserId === admin.userId ? "..." : "Chat"}
+                                                </button>
+                                            )}
                                         </div>
                                     </li>
                                 ))}

@@ -36,6 +36,7 @@ import { List } from "./svg/list";
 import { Location } from "./svg/location";
 import { Members } from "./svg/members";
 import { Lock } from "./svg/lock";
+import { Mail } from "./svg/mail";
 
 export const icons = {
     eye: Eye,
@@ -76,4 +77,5 @@ export const icons = {
     location: Location,
     members: Members,
     lock: Lock,
+    mail: Mail,
 };

@@ -446,16 +446,20 @@
     padding: 6px 14px;
     border-radius: 120px;
     border: 1px solid var(--blue-dark);
-    background: var(--white);
-    color: var(--blue-dark);
+    background: var(--blue-dark);
+    color: var(--white);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+    transition: background 0.2s, color 0.2s, opacity 0.2s;
 
-    &:hover {
-        background: var(--blue-dark);
-        color: var(--white);
+    &:hover:not(:disabled) {
+        opacity: 0.9;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
     }
 }
 
