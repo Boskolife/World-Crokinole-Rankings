@@ -65,6 +65,18 @@
     &_wide_view_heat {
         max-width: 980px;
     }
+
+    &_claim_history {
+        max-width: min(1280px, 96vw);
+        width: calc(100% - 24px);
+        height: calc(100dvh - 24px);
+        max-height: calc(100dvh - 24px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        padding-top: 44px;
+    }
 }
 
 @keyframes backdropFadeIn {
@@ -92,6 +104,22 @@
 /* Popup */
 
 .popup {
+
+    &_fill {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .popup_content {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+    }
 
     &_content {
         display: flex;

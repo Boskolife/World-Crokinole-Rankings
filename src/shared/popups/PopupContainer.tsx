@@ -73,7 +73,7 @@ export const PopupContainer: React.FC = () => {
                     (isPopupOpen("create-club") || isPopupOpen("edit-club")) &&
                         cn(css.popup_container_no_scroll, css.popup_container_fixed_height),
                     isPopupOpen("view-heat-participants") &&
-                        cn(css.popup_container_wide_view_heat, css.popup_container_no_scroll, css.popup_container_fixed_height)
+                        cn(css.popup_container_wide_view_heat, css.popup_container_no_scroll, css.popup_container_fixed_height),
                 )}
             >
                 {isPopupOpen("verify") && <VerifyPopup />}

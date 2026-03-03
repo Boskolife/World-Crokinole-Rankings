@@ -104,6 +104,19 @@
             opacity: 0.9;
             color: var(--white);
         }
+
+        &_primary {
+            background-color: transparent;
+            border: 1px solid var(--gold-dark);
+            color: var(--gold-dark);
+            border-radius: 120px;
+
+            &:hover {
+                opacity: 1;
+                color: var(--gold-light);
+                border-color: var(--gold-light);
+            }
+        }
     }
 }
 

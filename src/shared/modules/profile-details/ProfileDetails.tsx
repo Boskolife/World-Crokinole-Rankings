@@ -2,7 +2,6 @@
 import React from "react";
 import css from "./styles.module.scss";
 import Image from "next/image";
-import { Button } from "@/shared/ui/buttons";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
 import cn from "classnames";
@@ -10,8 +9,8 @@ import { useUserProfile } from "@/shared/hooks";
 
 export const ProfileDetails: React.FC = () => {
     const { fullName, email, profile } = useUserProfile();
-    const kingdom = profile?.country || "-";
-    const club = profile?.club || "-";
+    const kingdom = profile?.country || "—";
+    const club = profile?.club || "—";
     const avatarSrc =
         profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
     return (
@@ -35,13 +34,6 @@ export const ProfileDetails: React.FC = () => {
                             >
                                 {fullName}
                             </h4>
-                            <span
-                                className={
-                                    css.profile_details_left_profile_role
-                                }
-                            >
-                                {kingdom === "-" ? "👑 King" : `👑 King of ${kingdom}`}
-                            </span>
                         </div>
                     </div>
                     <div className={css.profile_details_left_buttons}>
@@ -51,12 +43,12 @@ export const ProfileDetails: React.FC = () => {
                         >
                             Edit profile
                         </RootLink>
-                        <Button
-                            buttonType="primary"
-                            className={css.profile_details_left_button}
+                        <RootLink
+                            href={clientRoutes.claimHistory}
+                            className={cn(css.profile_details_left_button, css.profile_details_left_button_link, css.profile_details_left_button_link_primary)}
                         >
                             Claim history
-                        </Button>
+                        </RootLink>
                     </div>
                 </div>
                 <div className={css.profile_details_right}>
@@ -80,7 +72,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                1420
+                                —
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>
@@ -96,7 +88,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                1280
+                                —
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>
@@ -112,7 +104,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                1240
+                                —
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import cn from "classnames";
 import css from "./styles.module.scss";
 import { SearchInput, CustomRoundedDropdown } from "@/shared/ui";
 import { Button } from "@/shared/ui/buttons";
@@ -20,7 +21,11 @@ const kingdomOptions = [
     { value: "Other", label: "Other" },
 ];
 
-export const MatchHistory: React.FC = () => {
+interface MatchHistoryProps {
+    compact?: boolean;
+}
+
+export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
     const { openPopup } = usePopup();
     const router = useRouter();
     const locale = useLocale();
@@ -40,7 +45,7 @@ export const MatchHistory: React.FC = () => {
         new Set()
     );
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 5;
+    const pageSize = compact ? 4 : 5;
 
     const [searchValue, setSearchValue] = useState("");
     const [search, setSearch] = useState("");
@@ -131,7 +136,7 @@ export const MatchHistory: React.FC = () => {
     };
 
     return (
-        <section className={css.match_history}>
+        <section className={cn(css.match_history, compact && css.match_history_compact)}>
             <div className="container">
                 <div className={css.match_history_head}>
                     <div className={css.match_history_head_inputs}>
