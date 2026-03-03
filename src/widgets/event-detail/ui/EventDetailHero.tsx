@@ -61,7 +61,15 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         strengthOfField,
         tournamentPointsAvailable,
         qualifyingHeats,
+        endDate,
+        startDate,
     } = event;
+
+    const isEventEnded = (() => {
+        const ref = endDate || startDate;
+        if (!ref) return false;
+        return new Date(ref) < new Date();
+    })();
 
     const isCreator = Boolean(createdBy && user?.id && createdBy === user.id);
 
@@ -168,59 +176,66 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                 <DetailRow label="Fee" value={feeStr} />
                             </div>
                         </div>
-                        <div className={css.card_actions}>
-                            {!isCreator && (
-                                <>
-                                    {!isAuth ? (
-                                        <span
-                                            className={cn(css.join_button, css.join_button_disabled)}
-                                            title="Sign in to join"
-                                        >
-                                            Join tournament
-                                        </span>
-                                    ) : regStatus?.isRegistered ? (
-                                        <span
-                                            className={cn(css.join_button, css.join_button_registered)}
-                                        >
-                                            Registered
-                                        </span>
-                                    ) : isFull ? (
-                                        <span
-                                            className={cn(css.join_button, css.join_button_registered)}
-                                        >
-                                            Full
-                                        </span>
-                                    ) : (
-                                        <>
-                                            <button
-                                                type="button"
-                                                className={css.join_button}
-                                                disabled={state.status === "loading"}
-                                                onClick={handleJoinClick}
+                        {!isEventEnded && (
+                            <div className={css.card_actions}>
+                                {!isCreator && (
+                                    <>
+                                        {!isAuth ? (
+                                            <span
+                                                className={cn(css.join_button, css.join_button_disabled)}
+                                                title="Sign in to join"
                                             >
-                                                {state.status === "loading"
-                                                    ? "Joining…"
-                                                    : "Join tournament"}
-                                            </button>
-                                            {state.status === "error" && (
-                                                <span className={css.join_error}>
-                                                    {state.message}
-                                                </span>
-                                            )}
-                                        </>
-                                    )}
-                                </>
-                            )}
-                            <span
-                                className={cn(css.registration_note, {
-                                    [css._required]: isRegistrationRequired,
-                                })}
-                            >
-                                {isRegistrationRequired
-                                    ? "Registration is Required"
-                                    : "No registration required"}
-                            </span>
-                        </div>
+                                                Join tournament
+                                            </span>
+                                        ) : regStatus?.isRegistered ? (
+                                            <span
+                                                className={cn(css.join_button, css.join_button_registered)}
+                                            >
+                                                Registered
+                                            </span>
+                                        ) : isFull ? (
+                                            <span
+                                                className={cn(css.join_button, css.join_button_registered)}
+                                            >
+                                                Full
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className={css.join_button}
+                                                    disabled={state.status === "loading"}
+                                                    onClick={handleJoinClick}
+                                                >
+                                                    {state.status === "loading"
+                                                        ? "Joining…"
+                                                        : "Join tournament"}
+                                                </button>
+                                                {state.status === "error" && (
+                                                    <span className={css.join_error}>
+                                                        {state.message}
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                <span
+                                    className={cn(css.registration_note, {
+                                        [css._required]: isRegistrationRequired,
+                                    })}
+                                >
+                                    {isRegistrationRequired
+                                        ? "Registration is Required"
+                                        : "No registration required"}
+                                </span>
+                            </div>
+                        )}
+                        {isEventEnded && (
+                            <div className={css.event_ended_banner}>
+                                The event has ended
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

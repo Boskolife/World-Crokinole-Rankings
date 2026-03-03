@@ -267,3 +267,21 @@ $edit-outline: #d48f1f;
         color: $registration-note;
     }
 }
+
+$event-ended-bg: #fed99d;
+$event-ended-text: #0e0e0e;
+
+.event_ended_banner {
+    width: 100%;
+    margin-top: 14px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    background: $event-ended-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: $event-ended-text;
+}

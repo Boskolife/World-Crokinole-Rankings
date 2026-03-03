@@ -1,0 +1,77 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+$title-color: #00284b;
+$body-color: #0e0e0e;
+$gold-dark: #d48f1f;
+$gold-light: #fed99d;
+
+.section {
+    padding: 0 0 60px;
+    background: #ffffff;
+
+    @include media-down(sm) {
+        padding-bottom: 40px;
+    }
+}
+
+.resultsWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.resultsTitle {
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: $title-color;
+    margin: 0;
+
+    @include media-down(sm) {
+        font-size: 24px;
+    }
+}
+
+.resultsList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.resultsRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px 8px 0;
+
+    @include media-down(sm) {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+.resultsLabel {
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.35;
+    color: $body-color;
+
+    @include media-down(sm) {
+        font-size: 18px;
+    }
+}
+
+.inProcessPill {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-radius: 120px;
+    border: 1px solid $gold-light;
+    background: $gold-light;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $gold-dark;
+}

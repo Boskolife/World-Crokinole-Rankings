@@ -1,6 +1,7 @@
 import {
     EventDetailHero,
     EventQualifyingHeats,
+    EventTournamentResults,
     EventRegisteredPlayers,
     EventDetailUpcomingEvents,
 } from "@/widgets/event-detail";
@@ -23,6 +24,12 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
 
     const event = await getEventById(eventId);
     if (!event) notFound();
+
+    const isEventEnded = (() => {
+        const ref = event.endDate || event.startDate;
+        if (!ref) return false;
+        return new Date(ref) < new Date();
+    })();
 
     const hasQualifyingHeats =
         event.qualifyingHeats?.heats?.length != null &&
@@ -56,8 +63,11 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     }
                     totalParticipants={event.totalParticipants}
                     createdBy={event.createdBy}
+                    isEventEnded={isEventEnded}
+                    isRanked={event.isRanked}
                 />
             )}
+            {isEventEnded && <EventTournamentResults isRanked={event.isRanked} />}
             <EventRegisteredPlayers
                 players={registeredPlayers}
                 eventId={event.id}

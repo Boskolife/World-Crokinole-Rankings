@@ -19,6 +19,8 @@ export interface EventQualifyingHeatsProps {
     isFull?: boolean;
     totalParticipants?: number | null;
     createdBy?: string | null;
+    isEventEnded?: boolean;
+    isRanked?: boolean;
 }
 
 function formatHeatDateTime(start: string, end: string): string {
@@ -49,6 +51,8 @@ export function EventQualifyingHeats({
     isFull = false,
     totalParticipants,
     createdBy,
+    isEventEnded = false,
+    isRanked = true,
 }: EventQualifyingHeatsProps) {
     const router = useRouter();
     const { openPopup } = usePopup();
@@ -82,6 +86,30 @@ export function EventQualifyingHeats({
     };
 
     if (!heats?.length) return null;
+
+    const resultsStatusLabel = isRanked ? "In process" : "The event has ended";
+
+    if (isEventEnded) {
+        return (
+            <section className={css.section}>
+                <div className="container">
+                    <div className={css.resultsWrap}>
+                        <h2 className={css.resultsTitle}>Qualifying Heats results</h2>
+                        <div className={css.resultsList}>
+                            <div className={css.resultsRow}>
+                                <span className={css.resultsLabel}>Match results</span>
+                                <span className={css.inProcessPill}>{resultsStatusLabel}</span>
+                            </div>
+                            <div className={css.resultsRow}>
+                                <span className={css.resultsLabel}>Leaderboard</span>
+                                <span className={css.inProcessPill}>{resultsStatusLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className={css.section}>
