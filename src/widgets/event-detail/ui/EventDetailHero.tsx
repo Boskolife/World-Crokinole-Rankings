@@ -159,12 +159,12 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                             <div className={css.details_top_right}>
                                 <DetailRow
                                     label="Strength of field:"
-                                    value={strengthOfField}
+                                    value={strengthOfField ?? "—"}
                                     inline
                                 />
                                 <DetailRow
                                     label="Tournament points available:"
-                                    value={tournamentPointsAvailable}
+                                    value={tournamentPointsAvailable ?? "—"}
                                     inline
                                 />
                             </div>
