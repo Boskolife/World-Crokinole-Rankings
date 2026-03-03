@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
@@ -10,6 +11,8 @@ import { useAuth } from "@/shared/hooks/use-auth";
 import { useEventRegistration } from "@/shared/hooks/use-event-registration";
 import { useEventRegistrationStatus } from "@/shared/hooks/use-event-registration-status";
 import type { IEventCardProps } from "@/shared/types";
+import { localeConfig } from "@/app/localization/config";
+import { useParams } from "next/navigation";
 import css from "./EventDetailHero.module.scss";
 
 export interface EventDetailHeroProps {
@@ -36,11 +39,14 @@ function DetailRow({
 
 export function EventDetailHero({ event }: EventDetailHeroProps) {
     const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale ?? localeConfig.defaultLocale;
     const { openPopup } = usePopup();
     const { isAuth, user } = useAuth();
     const { registerForEvent, state, resetState } = useEventRegistration();
     const {
         id: eventId,
+        createdBy,
         image,
         title,
         price,
@@ -56,6 +62,8 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         tournamentPointsAvailable,
         qualifyingHeats,
     } = event;
+
+    const isCreator = Boolean(createdBy && user?.id && createdBy === user.id);
 
     const { status: regStatus, refetch: refetchRegStatus } = useEventRegistrationStatus(eventId, user?.id);
 
@@ -94,7 +102,18 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
     return (
         <section className={css.hero}>
             <div className="container">
-                <h1 className={css.page_title}>{title}</h1>
+                <div className={css.title_row}>
+                    <h1 className={css.page_title}>{title}</h1>
+                    {isCreator && (
+                        <Link
+                            href={`/${locale}/events/${eventId}/edit`}
+                            className={css.edit_button}
+                        >
+                            <Icon name="edit" className={css.edit_button_icon} />
+                            Edit
+                        </Link>
+                    )}
+                </div>
 
                 <div className={css.card}>
                     <div className={css.card_emblem}>
@@ -150,41 +169,45 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                             </div>
                         </div>
                         <div className={css.card_actions}>
-                            {!isAuth ? (
-                                <span
-                                    className={cn(css.join_button, css.join_button_disabled)}
-                                    title="Sign in to join"
-                                >
-                                    Join tournament
-                                </span>
-                            ) : regStatus?.isRegistered ? (
-                                <span
-                                    className={cn(css.join_button, css.join_button_registered)}
-                                >
-                                    Registered
-                                </span>
-                            ) : isFull ? (
-                                <span
-                                    className={cn(css.join_button, css.join_button_registered)}
-                                >
-                                    Full
-                                </span>
-                            ) : (
+                            {!isCreator && (
                                 <>
-                                    <button
-                                        type="button"
-                                        className={css.join_button}
-                                        disabled={state.status === "loading"}
-                                        onClick={handleJoinClick}
-                                    >
-                                        {state.status === "loading"
-                                            ? "Joining…"
-                                            : "Join tournament"}
-                                    </button>
-                                    {state.status === "error" && (
-                                        <span className={css.join_error}>
-                                            {state.message}
+                                    {!isAuth ? (
+                                        <span
+                                            className={cn(css.join_button, css.join_button_disabled)}
+                                            title="Sign in to join"
+                                        >
+                                            Join tournament
                                         </span>
+                                    ) : regStatus?.isRegistered ? (
+                                        <span
+                                            className={cn(css.join_button, css.join_button_registered)}
+                                        >
+                                            Registered
+                                        </span>
+                                    ) : isFull ? (
+                                        <span
+                                            className={cn(css.join_button, css.join_button_registered)}
+                                        >
+                                            Full
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <button
+                                                type="button"
+                                                className={css.join_button}
+                                                disabled={state.status === "loading"}
+                                                onClick={handleJoinClick}
+                                            >
+                                                {state.status === "loading"
+                                                    ? "Joining…"
+                                                    : "Join tournament"}
+                                            </button>
+                                            {state.status === "error" && (
+                                                <span className={css.join_error}>
+                                                    {state.message}
+                                                </span>
+                                            )}
+                                        </>
                                     )}
                                 </>
                             )}

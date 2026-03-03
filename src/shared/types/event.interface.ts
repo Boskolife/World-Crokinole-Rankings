@@ -10,6 +10,7 @@ export interface QualifyingHeatsData {
 
 export interface IEventCardProps {
     id: number;
+    createdBy?: string | null;
     image: string;
     title: string;
     price: string;
@@ -25,6 +26,7 @@ export interface IEventCardProps {
     currentRank?: number;
     totalParticipants?: number;
     startDate?: string;
+    endDate?: string;
     structure?: string;
     strengthOfField?: number;
     tournamentPointsAvailable?: number;

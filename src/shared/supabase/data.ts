@@ -56,6 +56,7 @@ export async function getEvents(): Promise<IEventCardProps[]> {
 
 const mapEventRowToCard = (event: {
     id: number;
+    created_by?: string | null;
     image: string | null;
     title: string;
     price: string;
@@ -80,6 +81,7 @@ const mapEventRowToCard = (event: {
     const currentRank = totalParticipants != null ? (event.current_rank ?? 0) : (event.current_rank ?? undefined);
     return {
     id: event.id,
+    createdBy: event.created_by ?? undefined,
     image: event.image || "",
     title: event.title,
     price: event.price,
@@ -94,6 +96,7 @@ const mapEventRowToCard = (event: {
     currentRank,
     totalParticipants,
     startDate: event.start_date || undefined,
+    endDate: event.end_date || undefined,
     strengthOfField: event.strength_of_field ?? undefined,
     tournamentPointsAvailable: event.tournament_points_available ?? undefined,
     structure: event.structure ?? undefined,
@@ -240,6 +243,7 @@ export interface CreateEventParams {
     latitude?: number | null;
     longitude?: number | null;
     qualifyingHeats?: QualifyingHeatsData | null;
+    createdByUserId?: string | null;
 }
 
 export async function createEvent(params: CreateEventParams): Promise<IEventCardProps> {
@@ -258,6 +262,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
         latitude,
         longitude,
         qualifyingHeats,
+        createdByUserId,
     } = params;
 
     const { data: newEvent, error: insertError } = await supabase
@@ -282,6 +287,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
             total_participants: capacity ?? null,
             strength_of_field: null,
             tournament_points_available: null,
+            created_by: createdByUserId ?? null,
         })
         .select("id")
         .single();
@@ -317,6 +323,102 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
 
     const event = await getEventById(eventId);
     if (!event) throw new Error("Event not found after creation");
+    return event;
+}
+
+export interface UpdateEventParams {
+    title?: string;
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+    format?: string;
+    isRanked?: boolean;
+    isRegistrationRequired?: boolean;
+    price?: string;
+    structure?: string;
+    coverFile?: File | null;
+    capacity?: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    qualifyingHeats?: QualifyingHeatsData | null;
+    strengthOfField?: number | null;
+    tournamentPointsAvailable?: number | null;
+}
+
+export async function updateEvent(
+    eventId: number,
+    params: UpdateEventParams
+): Promise<IEventCardProps> {
+    const {
+        title,
+        startDate,
+        endDate,
+        location,
+        format,
+        isRanked,
+        isRegistrationRequired,
+        price,
+        structure,
+        coverFile,
+        capacity,
+        latitude,
+        longitude,
+        qualifyingHeats,
+        strengthOfField,
+        tournamentPointsAvailable,
+    } = params;
+
+    const updatePayload: Record<string, unknown> = {};
+    if (title !== undefined) updatePayload.title = title.trim();
+    if (price !== undefined) updatePayload.price = (price || "0").trim();
+    if (location !== undefined) updatePayload.location = (location || "").trim();
+    if (format !== undefined) updatePayload.format = format.trim();
+    if (isRanked !== undefined) updatePayload.is_ranked = !!isRanked;
+    if (isRegistrationRequired !== undefined)
+        updatePayload.is_registration_required = !!isRegistrationRequired;
+    if (startDate !== undefined) updatePayload.start_date = startDate;
+    if (endDate !== undefined) updatePayload.end_date = endDate;
+    if (structure !== undefined)
+        updatePayload.structure = (structure || "").trim() || null;
+    if (capacity !== undefined) updatePayload.capacity = capacity ?? null;
+    if (capacity !== undefined)
+        updatePayload.total_participants = capacity ?? null;
+    if (latitude !== undefined) updatePayload.latitude = latitude ?? null;
+    if (longitude !== undefined) updatePayload.longitude = longitude ?? null;
+    if (qualifyingHeats !== undefined)
+        updatePayload.qualifying_heats = qualifyingHeats ?? null;
+    if (strengthOfField !== undefined)
+        updatePayload.strength_of_field = strengthOfField ?? null;
+    if (tournamentPointsAvailable !== undefined)
+        updatePayload.tournament_points_available = tournamentPointsAvailable ?? null;
+
+    if (Object.keys(updatePayload).length > 0) {
+        const { error: updateError } = await supabase
+            .from("events")
+            .update(updatePayload)
+            .eq("id", eventId);
+        if (updateError) throw new Error(updateError.message);
+    }
+
+    if (coverFile) {
+        const ext = getFileExtension(coverFile.name);
+        const path = `${eventId}/cover.${ext}`;
+        const { error: uploadError } = await supabase.storage
+            .from(EVENT_COVERS_BUCKET)
+            .upload(path, coverFile, { upsert: true });
+        if (!uploadError) {
+            const { data: urlData } = supabase.storage
+                .from(EVENT_COVERS_BUCKET)
+                .getPublicUrl(path);
+            await supabase
+                .from("events")
+                .update({ image: urlData.publicUrl })
+                .eq("id", eventId);
+        }
+    }
+
+    const event = await getEventById(eventId);
+    if (!event) throw new Error("Event not found after update");
     return event;
 }
 

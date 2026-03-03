@@ -6,8 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormField, TextareaField, CustomDropdown } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
-import { createEvent } from "@/shared/supabase/data";
-import { useAuth } from "@/shared/hooks/use-auth";
+import { updateEvent } from "@/shared/supabase/data";
 import {
     isSupabaseConfigured,
     supabaseConfigError,
@@ -19,13 +18,32 @@ import {
     qualifyingHeatsOptions,
 } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
-import css from "./styles.module.scss";
+import css from "../create-event-form/styles.module.scss";
 import { localeConfig } from "@/app/localization/config";
+import type { IEventCardProps } from "@/shared/types";
 
 const COVER_MAX_SIZE = 5 * 1024 * 1024;
 const COVER_ACCEPT = ".png,.jpeg,.jpg";
 
-type CreateEventFormValues = {
+function toLocalDateTime(iso: string | undefined): string {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const h = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return `${y}-${m}-${day}T${h}:${min}`;
+}
+
+function formatToOptionValue(format: string): string {
+    const f = (format || "").trim().toLowerCase();
+    if (f.includes("singles") && f.includes("doubles")) return "singles_or_doubles";
+    if (f.includes("doubles")) return "doubles";
+    return "singles";
+}
+
+type EditEventFormValues = {
     title: string;
     startDateTime: string;
     endDateTime: string;
@@ -39,42 +57,53 @@ type CreateEventFormValues = {
     qualifyingHeatsCount: string;
 };
 
-const defaultValues: CreateEventFormValues = {
-    title: "",
-    startDateTime: "",
-    endDateTime: "",
-    location: "",
-    eventType: "ranked",
-    format: "singles_or_doubles",
-    additionalInfo: "",
-    fee: "",
-    capacity: "",
-    needToRegister: "no",
-    qualifyingHeatsCount: "0",
+type EditEventFormProps = {
+    event: IEventCardProps;
+    backLinkHref: string;
+    backLinkLabel: string;
+    successRedirect: string;
 };
 
-type CreateEventFormProps = {
-    backLinkHref?: string;
-    backLinkLabel?: string;
-    successRedirect?: string;
-};
+function getDefaultValues(event: IEventCardProps): EditEventFormValues {
+    const heatsCount =
+        event.qualifyingHeats?.heats?.length != null
+            ? event.qualifyingHeats.heats.length
+            : 0;
+    return {
+        title: event.title ?? "",
+        startDateTime: toLocalDateTime(event.startDate),
+        endDateTime: toLocalDateTime(event.endDate),
+        location: event.location ?? "",
+        eventType: event.isRanked ? "ranked" : "unranked",
+        format: formatToOptionValue(event.format),
+        additionalInfo: event.structure ?? "",
+        fee: event.price === "Free" || event.price === "free" ? "" : (event.price ?? ""),
+        capacity:
+            event.totalParticipants != null ? String(event.totalParticipants) : "",
+        needToRegister: event.isRegistrationRequired ? "yes" : "no",
+        qualifyingHeatsCount: String(heatsCount),
+    };
+}
 
-export function CreateEventForm({
+export function EditEventForm({
+    event,
     backLinkHref,
     backLinkLabel,
     successRedirect,
-}: CreateEventFormProps) {
+}: EditEventFormProps) {
     const router = useRouter();
     const params = useParams() as { locale?: string };
-    const { user } = useAuth();
     const locale = params?.locale ?? localeConfig.defaultLocale;
+    const eventId = event.id;
+
+    const defaultValues = getDefaultValues(event);
 
     const {
         register,
         handleSubmit: formHandleSubmit,
         watch,
         formState: { errors },
-    } = useForm<CreateEventFormValues>({ defaultValues });
+    } = useForm<EditEventFormValues>({ defaultValues });
 
     const watchedEventType = watch("eventType");
     const watchedFormat = watch("format");
@@ -82,13 +111,23 @@ export function CreateEventForm({
     const watchedHeatsCount = watch("qualifyingHeatsCount");
     const heatsCount = Math.max(0, parseInt(watchedHeatsCount ?? "0", 10) || 0);
 
-    const [heatDateTimes, setHeatDateTimes] = useState<Record<number, string>>({});
-    const [finalDateTime, setFinalDateTime] = useState<string>("");
-    const heatDateInputId = (n: number) => `create-event-heat-${n}-date`;
-    const finalDateInputId = "create-event-final-date";
+    const [heatDateTimes, setHeatDateTimes] = useState<Record<number, string>>(() => {
+        const out: Record<number, string> = {};
+        event.qualifyingHeats?.heats?.forEach((slot, i) => {
+            out[i + 1] = toLocalDateTime(slot.start);
+        });
+        return out;
+    });
+    const [finalDateTime, setFinalDateTime] = useState<string>(() =>
+        event.qualifyingHeats?.final?.start
+            ? toLocalDateTime(event.qualifyingHeats.final.start)
+            : ""
+    );
+    const heatDateInputId = (n: number) => `edit-event-heat-${n}-date`;
+    const finalDateInputId = "edit-event-final-date";
 
     const [coverFile, setCoverFile] = useState<File | null>(null);
-    const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+    const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(event.image || null);
     const [coverError, setCoverError] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,9 +142,9 @@ export function CreateEventForm({
                 setCoverPreviewUrl(null);
             };
         } else {
-            setCoverPreviewUrl(null);
+            setCoverPreviewUrl(event.image || null);
         }
-    }, [coverFile]);
+    }, [coverFile, event.image]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -142,7 +181,7 @@ export function CreateEventForm({
 
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
-    const onSubmit = async (data: CreateEventFormValues) => {
+    const onSubmit = async (data: EditEventFormValues) => {
         setSubmitError(null);
         if (!isSupabaseConfigured) {
             setSubmitError(supabaseConfigError ?? "Supabase is not configured");
@@ -160,10 +199,18 @@ export function CreateEventForm({
             const price = (data.fee ?? "").trim() === "" ? "0" : (data.fee ?? "").trim();
             const cap = (data.capacity ?? "").trim() === "" ? null : parseInt(data.capacity, 10);
             const numCap = cap !== null && !Number.isNaN(cap) ? cap : null;
-            const formatLabel = data.format === "singles_or_doubles" ? "Singles or Doubles" : (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
+            const formatLabel =
+                data.format === "singles_or_doubles"
+                    ? "Singles or Doubles"
+                    : (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
-            const heatsCountNum = Math.max(0, parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0);
-            let qualifyingHeats: { heats: { start: string; end: string }[]; final?: { start: string; end: string } } | undefined;
+            const heatsCountNum = Math.max(
+                0,
+                parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0
+            );
+            let qualifyingHeats:
+                | { heats: { start: string; end: string }[]; final?: { start: string; end: string } }
+                | undefined;
             if (heatsCountNum > 0) {
                 const twoHoursMs = 2 * 60 * 60 * 1000;
                 const heats: { start: string; end: string }[] = [];
@@ -190,7 +237,7 @@ export function CreateEventForm({
                 }
             }
 
-            await createEvent({
+            await updateEvent(eventId, {
                 title: (data.title ?? "").trim(),
                 startDate,
                 endDate,
@@ -200,18 +247,16 @@ export function CreateEventForm({
                 isRegistrationRequired: data.needToRegister === "yes",
                 price,
                 structure: (data.additionalInfo ?? "").trim(),
-                coverFile,
+                coverFile: coverFile ?? undefined,
                 capacity: numCap,
-                qualifyingHeats: qualifyingHeats ?? null,
-                createdByUserId: user?.id ?? undefined,
+                qualifyingHeats: qualifyingHeats ?? undefined,
             });
-            const redirectPath = successRedirect ?? `/${locale}/events`;
-            router.push(redirectPath);
+            router.push(successRedirect);
         } catch (err: unknown) {
             const msg =
                 err instanceof Error
                     ? err.message
-                    : "Failed to create event. Check NEXT_PUBLIC_SUPABASE_URL and connection.";
+                    : "Failed to update event. Check your connection.";
             setSubmitError(msg);
         } finally {
             setIsSubmitting(false);
@@ -220,14 +265,12 @@ export function CreateEventForm({
 
     return (
         <div className={css.hero}>
-            {backLinkHref != null && backLinkLabel != null && (
-                <Link href={backLinkHref} className={css.backLink}>
-                    ← {backLinkLabel}
-                </Link>
-            )}
+            <Link href={backLinkHref} className={css.backLink}>
+                ← {backLinkLabel}
+            </Link>
             <div className={css.container}>
                 <div className={css.header}>
-                    <h1 className={css.title}>Create Event Form</h1>
+                    <h1 className={css.title}>Edit Event</h1>
                 </div>
                 <form onSubmit={formHandleSubmit(onSubmit)} className={css.formWrap}>
                     {submitError && (
@@ -237,7 +280,7 @@ export function CreateEventForm({
                     )}
                     <div className={css.fields}>
                         <div className={css.uploadSection}>
-                            <span className={css.uploadLabel}>Add Cover</span>
+                            <span className={css.uploadLabel}>Cover</span>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -248,12 +291,12 @@ export function CreateEventForm({
                             {coverError && (
                                 <span className={inputCss.form_field_error}>{coverError}</span>
                             )}
-                            {coverFile && coverPreviewUrl ? (
+                            {(coverFile || coverPreviewUrl) ? (
                                 <div>
                                     <div className={css.coverPreviewWrap}>
                                         <img
-                                            src={coverPreviewUrl}
-                                            alt="Cover preview"
+                                            src={coverPreviewUrl ?? undefined}
+                                            alt="Cover"
                                             className={css.coverPreview}
                                         />
                                     </div>
@@ -276,17 +319,9 @@ export function CreateEventForm({
                                         <div className={css.uploadIconWrap}>
                                             <Icon name="arrow_up" className={css.uploadIconWrap} />
                                         </div>
-                                        <div className={css.uploadTextWrap}>
-                                            <span className={css.uploadPrimary}>
-                                                Choose a file or drag & drop it here.
-                                            </span>
-                                            <span className={css.uploadSecondary}>
-                                                png, jpeg - Up to 5 MB
-                                            </span>
-                                            <span className={css.uploadSecondary}>
-                                                Recommended photo size: 1200×800 pixels
-                                            </span>
-                                        </div>
+                                        <span className={css.uploadPrimary}>
+                                            Choose a file or drag & drop it here.
+                                        </span>
                                     </div>
                                     <button
                                         type="button"
@@ -303,7 +338,7 @@ export function CreateEventForm({
                         </div>
 
                         <FormField
-                            id="create-event-title"
+                            id="edit-event-title"
                             name="title"
                             label="Title"
                             placeholder="Enter the event name"
@@ -313,7 +348,7 @@ export function CreateEventForm({
                             hideClearButton
                         />
                         <FormField
-                            id="create-event-start"
+                            id="edit-event-start"
                             name="startDateTime"
                             label="Start date & time"
                             type="datetime-local"
@@ -324,7 +359,7 @@ export function CreateEventForm({
                             hideClearButton
                         />
                         <FormField
-                            id="create-event-end"
+                            id="edit-event-end"
                             name="endDateTime"
                             label="End date & time"
                             type="datetime-local"
@@ -335,7 +370,7 @@ export function CreateEventForm({
                             hideClearButton
                         />
                         <FormField
-                            id="create-event-location"
+                            id="edit-event-location"
                             name="location"
                             label="Location"
                             placeholder="Choose location"
@@ -344,7 +379,7 @@ export function CreateEventForm({
                             hideClearButton
                         />
                         <CustomDropdown
-                            id="create-event-type"
+                            id="edit-event-type"
                             name="eventType"
                             label="Type"
                             placeholder="Select type"
@@ -355,7 +390,7 @@ export function CreateEventForm({
                             error={errors.eventType?.message}
                         />
                         <CustomDropdown
-                            id="create-event-format"
+                            id="edit-event-format"
                             name="format"
                             label="Format"
                             placeholder="Select format"
@@ -366,17 +401,17 @@ export function CreateEventForm({
                             error={errors.format?.message}
                         />
                         <TextareaField
-                            id="create-event-additional"
+                            id="edit-event-additional"
                             name="additionalInfo"
                             label="Additional Event Information"
-                            placeholder="Enter match details (structure, seeding, requires convention badge, contests, prizes, giveaway)"
+                            placeholder="Enter match details"
                             register={register}
                             rows={5}
                             className={css.additionalInfoField}
                             hideClearButton
                         />
                         <FormField
-                            id="create-event-fee"
+                            id="edit-event-fee"
                             name="fee"
                             label="Fee"
                             type="text"
@@ -387,7 +422,7 @@ export function CreateEventForm({
                             hideClearButton
                         />
                         <FormField
-                            id="create-event-capacity"
+                            id="edit-event-capacity"
                             name="capacity"
                             label="Capacity"
                             type="text"
@@ -398,7 +433,7 @@ export function CreateEventForm({
                             hideClearButton
                         />
                         <CustomDropdown
-                            id="create-event-register"
+                            id="edit-event-register"
                             name="needToRegister"
                             label="Need to register?"
                             placeholder="Select"
@@ -412,7 +447,7 @@ export function CreateEventForm({
                         <div className={css.heatsSection}>
                             <div className={css.heatsDropdownWrap}>
                                 <CustomDropdown
-                                    id="create-event-qualifying-heats"
+                                    id="edit-event-qualifying-heats"
                                     name="qualifyingHeatsCount"
                                     label="Add qualifying heats to the tournament"
                                     placeholder="Select"
@@ -424,27 +459,41 @@ export function CreateEventForm({
                             </div>
                             {heatsCount > 0 && (
                                 <div className={css.heatsGrid}>
-                                    {Array.from({ length: heatsCount }, (_, i) => i + 1).map((n) => (
-                                        <div key={n} className={css.heatField}>
-                                            <label className={css.heatFieldLabel} htmlFor={heatDateInputId(n)}>
-                                                Qualifying Heat {n}
-                                            </label>
-                                            <div className={css.heatDateTimeWrap}>
-                                                <input
-                                                    id={heatDateInputId(n)}
-                                                    type="datetime-local"
-                                                    value={heatDateTimes[n] ?? ""}
-                                                    onChange={(e) =>
-                                                        setHeatDateTimes((prev) => ({ ...prev, [n]: e.target.value }))
-                                                    }
-                                                    className={css.heatDateTimeInput}
-                                                />
-                                                <Icon name="calendar" className={css.heatCalendarIcon} />
+                                    {Array.from({ length: heatsCount }, (_, i) => i + 1).map(
+                                        (n) => (
+                                            <div key={n} className={css.heatField}>
+                                                <label
+                                                    className={css.heatFieldLabel}
+                                                    htmlFor={heatDateInputId(n)}
+                                                >
+                                                    Qualifying Heat {n}
+                                                </label>
+                                                <div className={css.heatDateTimeWrap}>
+                                                    <input
+                                                        id={heatDateInputId(n)}
+                                                        type="datetime-local"
+                                                        value={heatDateTimes[n] ?? ""}
+                                                        onChange={(e) =>
+                                                            setHeatDateTimes((prev) => ({
+                                                                ...prev,
+                                                                [n]: e.target.value,
+                                                            }))
+                                                        }
+                                                        className={css.heatDateTimeInput}
+                                                    />
+                                                    <Icon
+                                                        name="calendar"
+                                                        className={css.heatCalendarIcon}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    )}
                                     <div className={css.heatField}>
-                                        <label className={css.heatFieldLabel} htmlFor={finalDateInputId}>
+                                        <label
+                                            className={css.heatFieldLabel}
+                                            htmlFor={finalDateInputId}
+                                        >
                                             Final
                                         </label>
                                         <div className={css.heatDateTimeWrap}>
@@ -455,7 +504,10 @@ export function CreateEventForm({
                                                 onChange={(e) => setFinalDateTime(e.target.value)}
                                                 className={css.heatDateTimeInput}
                                             />
-                                            <Icon name="calendar" className={css.heatCalendarIcon} />
+                                            <Icon
+                                                name="calendar"
+                                                className={css.heatCalendarIcon}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -467,11 +519,12 @@ export function CreateEventForm({
                         className={css.submitBtn}
                         disabled={isSubmitting || !isSupabaseConfigured}
                     >
-                        {isSubmitting ? "Creating…" : "Create Events"}
+                        {isSubmitting ? "Saving…" : "Save changes"}
                     </button>
                     {!isSupabaseConfigured && (
                         <p className={css.formError} style={{ marginTop: 8 }}>
-                            {supabaseConfigError ?? "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."}
+                            {supabaseConfigError ??
+                                "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."}
                         </p>
                     )}
                 </form>

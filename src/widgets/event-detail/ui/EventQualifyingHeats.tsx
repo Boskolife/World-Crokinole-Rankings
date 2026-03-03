@@ -18,6 +18,7 @@ export interface EventQualifyingHeatsProps {
     playersByHeat?: IPlayer[][];
     isFull?: boolean;
     totalParticipants?: number | null;
+    createdBy?: string | null;
 }
 
 function formatHeatDateTime(start: string, end: string): string {
@@ -47,10 +48,12 @@ export function EventQualifyingHeats({
     playersByHeat = [],
     isFull = false,
     totalParticipants,
+    createdBy,
 }: EventQualifyingHeatsProps) {
     const router = useRouter();
     const { openPopup } = usePopup();
     const { user } = useAuth();
+    const isCreator = Boolean(createdBy && user?.id && createdBy === user.id);
     const { status: regStatus } = useEventRegistrationStatus(eventId, user?.id);
     const { registerForEvent, state: regState, resetState } = useEventRegistration();
     const [isOpen, setIsOpen] = useState(true);
@@ -117,7 +120,7 @@ export function EventQualifyingHeats({
                                     </p>
                                 </div>
                                 <div className={css.heatActions}>
-                                    {regStatus?.isRegistered && regStatus.heatIndex === i + 1 ? (
+                                    {isCreator ? null : regStatus?.isRegistered && regStatus.heatIndex === i + 1 ? (
                                         <span
                                             className={cn(css.btnPrimary, css.btnPrimary_registered)}
                                         >

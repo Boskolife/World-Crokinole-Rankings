@@ -55,6 +55,7 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                         event.currentRank >= event.totalParticipants
                     }
                     totalParticipants={event.totalParticipants}
+                    createdBy={event.createdBy}
                 />
             )}
             <EventRegisteredPlayers players={registeredPlayers} />

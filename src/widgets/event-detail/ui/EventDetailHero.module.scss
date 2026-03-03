@@ -13,12 +13,50 @@ $border: #d2d2d2;
     padding-bottom: 40px;
 }
 
+.title_row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
 .page_title {
     font-weight: 700;
     color: $title-value;
-    margin-bottom: 24px;
+    margin: 0;
     @include adaptive-value("font-size", 32, 24, 1);
     letter-spacing: -0.02em;
+}
+
+$edit-outline: #d48f1f;
+
+.edit_button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    border: 1px solid $edit-outline;
+    background: transparent;
+    color: $edit-outline;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        background: rgba($edit-outline, 0.08);
+        color: $edit-outline;
+    }
+}
+
+.edit_button_icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
 .card {
