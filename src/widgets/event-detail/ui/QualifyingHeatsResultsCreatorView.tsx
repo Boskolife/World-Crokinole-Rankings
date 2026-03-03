@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
-import { getEventHeatResults, saveEventHeatResults } from "@/shared/supabase/data";
+import { getEventHeatResults, saveEventHeatResults, updateEvent } from "@/shared/supabase/data";
 import type { QualifyingHeatsData, IPlayer } from "@/shared/types";
 import css from "./QualifyingHeatsResultsCreatorView.module.scss";
 
@@ -265,6 +265,13 @@ export function QualifyingHeatsResultsCreatorView({
                 roundsByHeat,
                 matchesByHeatRound,
             });
+            if (final && heats?.length != null) {
+                const qualified = getQualifiedFromHeat(heats.length);
+                const winnerName = qualified[0]?.name?.trim();
+                if (winnerName) {
+                    await updateEvent(eventId, { winner: winnerName });
+                }
+            }
             setSaveStatus("saved");
             router.refresh();
         } catch (e) {
