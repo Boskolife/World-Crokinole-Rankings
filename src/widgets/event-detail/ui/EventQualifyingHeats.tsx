@@ -14,6 +14,12 @@ import { QualifyingHeatsResultsCreatorView } from "./QualifyingHeatsResultsCreat
 import { QualifyingHeatsResultsView } from "./QualifyingHeatsResultsView";
 import css from "./EventQualifyingHeats.module.scss";
 
+function isEventFree(price: string | undefined): boolean {
+    if (price == null) return true;
+    const s = String(price).trim().toLowerCase();
+    return s === "" || s === "free" || s === "0";
+}
+
 export interface EventQualifyingHeatsProps {
     eventId: number;
     eventTitle: string;
@@ -25,6 +31,7 @@ export interface EventQualifyingHeatsProps {
     createdBy?: string | null;
     isEventEnded?: boolean;
     isRanked?: boolean;
+    fee?: string;
 }
 
 function formatHeatDateTime(start: string, end: string): string {
@@ -58,6 +65,7 @@ export function EventQualifyingHeats({
     createdBy,
     isEventEnded = false,
     isRanked = true,
+    fee,
 }: EventQualifyingHeatsProps) {
     const router = useRouter();
     const { openPopup } = usePopup();
@@ -68,9 +76,20 @@ export function EventQualifyingHeats({
     const [isOpen, setIsOpen] = useState(true);
     const [registeringHeatIndex, setRegisteringHeatIndex] = useState<number | null>(null);
     const { heats, final } = qualifyingHeats;
+    const isPaidEvent = fee != null && !isEventFree(fee);
 
     const handleSignUp = (heatIndex: number) => {
         if (!user?.id) return;
+        if (isPaidEvent) {
+            openPopup("pay-event-fee", {
+                eventId,
+                title: eventTitle,
+                fee,
+                heatIndex,
+                totalParticipants: totalParticipants ?? undefined,
+            });
+            return;
+        }
         setRegisteringHeatIndex(heatIndex);
         registerForEvent(
             eventId,

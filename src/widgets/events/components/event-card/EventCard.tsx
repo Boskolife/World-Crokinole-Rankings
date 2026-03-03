@@ -87,7 +87,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
                             [css._free]: free,
                         })}
                     >
-                        {free ? "Free" : price}
+                        {free ? "Free" : `$${price}`}
                     </span>
                 </div>
                 <div className={css.event_card_content_info}>

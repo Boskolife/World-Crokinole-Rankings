@@ -164,19 +164,70 @@ export async function POST(request: NextRequest) {
             if (event.type === "checkout.session.completed") {
                 const session = event.data.object as Stripe.Checkout.Session;
                 const userId = session.metadata?.userId;
-                const subscriptionId = session.subscription as string;
+                const metadataType = session.metadata?.type;
 
-                console.log(`Checkout completed - userId: ${userId}, subscriptionId: ${subscriptionId}`);
-
-                if (userId && subscriptionId) {
-                    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-                        expand: ["items.data.price"],
-                    });
-                    const billingPeriodFromSession = session.metadata?.billingPeriod as string | undefined;
-                    await updateSubscription(subscription, userId, billingPeriodFromSession);
-                    console.log(`Subscription updated for user ${userId}`);
+                if (metadataType === "event_registration" && userId) {
+                    const eventIdRaw = session.metadata?.eventId;
+                    const heatIndexStr = session.metadata?.heatIndex;
+                    if (eventIdRaw) {
+                        const eventIdNum = parseInt(String(eventIdRaw), 10);
+                        if (Number.isNaN(eventIdNum)) {
+                            console.warn("Invalid eventId in event_registration metadata");
+                        } else {
+                            const { data: eventData } = await supabase
+                                .from("events")
+                                .select("total_participants, capacity")
+                                .eq("id", eventIdNum)
+                                .single();
+                            const capacity = eventData?.total_participants ?? eventData?.capacity ?? null;
+                            let shouldInsert = true;
+                            if (capacity != null) {
+                                const { count, error: countError } = await supabase
+                                    .from("event_registrations")
+                                    .select("*", { count: "exact", head: true })
+                                    .eq("event_id", eventIdNum);
+                                if (!countError && count != null && count >= capacity) {
+                                    console.warn(`Event ${eventIdNum} is full, skipping registration for user ${userId}`);
+                                    shouldInsert = false;
+                                }
+                            }
+                            if (shouldInsert) {
+                                const row: { event_id: number; user_id: string; heat_index?: number } = {
+                                    event_id: eventIdNum,
+                                    user_id: userId,
+                                };
+                                if (heatIndexStr !== "" && heatIndexStr != null) {
+                                    const hi = parseInt(String(heatIndexStr), 10);
+                                    if (!Number.isNaN(hi)) row.heat_index = hi;
+                                }
+                                const { error: insertError } = await supabase.from("event_registrations").insert(row);
+                                if (insertError) {
+                                    if (insertError.code === "23505") {
+                                        console.warn(`User ${userId} already registered for event ${eventIdNum}`);
+                                    } else {
+                                        console.error("Event registration insert error:", insertError);
+                                        throw new Error(`Failed to register for event: ${insertError.message}`);
+                                    }
+                                } else {
+                                    console.log(`Event registration completed for user ${userId}, event ${eventIdNum}`);
+                                }
+                            }
+                        }
+                    }
                 } else {
-                    console.warn("Missing userId or subscriptionId in checkout.session.completed");
+                    const subscriptionId = session.subscription as string;
+                    console.log(`Checkout completed - userId: ${userId}, subscriptionId: ${subscriptionId}`);
+
+                    if (userId && subscriptionId) {
+                        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+                            expand: ["items.data.price"],
+                        });
+                        const billingPeriodFromSession = session.metadata?.billingPeriod as string | undefined;
+                        await updateSubscription(subscription, userId, billingPeriodFromSession);
+                        console.log(`Subscription updated for user ${userId}`);
+                    } else {
+                        console.warn("Missing userId or subscriptionId in checkout.session.completed");
+                    }
                 }
             }
 

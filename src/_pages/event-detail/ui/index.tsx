@@ -105,6 +105,7 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     createdBy={event.createdBy}
                     isEventEnded={isEventEnded}
                     isRanked={event.isRanked}
+                    fee={event.price}
                 />
             )}
             <EventRegisteredPlayers

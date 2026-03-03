@@ -25,6 +25,7 @@ import { InviteMemberPopup } from "./invite-member-popup";
 import { ViewHeatParticipantsPopup } from "./view-heat-participants-popup";
 import { RemoveEventParticipantConfirmPopup } from "./remove-event-participant-confirm-popup";
 import { CancelSubscriptionConfirmPopup } from "./cancel-subscription-confirm-popup";
+import { PayEventFeePopup } from "./pay-event-fee-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -120,6 +121,7 @@ export const PopupContainer: React.FC = () => {
                 {isPopupOpen("cancel-subscription-confirm") && (
                     <CancelSubscriptionConfirmPopup />
                 )}
+                {isPopupOpen("pay-event-fee") && <PayEventFeePopup />}
             </div>
         </div>
     );

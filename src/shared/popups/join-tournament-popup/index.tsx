@@ -11,17 +11,24 @@ import { useEventRegistration } from "@/shared/hooks/use-event-registration";
 import type { QualifyingHeatsData } from "@/shared/types";
 import cn from "classnames";
 
+function isEventFree(price: string | undefined): boolean {
+    if (price == null) return true;
+    const s = String(price).trim().toLowerCase();
+    return s === "" || s === "free" || s === "0";
+}
+
 type JoinTournamentPopupData = {
     eventId?: number;
     title?: string;
     qualifyingHeats?: QualifyingHeatsData;
     heatIndex?: number;
     totalParticipants?: number;
+    fee?: string;
 };
 
 export const JoinTournamentPopup: React.FC = () => {
     const router = useRouter();
-    const { closePopup, getPopupData } = usePopup();
+    const { closePopup, getPopupData, openPopup } = usePopup();
     const { isAuth, user } = useAuth();
     const { registerForEvent, state, resetState } = useEventRegistration();
     const data = getPopupData("join-tournament") as JoinTournamentPopupData | undefined;
@@ -41,11 +48,25 @@ export const JoinTournamentPopup: React.FC = () => {
         return "";
     });
 
+    const fee = data?.fee;
+    const isPaidEvent = fee != null && !isEventFree(fee);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!isAuth || !user?.id || !eventId) return;
         if (heats.length > 0 && !selectedHeat) return;
         const heatIndex = selectedHeat ? parseInt(selectedHeat, 10) : undefined;
+        if (isPaidEvent) {
+            closePopup("join-tournament");
+            openPopup("pay-event-fee", {
+                eventId,
+                title,
+                fee,
+                heatIndex,
+                totalParticipants: data?.totalParticipants,
+            });
+            return;
+        }
         const ok = await registerForEvent(eventId, user.id, heatIndex, data?.totalParticipants);
         if (ok) {
             resetState();

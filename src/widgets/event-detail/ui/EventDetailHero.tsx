@@ -79,8 +79,32 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
     const hasQualifyingHeats =
         qualifyingHeats?.heats != null && qualifyingHeats.heats.length > 0;
 
+    const isEventFree = (() => {
+        const p = (price ?? "").toString().trim().toLowerCase();
+        return p === "" || p === "free" || p === "0";
+    })();
+
     const handleJoinClick = () => {
         if (!isAuth || !user?.id) return;
+        if (!isEventFree) {
+            if (hasQualifyingHeats) {
+                openPopup("join-tournament", {
+                    eventId,
+                    title,
+                    qualifyingHeats,
+                    totalParticipants: totalParticipants ?? undefined,
+                    fee: price,
+                });
+            } else {
+                openPopup("pay-event-fee", {
+                    eventId,
+                    title,
+                    fee: price,
+                    totalParticipants: totalParticipants ?? undefined,
+                });
+            }
+            return;
+        }
         if (hasQualifyingHeats) {
             openPopup("join-tournament", {
                 eventId,
@@ -108,7 +132,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         currentRank >= totalParticipants;
     const feeStr = (() => {
         const p = (price ?? "").toString().trim().toLowerCase();
-        return p === "" || p === "free" || p === "0" ? "Free" : price;
+        return p === "" || p === "free" || p === "0" ? "Free" : `$${price}`;
     })();
 
     return (
