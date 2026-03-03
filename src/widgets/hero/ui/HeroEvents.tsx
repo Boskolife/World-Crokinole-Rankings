@@ -1,23 +1,43 @@
 "use client";
 
 import css from "./styles.module.scss";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { CustomButton } from "@/shared/ui/buttons";
 import { Button } from "@/shared/ui/buttons";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
+import { useAuth } from "@/shared/hooks/use-auth";
 import { localeConfig } from "@/app/localization/config";
+import { getActiveEventsCountByUser } from "@/shared/supabase/data";
 
 export const HeroEvents: React.FC = () => {
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
     const { profile } = useUserProfile();
+    const { user } = useAuth();
     const isCommunityAdmin =
         profile?.subscription_plan === "administrator";
-    const canCreateEvent = !!profile;
+    const isFreePlan =
+        !profile?.subscription_plan ||
+        profile.subscription_plan === "standard";
+    const [freePlanActiveCount, setFreePlanActiveCount] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!isFreePlan || !user?.id) {
+            setFreePlanActiveCount(null);
+            return;
+        }
+        getActiveEventsCountByUser(user.id).then((count) => {
+            setFreePlanActiveCount(count);
+        });
+    }, [isFreePlan, user?.id]);
+
+    const canShowCreateEvent =
+        !!profile &&
+        (!isFreePlan || (freePlanActiveCount !== null && freePlanActiveCount < 1));
     const createEventPath = `/${locale}/events/create`;
 
     return (
@@ -55,7 +75,7 @@ export const HeroEvents: React.FC = () => {
                                 View events
                             </CustomButton>
                         )}
-                        {canCreateEvent && !isCommunityAdmin && (
+                        {canShowCreateEvent && !isCommunityAdmin && (
                             <Button
                                 buttonType="secondary"
                                 icon="plus"
