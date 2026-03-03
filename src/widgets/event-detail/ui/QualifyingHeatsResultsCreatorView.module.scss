@@ -1,0 +1,501 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+$title-color: #00284b;
+$body-color: #0e0e0e;
+$light-blue: #ecf5fd;
+$blue: #d6e7f6;
+$dark-blue: #497aa6;
+$dark-blue-2: #aac7e1;
+$gold: #f4b44b;
+$grey: #8c8c8c;
+$grey-60: #737373;
+
+.section {
+    padding: 60px 0;
+    background: #fff;
+
+    @include media-down(sm) {
+        padding: 40px 0;
+    }
+}
+
+.mainAccordion {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+}
+
+.accordionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+    gap: 16px;
+}
+
+.accordionChevron {
+    flex-shrink: 0;
+    width: 43px;
+    height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $light-blue;
+    border-radius: 8px;
+
+    @include media-down(sm) {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+.accordionChevronIcon {
+    width: 24px;
+    height: 24px;
+    color: $title-color;
+}
+
+.mainTitleRow {
+    width: 100%;
+}
+
+.mainTitle {
+    margin: 0;
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 48px;
+    line-height: 1.1;
+    color: $title-color;
+
+    @include media-down(sm) {
+        font-size: 32px;
+    }
+}
+
+.accordionBody {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.heatBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.heatTitleRow {
+    width: 100%;
+}
+
+.heatTitle {
+    margin: 0;
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: $title-color;
+
+    @include media-down(sm) {
+        font-size: 24px;
+    }
+}
+
+.heatBody {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.roundBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.roundTitleRow {
+    width: 100%;
+}
+
+.roundTitleWithActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.roundTitle {
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.25;
+    color: $title-color;
+}
+
+.roundHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.removeRoundBtn {
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #c00;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.roundBody {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.uploadSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.uploadTitle {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.35;
+    color: $body-color;
+}
+
+.uploadHint {
+    margin: 0;
+    font-size: 16px;
+    color: $grey;
+    line-height: 1.35;
+}
+
+.uploadZone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    min-height: 254px;
+    padding: 16px 20px;
+    border: 1px dashed $title-color;
+    border-radius: 8px;
+    background: $light-blue;
+}
+
+.uploadIcon {
+    font-size: 48px;
+    color: $title-color;
+    line-height: 1;
+}
+
+.uploadZoneText {
+    margin: 0;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.35;
+    color: $body-color;
+    text-align: center;
+}
+
+.uploadZoneMeta {
+    margin: 0;
+    font-size: 16px;
+    color: $grey-60;
+    line-height: 1.35;
+    text-align: center;
+}
+
+.browseBtn {
+    padding: 12px 20px;
+    border-radius: 120px;
+    border: none;
+    background: $gold;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: brightness(1.05);
+    }
+}
+
+.manualSection {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.manualTitle {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.35;
+    color: $body-color;
+}
+
+.headRow,
+.roundRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.headLabel,
+.roundLabel {
+    font-size: 18px;
+    font-weight: 600;
+    color: $body-color;
+    line-height: 1.35;
+}
+
+.roundLabel {
+    font-weight: 400;
+}
+
+.linkBtn {
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: $title-color;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        opacity: 0.85;
+    }
+}
+
+.matchesGrid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    @include media-down(sm) {
+        flex-direction: column;
+    }
+}
+
+.matchesCol {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.matchRowWrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.removeMatchBtn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: $grey;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(204, 0, 0, 0.1);
+        color: #c00;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.removeMatchIcon {
+    width: 18px;
+    height: 18px;
+}
+
+.scoreResult {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 200px;
+    max-width: 310px;
+    padding: 0 12px;
+    border: 1px solid $dark-blue;
+    border-radius: 4px;
+    background: #fff;
+
+    &_placeholder {
+        border-color: $dark-blue-2;
+
+        .scoreResultScoreWrap {
+            background: $dark-blue-2;
+            border-color: $dark-blue-2;
+        }
+
+        .scoreResultSelect {
+            color: $grey;
+        }
+    }
+}
+
+.scoreResultSelect {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 0;
+    border: none;
+    background: none;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $body-color;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300284b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+}
+
+.scoreResultScoreWrap {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    background: $title-color;
+    border: 1px solid $dark-blue;
+    border-radius: 0 4px 4px 0;
+    overflow: hidden;
+}
+
+.scoreResultScore {
+    width: 56px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    line-height: 1.35;
+    color: #fff;
+    text-align: center;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        opacity: 0;
+    }
+}
+
+.scoreResultStepper {
+    display: flex;
+    flex-direction: column;
+    width: 16px;
+    background: $light-blue;
+    border-radius: 2px;
+}
+
+.scoreResultStepperBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: $title-color;
+
+    &:hover {
+        background: rgba($title-color, 0.08);
+    }
+}
+
+.scoreResultStepperIcon {
+    width: 8px;
+    height: 8px;
+}
+
+.saveResultsBtn {
+    align-self: flex-start;
+    padding: 12px 24px;
+    border-radius: 120px;
+    border: none;
+    background: $gold;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: brightness(1.05);
+    }
+}
+
+.qualifiedBlock {
+    padding: 16px 20px;
+    border-radius: 8px;
+    background: $light-blue;
+}
+
+.qualifiedTitle {
+    margin: 0 0 12px;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.35;
+    color: $body-color;
+}
+
+.qualifiedList {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.qualifiedItem {
+    font-size: 16px;
+    line-height: 1.5;
+    color: $body-color;
+}
+
+.saveStatus {
+    margin: 16px 0 0;
+    font-size: 16px;
+    color: #0a0;
+}
+
+.saveError {
+    margin: 16px 0 0;
+    font-size: 16px;
+    color: #c00;
+}
+

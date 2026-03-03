@@ -30,6 +30,13 @@ $border: #d2d2d2;
     letter-spacing: -0.02em;
 }
 
+.title_actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 $edit-outline: #d48f1f;
 
 .edit_button {

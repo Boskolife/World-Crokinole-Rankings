@@ -1,0 +1,99 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+.hero {
+    width: 100%;
+    min-height: 60vh;
+    background: var(--white);
+    padding: 60px 70px;
+
+    @include media-down(md) {
+        padding: 32px 20px;
+    }
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+    max-width: 640px;
+}
+
+.header {
+    width: 100%;
+}
+
+.backLink {
+    display: inline-block;
+    font-size: 16px;
+    color: var(--blue-grey, #00284b);
+    text-decoration: none;
+    margin-bottom: 16px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.title {
+    margin: 0 0 8px;
+    font-family: var(--font-aleo), serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: var(--blue-grey, #00284b);
+
+    @include media-down(sm) {
+        font-size: 24px;
+    }
+}
+
+.subtitle {
+    margin: 0;
+    font-size: 18px;
+    color: #666;
+    line-height: 1.35;
+}
+
+.formWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.submitError {
+    margin: 0;
+    font-size: 14px;
+    color: #c00;
+}
+
+.submitBtn {
+    padding: 12px 28px;
+    border-radius: 9999px;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    background: #f4b44b;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover:not(:disabled) {
+        filter: brightness(1.05);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+}

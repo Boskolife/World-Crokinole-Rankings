@@ -343,6 +343,7 @@ export interface UpdateEventParams {
     qualifyingHeats?: QualifyingHeatsData | null;
     strengthOfField?: number | null;
     tournamentPointsAvailable?: number | null;
+    winner?: string | null;
 }
 
 export async function updateEvent(
@@ -366,6 +367,7 @@ export async function updateEvent(
         qualifyingHeats,
         strengthOfField,
         tournamentPointsAvailable,
+        winner,
     } = params;
 
     const updatePayload: Record<string, unknown> = {};
@@ -391,6 +393,7 @@ export async function updateEvent(
         updatePayload.strength_of_field = strengthOfField ?? null;
     if (tournamentPointsAvailable !== undefined)
         updatePayload.tournament_points_available = tournamentPointsAvailable ?? null;
+    if (winner !== undefined) updatePayload.winner = winner ?? null;
 
     if (Object.keys(updatePayload).length > 0) {
         const { error: updateError } = await supabase
@@ -420,6 +423,51 @@ export async function updateEvent(
     const event = await getEventById(eventId);
     if (!event) throw new Error("Event not found after update");
     return event;
+}
+
+export interface EventHeatMatchRow {
+    player1Id: string;
+    player2Id: string;
+    score1: number;
+    score2: number;
+}
+
+export interface EventHeatResultsData {
+    roundsByHeat: Record<number, number[]>;
+    matchesByHeatRound: Record<string, EventHeatMatchRow[]>;
+}
+
+export async function getEventHeatResults(
+    eventId: number
+): Promise<EventHeatResultsData | null> {
+    const { data, error } = await supabase
+        .from("events")
+        .select("heat_results")
+        .eq("id", eventId)
+        .single();
+    if (error || data?.heat_results == null) return null;
+    const raw = data.heat_results as unknown;
+    if (typeof raw !== "object" || raw === null) return null;
+    const o = raw as Record<string, unknown>;
+    if (!o.roundsByHeat || !o.matchesByHeatRound) return null;
+    return {
+        roundsByHeat: o.roundsByHeat as Record<number, number[]>,
+        matchesByHeatRound: o.matchesByHeatRound as Record<
+            string,
+            EventHeatMatchRow[]
+        >,
+    };
+}
+
+export async function saveEventHeatResults(
+    eventId: number,
+    payload: EventHeatResultsData
+): Promise<void> {
+    const { error } = await supabase
+        .from("events")
+        .update({ heat_results: payload })
+        .eq("id", eventId);
+    if (error) throw new Error(error.message);
 }
 
 export async function getPlayers(): Promise<IPlayer[]> {

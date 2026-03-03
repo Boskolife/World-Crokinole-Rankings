@@ -2,7 +2,6 @@ import {
     EventDetailHero,
     EventParticipationStats,
     EventQualifyingHeats,
-    EventTournamentResults,
     EventRegisteredPlayers,
     EventDetailUpcomingEvents,
 } from "@/widgets/event-detail";
@@ -105,7 +104,6 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     isRanked={event.isRanked}
                 />
             )}
-            {isEventEnded && <EventTournamentResults isRanked={event.isRanked} />}
             <EventRegisteredPlayers
                 players={registeredPlayers}
                 eventId={event.id}

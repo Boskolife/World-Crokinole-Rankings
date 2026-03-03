@@ -63,6 +63,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         qualifyingHeats,
         endDate,
         startDate,
+        winner,
     } = event;
 
     const isEventEnded = (() => {
@@ -113,13 +114,23 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                 <div className={css.title_row}>
                     <h1 className={css.page_title}>{title}</h1>
                     {isCreator && (
-                        <Link
-                            href={`/${locale}/events/${eventId}/edit`}
-                            className={css.edit_button}
-                        >
-                            <Icon name="edit" className={css.edit_button_icon} />
-                            Edit
-                        </Link>
+                        <div className={css.title_actions}>
+                            {isEventEnded && (
+                                <Link
+                                    href={`/${locale}/events/${eventId}/results`}
+                                    className={css.edit_button}
+                                >
+                                    Enter results
+                                </Link>
+                            )}
+                            <Link
+                                href={`/${locale}/events/${eventId}/edit`}
+                                className={css.edit_button}
+                            >
+                                <Icon name="edit" className={css.edit_button_icon} />
+                                Edit
+                            </Link>
+                        </div>
                     )}
                 </div>
 
@@ -174,6 +185,9 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                 <DetailRow label="Format" value={format} />
                                 <DetailRow label="Structure" value={structure} />
                                 <DetailRow label="Fee" value={feeStr} />
+                                {isEventEnded && winner && (
+                                    <DetailRow label="Winner" value={winner} />
+                                )}
                             </div>
                         </div>
                         {!isEventEnded && (

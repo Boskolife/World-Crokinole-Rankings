@@ -9,6 +9,7 @@ import { useAuth } from "@/shared/hooks/use-auth";
 import { useEventRegistration } from "@/shared/hooks/use-event-registration";
 import { useEventRegistrationStatus } from "@/shared/hooks/use-event-registration-status";
 import type { QualifyingHeatsData, IPlayer } from "@/shared/types";
+import { QualifyingHeatsResultsCreatorView } from "./QualifyingHeatsResultsCreatorView";
 import css from "./EventQualifyingHeats.module.scss";
 
 export interface EventQualifyingHeatsProps {
@@ -88,6 +89,16 @@ export function EventQualifyingHeats({
     if (!heats?.length) return null;
 
     const resultsStatusLabel = isRanked ? "In process" : "The event has ended";
+
+    if (isEventEnded && isCreator) {
+        return (
+            <QualifyingHeatsResultsCreatorView
+                eventId={eventId}
+                qualifyingHeats={qualifyingHeats}
+                playersByHeat={playersByHeat}
+            />
+        );
+    }
 
     if (isEventEnded) {
         return (
