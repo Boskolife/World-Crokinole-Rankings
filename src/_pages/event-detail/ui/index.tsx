@@ -1,5 +1,6 @@
 import {
     EventDetailHero,
+    EventParticipationStats,
     EventQualifyingHeats,
     EventTournamentResults,
     EventRegisteredPlayers,
@@ -47,9 +48,46 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
             : Promise.resolve([] as IPlayer[][]),
     ]);
 
+    function getGamesPlayedCount(participantsCount: number, format: string): number {
+        if (participantsCount <= 0) return 0;
+        const f = (format || "").toLowerCase();
+        const isDoubles =
+            f === "doubles" ||
+            (f.includes("double") && !f.includes("singles or"));
+        if (isDoubles) {
+            const pairs = Math.floor(participantsCount / 2);
+            return Math.max(0, pairs - 1);
+        }
+        return Math.max(0, participantsCount - 1);
+    }
+
+    const participationStats = isEventEnded
+        ? {
+              participantsCount: registeredPlayers.length,
+              gamesPlayedCount: getGamesPlayedCount(
+                  registeredPlayers.length,
+                  event.format
+              ),
+              countriesCount: new Set(
+                  registeredPlayers.map((p) => p.countryCode).filter(Boolean)
+              ).size,
+              clubsCount: new Set(
+                  registeredPlayers.map((p) => p.club).filter(Boolean)
+              ).size,
+          }
+        : null;
+
     return (
         <>
             <EventDetailHero event={event} />
+            {isEventEnded && participationStats && (
+                <EventParticipationStats
+                    participantsCount={participationStats.participantsCount}
+                    gamesPlayedCount={participationStats.gamesPlayedCount}
+                    countriesCount={participationStats.countriesCount}
+                    clubsCount={participationStats.clubsCount}
+                />
+            )}
             {hasQualifyingHeats && event.qualifyingHeats && (
                 <EventQualifyingHeats
                     eventId={event.id}
