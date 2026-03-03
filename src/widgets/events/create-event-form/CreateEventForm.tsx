@@ -6,7 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormField, TextareaField, CustomDropdown } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
-import { createEvent } from "@/shared/supabase/data";
+import { createEvent, getActiveEventsCountByUser } from "@/shared/supabase/data";
 import { useAuth } from "@/shared/hooks/use-auth";
 import {
     isSupabaseConfigured,
@@ -17,6 +17,7 @@ import {
     eventTypeOptions,
     needToRegisterOptions,
     qualifyingHeatsOptions,
+    locationCountryOptions,
 } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import css from "./styles.module.scss";
@@ -45,7 +46,7 @@ const defaultValues: CreateEventFormValues = {
     endDateTime: "",
     location: "",
     eventType: "ranked",
-    format: "singles_or_doubles",
+    format: "singles",
     additionalInfo: "",
     fee: "",
     capacity: "",
@@ -57,27 +58,50 @@ type CreateEventFormProps = {
     backLinkHref?: string;
     backLinkLabel?: string;
     successRedirect?: string;
+    isFreePlan?: boolean;
 };
 
 export function CreateEventForm({
     backLinkHref,
     backLinkLabel,
     successRedirect,
+    isFreePlan = false,
 }: CreateEventFormProps) {
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const { user } = useAuth();
     const locale = params?.locale ?? localeConfig.defaultLocale;
 
+    const initialDefaults: CreateEventFormValues = isFreePlan
+        ? { ...defaultValues, eventType: "unranked", fee: "" }
+        : defaultValues;
+
     const {
         register,
         handleSubmit: formHandleSubmit,
         watch,
+        setValue,
         formState: { errors },
-    } = useForm<CreateEventFormValues>({ defaultValues });
+    } = useForm<CreateEventFormValues>({ defaultValues: initialDefaults });
+
+    const [freePlanBlocked, setFreePlanBlocked] = useState(false);
+
+    useEffect(() => {
+        if (!isFreePlan || !user?.id) return;
+        setValue("eventType", "unranked");
+        setValue("fee", "");
+    }, [isFreePlan, user?.id, setValue]);
+
+    useEffect(() => {
+        if (!isFreePlan || !user?.id) return;
+        getActiveEventsCountByUser(user.id).then((count) => {
+            setFreePlanBlocked(count >= 1);
+        });
+    }, [isFreePlan, user?.id]);
 
     const watchedEventType = watch("eventType");
     const watchedFormat = watch("format");
+    const watchedLocation = watch("location");
     const watchedNeedToRegister = watch("needToRegister");
     const watchedHeatsCount = watch("qualifyingHeatsCount");
     const heatsCount = Math.max(0, parseInt(watchedHeatsCount ?? "0", 10) || 0);
@@ -148,6 +172,21 @@ export function CreateEventForm({
             setSubmitError(supabaseConfigError ?? "Supabase is not configured");
             return;
         }
+        if (isFreePlan) {
+            if (freePlanBlocked) {
+                setSubmitError("You can only have one active event on the free plan. Wait until it ends to create another.");
+                return;
+            }
+            const feeVal = (data.fee ?? "").trim();
+            if (feeVal !== "" && feeVal !== "0") {
+                setSubmitError("Free plan events must be free (fee = 0).");
+                return;
+            }
+            if (data.eventType !== "unranked") {
+                setSubmitError("Free plan events must be unranked.");
+                return;
+            }
+        }
         const startDate = new Date(data.startDateTime).toISOString();
         const endDate = new Date(data.endDateTime).toISOString();
         if (endDate <= startDate) {
@@ -160,7 +199,7 @@ export function CreateEventForm({
             const price = (data.fee ?? "").trim() === "" ? "0" : (data.fee ?? "").trim();
             const cap = (data.capacity ?? "").trim() === "" ? null : parseInt(data.capacity, 10);
             const numCap = cap !== null && !Number.isNaN(cap) ? cap : null;
-            const formatLabel = data.format === "singles_or_doubles" ? "Singles or Doubles" : (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
+            const formatLabel = (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
             const heatsCountNum = Math.max(0, parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0);
             let qualifyingHeats: { heats: { start: string; end: string }[]; final?: { start: string; end: string } } | undefined;
@@ -334,15 +373,17 @@ export function CreateEventForm({
                             error={errors.endDateTime?.message}
                             hideClearButton
                         />
-                        <FormField
+                        <CustomDropdown
                             id="create-event-location"
                             name="location"
                             label="Location"
-                            placeholder="Choose location"
+                            placeholder="Select location"
+                            options={locationCountryOptions}
+                            value={watchedLocation ?? ""}
                             register={register}
                             error={errors.location?.message}
-                            hideClearButton
                         />
+                        {!isFreePlan && (
                         <CustomDropdown
                             id="create-event-type"
                             name="eventType"
@@ -354,6 +395,7 @@ export function CreateEventForm({
                             rules={{ required: "Type is required" }}
                             error={errors.eventType?.message}
                         />
+                        )}
                         <CustomDropdown
                             id="create-event-format"
                             name="format"
@@ -375,6 +417,7 @@ export function CreateEventForm({
                             className={css.additionalInfoField}
                             hideClearButton
                         />
+                        {!isFreePlan && (
                         <FormField
                             id="create-event-fee"
                             name="fee"
@@ -386,6 +429,7 @@ export function CreateEventForm({
                             error={errors.fee?.message}
                             hideClearButton
                         />
+                        )}
                         <FormField
                             id="create-event-capacity"
                             name="capacity"
@@ -462,10 +506,15 @@ export function CreateEventForm({
                             )}
                         </div>
                     </div>
+                    {isFreePlan && freePlanBlocked && (
+                        <p className={css.formError} style={{ marginBottom: 8 }}>
+                            You can only have one active event on the free plan. When it ends, you can create another.
+                        </p>
+                    )}
                     <button
                         type="submit"
                         className={css.submitBtn}
-                        disabled={isSubmitting || !isSupabaseConfigured}
+                        disabled={isSubmitting || !isSupabaseConfigured || (isFreePlan && freePlanBlocked)}
                     >
                         {isSubmitting ? "Creating…" : "Create Events"}
                     </button>

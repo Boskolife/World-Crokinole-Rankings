@@ -33,7 +33,6 @@ export const clubFilterOptions: DropdownOption[] = [
 export const formatOptions: DropdownOption[] = [
     { value: "singles", label: "Singles" },
     { value: "doubles", label: "Doubles" },
-    { value: "singles_or_doubles", label: "Singles or Doubles" },
 ];
 
 export const eventTypeOptions: DropdownOption[] = [
@@ -70,7 +69,15 @@ export const rankingsSwitcherOptions: {
     { value: "doubles", label: "Doubles" },
 ];
 
-// Example kingdom options (used in Players and Clubs as placeholder/test data)
+export const locationCountryOptions: DropdownOption[] = [
+    { value: "United States", label: "United States" },
+    { value: "Canada", label: "Canada" },
+    { value: "United Kingdom", label: "United Kingdom" },
+    { value: "Australia", label: "Australia" },
+    { value: "New Zealand", label: "New Zealand" },
+    { value: "Other", label: "Other" },
+];
+
 export const exampleKingdomOptions: DropdownOption[] = [
     { value: "kingdom-1", label: "Kingdom 1" },
     { value: "kingdom-2", label: "Kingdom 2" },

@@ -11,15 +11,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
 import { getMatchHistoryForClaim } from "@/shared/supabase/data";
-
-const kingdomOptions = [
-    { value: "United Kingdom", label: "United Kingdom" },
-    { value: "United States", label: "United States" },
-    { value: "Canada", label: "Canada" },
-    { value: "Australia", label: "Australia" },
-    { value: "New Zealand", label: "New Zealand" },
-    { value: "Other", label: "Other" },
-];
+import { locationCountryOptions } from "@/shared/constants/dropdown-options";
 
 interface MatchHistoryProps {
     compact?: boolean;
@@ -158,7 +150,7 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
                             <CustomRoundedDropdown
                                 id="country"
                                 placeholder="Select state/country"
-                                options={kingdomOptions}
+                                options={locationCountryOptions}
                                 value={country}
                                 onChange={(value) => {
                                     setCountry(value);

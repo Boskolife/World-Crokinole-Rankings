@@ -16,6 +16,7 @@ import {
     eventTypeOptions,
     needToRegisterOptions,
     qualifyingHeatsOptions,
+    locationCountryOptions,
 } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import css from "../create-event-form/styles.module.scss";
@@ -38,7 +39,6 @@ function toLocalDateTime(iso: string | undefined): string {
 
 function formatToOptionValue(format: string): string {
     const f = (format || "").trim().toLowerCase();
-    if (f.includes("singles") && f.includes("doubles")) return "singles_or_doubles";
     if (f.includes("doubles")) return "doubles";
     return "singles";
 }
@@ -107,6 +107,7 @@ export function EditEventForm({
 
     const watchedEventType = watch("eventType");
     const watchedFormat = watch("format");
+    const watchedLocation = watch("location");
     const watchedNeedToRegister = watch("needToRegister");
     const watchedHeatsCount = watch("qualifyingHeatsCount");
     const heatsCount = Math.max(0, parseInt(watchedHeatsCount ?? "0", 10) || 0);
@@ -200,9 +201,7 @@ export function EditEventForm({
             const cap = (data.capacity ?? "").trim() === "" ? null : parseInt(data.capacity, 10);
             const numCap = cap !== null && !Number.isNaN(cap) ? cap : null;
             const formatLabel =
-                data.format === "singles_or_doubles"
-                    ? "Singles or Doubles"
-                    : (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
+                (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
             const heatsCountNum = Math.max(
                 0,
@@ -369,14 +368,15 @@ export function EditEventForm({
                             error={errors.endDateTime?.message}
                             hideClearButton
                         />
-                        <FormField
+                        <CustomDropdown
                             id="edit-event-location"
                             name="location"
                             label="Location"
-                            placeholder="Choose location"
+                            placeholder="Select location"
+                            options={locationCountryOptions}
+                            value={watchedLocation ?? ""}
                             register={register}
                             error={errors.location?.message}
-                            hideClearButton
                         />
                         <CustomDropdown
                             id="edit-event-type"

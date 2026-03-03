@@ -17,8 +17,7 @@ export const HeroEvents: React.FC = () => {
     const { profile } = useUserProfile();
     const isCommunityAdmin =
         profile?.subscription_plan === "administrator";
-    const canCreateEvent =
-        profile?.subscription_plan === "premium" || isCommunityAdmin;
+    const canCreateEvent = !!profile;
     const createEventPath = `/${locale}/events/create`;
 
     return (
@@ -56,7 +55,7 @@ export const HeroEvents: React.FC = () => {
                                 View events
                             </CustomButton>
                         )}
-                        {canCreateEvent && (
+                        {canCreateEvent && !isCommunityAdmin && (
                             <Button
                                 buttonType="secondary"
                                 icon="plus"

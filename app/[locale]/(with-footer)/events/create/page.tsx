@@ -13,21 +13,17 @@ export default function CreateEventPage() {
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
-    const isPremiumOrAdmin =
-        profile?.subscription_plan === "premium" ||
-        profile?.subscription_plan === "administrator";
     const profileReady = !profileLoading && profile !== null;
+    const isFreePlan =
+        !profile?.subscription_plan ||
+        profile.subscription_plan === "standard";
 
     useEffect(() => {
         if (!isMounted) return;
         if (!isAuth) {
             router.push(`/${locale}/auth/sign-in`);
-            return;
         }
-        if (profileReady && !isPremiumOrAdmin) {
-            router.push(`/${locale}/membership-plans`);
-        }
-    }, [isMounted, isAuth, profileReady, isPremiumOrAdmin, locale, router]);
+    }, [isMounted, isAuth, locale, router]);
 
     if (!isMounted || !isAuth) {
         return (
@@ -37,7 +33,7 @@ export default function CreateEventPage() {
         );
     }
 
-    if (!profileReady || !isPremiumOrAdmin) {
+    if (!profileReady) {
         return (
             <div className={css.hero}>
                 <div className={css.backLink}>Loading...</div>
@@ -50,6 +46,7 @@ export default function CreateEventPage() {
             backLinkHref={`/${locale}/events`}
             backLinkLabel="Back to Events"
             successRedirect={`/${locale}/events`}
+            isFreePlan={isFreePlan}
         />
     );
 }

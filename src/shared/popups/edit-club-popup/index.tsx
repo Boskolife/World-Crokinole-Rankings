@@ -7,7 +7,8 @@ import css from "../create-club-popup/styles.module.scss";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { useAuth } from "@/shared/hooks/use-auth";
-import { CustomCheckbox, Button } from "@/shared/ui";
+import { CustomCheckbox, Button, CustomRoundedDropdown } from "@/shared/ui";
+import { locationCountryOptions } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import { updateClub } from "@/shared/supabase/data";
 import { useRouter } from "next/navigation";
@@ -186,14 +187,12 @@ export const EditClubPopup: React.FC = () => {
                     >
                         Location
                     </label>
-                    <input
+                    <CustomRoundedDropdown
                         id="edit-club-location"
-                        type="text"
-                        placeholder="e.g. Philadelphia, USA"
+                        placeholder="Select location"
+                        options={locationCountryOptions}
                         value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        className={inputCss.form_field_input}
-                        autoComplete="off"
+                        onChange={setLocation}
                     />
                 </div>
 

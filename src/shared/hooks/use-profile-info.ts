@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
+import { locationCountryOptions } from "@/shared/constants/dropdown-options";
 
 const AVATAR_BUCKET = "avatars";
 const PLACEHOLDER_SRC = "/svg/avatar-placeholder.svg";
@@ -89,14 +90,7 @@ export const useProfileInfo = () => {
         }
     };
 
-    const countries = [
-        { value: "United States", label: "United States" },
-        { value: "Canada", label: "Canada" },
-        { value: "United Kingdom", label: "United Kingdom" },
-        { value: "Australia", label: "Australia" },
-        { value: "New Zealand", label: "New Zealand" },
-        { value: "Other", label: "Other" },
-    ];
+    const countries = locationCountryOptions;
 
     const clubs = [
         { value: "Manchester United", label: "Manchester United" },

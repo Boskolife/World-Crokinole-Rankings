@@ -326,6 +326,17 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
     return event;
 }
 
+export async function getActiveEventsCountByUser(userId: string): Promise<number> {
+    const now = new Date().toISOString();
+    const { count, error } = await supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .eq("created_by", userId)
+        .gt("end_date", now);
+    if (error) return 0;
+    return count ?? 0;
+}
+
 export interface UpdateEventParams {
     title?: string;
     startDate?: string;
