@@ -8,8 +8,10 @@ import { usePopup } from "@/shared/contexts/popup-context";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useEventRegistration } from "@/shared/hooks/use-event-registration";
 import { useEventRegistrationStatus } from "@/shared/hooks/use-event-registration-status";
+import type { EventHeatResultsData } from "@/shared/supabase/data";
 import type { QualifyingHeatsData, IPlayer } from "@/shared/types";
 import { QualifyingHeatsResultsCreatorView } from "./QualifyingHeatsResultsCreatorView";
+import { QualifyingHeatsResultsView } from "./QualifyingHeatsResultsView";
 import css from "./EventQualifyingHeats.module.scss";
 
 export interface EventQualifyingHeatsProps {
@@ -17,6 +19,7 @@ export interface EventQualifyingHeatsProps {
     eventTitle: string;
     qualifyingHeats: QualifyingHeatsData;
     playersByHeat?: IPlayer[][];
+    heatResults?: EventHeatResultsData | null;
     isFull?: boolean;
     totalParticipants?: number | null;
     createdBy?: string | null;
@@ -49,6 +52,7 @@ export function EventQualifyingHeats({
     eventTitle,
     qualifyingHeats,
     playersByHeat = [],
+    heatResults,
     isFull = false,
     totalParticipants,
     createdBy,
@@ -95,6 +99,16 @@ export function EventQualifyingHeats({
             <QualifyingHeatsResultsCreatorView
                 eventId={eventId}
                 qualifyingHeats={qualifyingHeats}
+                playersByHeat={playersByHeat}
+            />
+        );
+    }
+
+    if (isEventEnded && heatResults) {
+        return (
+            <QualifyingHeatsResultsView
+                qualifyingHeats={qualifyingHeats}
+                heatResults={heatResults}
                 playersByHeat={playersByHeat}
             />
         );

@@ -9,6 +9,7 @@ import {
     getEventById,
     getEventRegisteredPlayers,
     getEventRegisteredPlayersByHeat,
+    getEventHeatResults,
     getUpcomingEventsAtLocation,
 } from "@/shared/supabase/data";
 import type { IPlayer } from "@/shared/types";
@@ -35,7 +36,7 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
         event.qualifyingHeats?.heats?.length != null &&
         event.qualifyingHeats.heats.length > 0;
 
-    const [registeredPlayers, upcomingAtLocation, playersByHeat] = await Promise.all([
+    const [registeredPlayers, upcomingAtLocation, playersByHeat, heatResults] = await Promise.all([
         getEventRegisteredPlayers(eventId),
         getUpcomingEventsAtLocation(event.location, event.id),
         hasQualifyingHeats && event.qualifyingHeats
@@ -45,6 +46,7 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                   )
               )
             : Promise.resolve([] as IPlayer[][]),
+        hasQualifyingHeats && isEventEnded ? getEventHeatResults(eventId) : Promise.resolve(null),
     ]);
 
     function getGamesPlayedCount(participantsCount: number, format: string): number {
@@ -93,6 +95,7 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     eventTitle={event.title}
                     qualifyingHeats={event.qualifyingHeats}
                     playersByHeat={playersByHeat}
+                    heatResults={heatResults ?? undefined}
                     isFull={
                         event.totalParticipants != null &&
                         event.currentRank != null &&
