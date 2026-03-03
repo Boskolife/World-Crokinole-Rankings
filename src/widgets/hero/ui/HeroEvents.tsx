@@ -20,6 +20,9 @@ export const HeroEvents: React.FC = () => {
     const { user } = useAuth();
     const isCommunityAdmin =
         profile?.subscription_plan === "administrator";
+    const isPremiumOrAdmin =
+        profile?.subscription_plan === "administrator" ||
+        profile?.subscription_plan === "premium";
     const isFreePlan =
         !profile?.subscription_plan ||
         profile.subscription_plan === "standard";
@@ -37,7 +40,8 @@ export const HeroEvents: React.FC = () => {
 
     const canShowCreateEvent =
         !!profile &&
-        (!isFreePlan || (freePlanActiveCount !== null && freePlanActiveCount < 1));
+        (isPremiumOrAdmin ||
+            (isFreePlan && freePlanActiveCount !== null && freePlanActiveCount < 1));
     const createEventPath = `/${locale}/events/create`;
 
     return (
@@ -75,7 +79,7 @@ export const HeroEvents: React.FC = () => {
                                 View events
                             </CustomButton>
                         )}
-                        {canShowCreateEvent && !isCommunityAdmin && (
+                        {canShowCreateEvent && (
                             <Button
                                 buttonType="secondary"
                                 icon="plus"
