@@ -1,7 +1,6 @@
-import { Events } from "@/widgets/events";
 import { HeroEvents } from "@/widgets/hero";
 import { getFutureEvents, getPastEvents } from "@/shared/supabase/data";
-import { EventsClient } from "./EventsClient";
+import { EventsListClient } from "./EventsListClient";
 
 export async function EventPage() {
     const [futureEvents, pastEvents] = await Promise.all([
@@ -12,21 +11,10 @@ export async function EventPage() {
     return (
         <>
             <HeroEvents />
-            <div id="events-list">
-                <EventsClient
-                    title="Future events"
-                    events={futureEvents}
-                    needPagination
-                    totalItems={futureEvents.length}
-                />
-                <EventsClient
-                    isPastEvents
-                    title="Past events"
-                    events={pastEvents}
-                    needPagination
-                    totalItems={pastEvents.length}
-                />
-            </div>
+            <EventsListClient
+                futureEvents={futureEvents}
+                pastEvents={pastEvents}
+            />
         </>
     );
 }

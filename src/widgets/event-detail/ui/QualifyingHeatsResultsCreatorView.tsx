@@ -1,12 +1,93 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import { getEventHeatResults, saveEventHeatResults } from "@/shared/supabase/data";
 import type { QualifyingHeatsData, IPlayer } from "@/shared/types";
 import css from "./QualifyingHeatsResultsCreatorView.module.scss";
+
+function parseResultsCsv(
+    text: string,
+    defaultHeatIndex: number,
+    playersByHeat: IPlayer[][],
+    allPlayers: IPlayer[]
+): { roundsByHeat: Record<number, number[]>; matchesByHeatRound: Record<string, MatchRow[]> } {
+    const roundsByHeat: Record<number, number[]> = {};
+    const matchesByHeatRound: Record<string, MatchRow[]> = {};
+    const lines = text.trim().split(/\r?\n/).filter((line) => line.trim());
+    if (lines.length < 2) return { roundsByHeat, matchesByHeatRound };
+
+    const parseRow = (line: string): string[] => {
+        const result: string[] = [];
+        let current = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') {
+                inQuotes = !inQuotes;
+            } else if (c === "," && !inQuotes) {
+                result.push(current.trim());
+                current = "";
+            } else {
+                current += c;
+            }
+        }
+        result.push(current.trim());
+        return result;
+    };
+
+    const headerRow = parseRow(lines[0]);
+    const cols = headerRow.map((c) => c.trim().toLowerCase());
+    const hasHeat = cols.some((c) => c === "heat");
+    const heatIdx = hasHeat ? cols.indexOf("heat") : -1;
+    const roundIdx = cols.indexOf("round");
+    const p1Idx = cols.indexOf("player1");
+    const p2Idx = cols.indexOf("player2");
+    const s1Idx = cols.indexOf("score1");
+    const s2Idx = cols.indexOf("score2");
+    if (roundIdx < 0 || p1Idx < 0 || p2Idx < 0 || s1Idx < 0 || s2Idx < 0) {
+        throw new Error("CSV must have columns: round, player1, player2, score1, score2 (and optionally heat)");
+    }
+
+    const resolvePlayer = (value: string, heatIndex: number): string => {
+        const v = (value ?? "").trim();
+        if (!v) return "";
+        const heatPlayers = playersByHeat[heatIndex] ?? allPlayers;
+        const byId = heatPlayers.find((p) => p.id === v);
+        if (byId) return byId.id;
+        const byName = heatPlayers.find((p) => p.name.trim().toLowerCase() === v.toLowerCase());
+        if (byName) return byName.id;
+        const fromAll = allPlayers.find((p) => p.id === v || p.name.trim().toLowerCase() === v.toLowerCase());
+        return fromAll?.id ?? "";
+    };
+
+    for (let i = 1; i < lines.length; i++) {
+        const row = parseRow(lines[i]);
+        if (row.length < Math.max(roundIdx, p1Idx, p2Idx, s1Idx, s2Idx) + 1) continue;
+        const heat = hasHeat && heatIdx >= 0 ? parseInt(row[heatIdx], 10) : defaultHeatIndex;
+        if (Number.isNaN(heat) || heat < 0) continue;
+        const round = parseInt(row[roundIdx], 10);
+        if (Number.isNaN(round) || round < 0) continue;
+        const player1 = resolvePlayer(row[p1Idx] ?? "", heat);
+        const player2 = resolvePlayer(row[p2Idx] ?? "", heat);
+        const score1 = parseInt(row[s1Idx], 10) || 0;
+        const score2 = parseInt(row[s2Idx], 10) || 0;
+
+        if (!roundsByHeat[heat]) roundsByHeat[heat] = [];
+        if (!roundsByHeat[heat].includes(round)) roundsByHeat[heat].push(round);
+
+        const key = `${heat}-${round}`;
+        if (!matchesByHeatRound[key]) matchesByHeatRound[key] = [];
+        matchesByHeatRound[key].push({ player1Id: player1, player2Id: player2, score1, score2 });
+    }
+
+    for (const heat of Object.keys(roundsByHeat).map(Number)) {
+        roundsByHeat[heat].sort((a, b) => a - b);
+    }
+    return { roundsByHeat, matchesByHeatRound };
+}
 
 export interface QualifyingHeatsResultsCreatorViewProps {
     eventId: number;
@@ -151,6 +232,9 @@ export function QualifyingHeatsResultsCreatorView({
     );
     const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [csvError, setCsvError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const currentUploadHeatRef = useRef<number>(0);
     const router = useRouter();
 
     useEffect(() => {
@@ -188,6 +272,59 @@ export function QualifyingHeatsResultsCreatorView({
     };
 
     const allPlayers = playersByHeat.flat();
+    const handleCsvUpload = (file: File, heatIndex: number) => {
+        setCsvError(null);
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            setCsvError("Please upload a CSV file");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const text = String(reader.result ?? "");
+                const { roundsByHeat: parsedRounds, matchesByHeatRound: parsedMatches } = parseResultsCsv(
+                    text,
+                    heatIndex,
+                    playersByHeat,
+                    allPlayers
+                );
+                setRoundsByHeat((prev) => {
+                    const next = { ...prev };
+                    for (const heat of Object.keys(parsedRounds).map(Number)) {
+                        const existing = next[heat] ?? [];
+                        const added = parsedRounds[heat] ?? [];
+                        const combined = [...new Set([...existing, ...added])].sort((a, b) => a - b);
+                        next[heat] = combined;
+                    }
+                    return next;
+                });
+                setMatchesByHeatRound((prev) => ({ ...prev, ...parsedMatches }));
+            } catch (e) {
+                setCsvError(e instanceof Error ? e.message : "Invalid CSV format");
+            }
+        };
+        reader.onerror = () => setCsvError("Failed to read file");
+        reader.readAsText(file, "UTF-8");
+    };
+
+    const onUploadZoneClick = (heatIndex: number) => {
+        currentUploadHeatRef.current = heatIndex;
+        fileInputRef.current?.click();
+    };
+
+    const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (file) handleCsvUpload(file, currentUploadHeatRef.current);
+    };
+
+    const onUploadZoneDrop = (e: React.DragEvent, heatIndex: number) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleCsvUpload(file, heatIndex);
+    };
+
+    const onUploadZoneDragOver = (e: React.DragEvent) => e.preventDefault();
     const heatPlayers = (heatIndex: number) => playersByHeat[heatIndex] ?? allPlayers;
 
     const toggleHeat = (i: number) =>
@@ -311,6 +448,14 @@ export function QualifyingHeatsResultsCreatorView({
 
     return (
         <section className={css.section}>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                className={css.hiddenInput}
+                aria-hidden
+                onChange={onFileInputChange}
+            />
             <div className="container">
                 <div className={css.mainAccordion}>
                     <AccordionHeader
@@ -360,9 +505,18 @@ export function QualifyingHeatsResultsCreatorView({
                                                         Upload CSV
                                                     </h4>
                                                     <p className={css.uploadHint}>
-                                                        Drag and drop document
+                                                        Drag and drop or browse. Columns: heat, round, player1, player2, score1, score2
                                                     </p>
-                                                    <div className={css.uploadZone}>
+                                                    {csvError && (
+                                                        <p className={css.uploadError} role="alert">
+                                                            {csvError}
+                                                        </p>
+                                                    )}
+                                                    <div
+                                                        className={css.uploadZone}
+                                                        onDrop={(e) => onUploadZoneDrop(e, heatIndex)}
+                                                        onDragOver={onUploadZoneDragOver}
+                                                    >
                                                         <span
                                                             className={css.uploadIcon}
                                                             aria-hidden
@@ -379,6 +533,7 @@ export function QualifyingHeatsResultsCreatorView({
                                                         <button
                                                             type="button"
                                                             className={css.browseBtn}
+                                                            onClick={() => onUploadZoneClick(heatIndex)}
                                                         >
                                                             Browse files
                                                         </button>
@@ -633,9 +788,18 @@ export function QualifyingHeatsResultsCreatorView({
                                             <div className={css.uploadSection}>
                                                 <h4 className={css.uploadTitle}>Upload CSV</h4>
                                                 <p className={css.uploadHint}>
-                                                    Drag and drop document
+                                                    Drag and drop or browse. Columns: heat, round, player1, player2, score1, score2
                                                 </p>
-                                                <div className={css.uploadZone}>
+                                                {csvError && (
+                                                    <p className={css.uploadError} role="alert">
+                                                        {csvError}
+                                                    </p>
+                                                )}
+                                                <div
+                                                    className={css.uploadZone}
+                                                    onDrop={(e) => onUploadZoneDrop(e, heats.length)}
+                                                    onDragOver={onUploadZoneDragOver}
+                                                >
                                                     <span className={css.uploadIcon} aria-hidden>
                                                         ↓
                                                     </span>
@@ -648,6 +812,7 @@ export function QualifyingHeatsResultsCreatorView({
                                                     <button
                                                         type="button"
                                                         className={css.browseBtn}
+                                                        onClick={() => onUploadZoneClick(heats.length)}
                                                     >
                                                         Browse files
                                                     </button>

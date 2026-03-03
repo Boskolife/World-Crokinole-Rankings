@@ -10,6 +10,14 @@ $gold: #f4b44b;
 $grey: #8c8c8c;
 $grey-60: #737373;
 
+.hiddenInput {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
 .section {
     padding: 60px 0;
     background: #fff;
@@ -188,6 +196,12 @@ $grey-60: #737373;
     font-size: 16px;
     color: $grey;
     line-height: 1.35;
+}
+
+.uploadError {
+    margin: 8px 0 0 0;
+    font-size: 14px;
+    color: #c00;
 }
 
 .uploadZone {
