@@ -5,6 +5,7 @@ import css from "./styles.module.scss";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { Button } from "@/shared/ui/buttons";
+import { usePopup } from "@/shared/contexts/popup-context";
 import cn from "classnames";
 
 interface SubscriptionData {
@@ -19,6 +20,7 @@ interface SubscriptionData {
 export const SubscriptionManagement: React.FC = () => {
     const { user } = useAuth();
     const { profile, refetch } = useUserProfile();
+    const { openPopup } = usePopup();
     const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isCanceling, setIsCanceling] = useState(false);
@@ -48,13 +50,9 @@ export const SubscriptionManagement: React.FC = () => {
         }
     };
 
-    const handleCancelSubscription = async () => {
-        if (!user || !confirm("Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period.")) {
-            return;
-        }
-
+    const performCancelSubscription = async () => {
+        if (!user) return;
         setIsCanceling(true);
-
         try {
             const response = await fetch("/api/stripe/subscription", {
                 method: "DELETE",
@@ -63,9 +61,7 @@ export const SubscriptionManagement: React.FC = () => {
                 },
                 body: JSON.stringify({ userId: user.id }),
             });
-
             const data = await response.json();
-
             if (data.success) {
                 await fetchSubscription();
                 await refetch();
@@ -78,6 +74,11 @@ export const SubscriptionManagement: React.FC = () => {
         } finally {
             setIsCanceling(false);
         }
+    };
+
+    const handleCancelSubscription = () => {
+        if (!user) return;
+        openPopup("cancel-subscription-confirm", { onConfirm: performCancelSubscription });
     };
 
     if (isLoading) {

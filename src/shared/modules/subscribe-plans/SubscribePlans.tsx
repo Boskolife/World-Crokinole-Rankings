@@ -9,6 +9,7 @@ import { ISubscribeCardProps } from "../../ui/subscribe-card";
 import { SwitcherOption } from "@/shared/modules/switcher/Switcher";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { usePopup } from "@/shared/contexts/popup-context";
 
 const switcherOptions = [
     { value: "monthly", label: "Monthly" },
@@ -26,6 +27,7 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
 }) => {
     const { profile, refetch } = useUserProfile();
     const { user } = useAuth();
+    const { openPopup } = usePopup();
     const [currentSubscription, setCurrentSubscription] = useState<{
         planId: number;
         billingPeriod: "monthly" | "annual";
@@ -98,17 +100,9 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
         setPlanMode(newMode);
     };
 
-    const handleCancelSubscription = async () => {
-        if (!user || !currentSubscription?.subscriptionId) {
-            return;
-        }
-
-        if (!confirm("Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period.")) {
-            return;
-        }
-
+    const performCancelSubscription = async () => {
+        if (!user || !currentSubscription?.subscriptionId) return;
         setIsCanceling(true);
-
         try {
             const response = await fetch("/api/stripe/subscription", {
                 method: "DELETE",
@@ -117,9 +111,7 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
                 },
                 body: JSON.stringify({ userId: user.id }),
             });
-
             const data = await response.json();
-
             if (data.success) {
                 await fetchCurrentSubscription();
                 await refetch();
@@ -135,10 +127,14 @@ export const SubscribePlans: React.FC<SubscribePlansProps> = ({
         }
     };
 
+    const handleCancelSubscription = () => {
+        if (!user || !currentSubscription?.subscriptionId) return;
+        openPopup("cancel-subscription-confirm", { onConfirm: performCancelSubscription });
+    };
+
     const handleFreePlanSelect = async () => {
-        // If there's an active subscription, cancel it
         if (currentSubscription && currentSubscription.planId !== 1) {
-            await handleCancelSubscription();
+            handleCancelSubscription();
         }
     };
 
