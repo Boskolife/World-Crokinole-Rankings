@@ -3,6 +3,8 @@ import { localeConfig } from "@/app/localization/config";
 import type { Metadata } from "next";
 import { PopupProvider } from "@/shared/contexts/popup-context";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
     robots: {
         index: false,

@@ -1,10 +1,11 @@
-
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { localeConfig } from "@/app/localization/config";
 import { ServerProviders } from "@/app/localization/server";
 import { PopupContainer } from "@/shared/popups/PopupContainer";
 import "@/app/styles/main.scss";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
     title: "World Crokinole Rankings",
