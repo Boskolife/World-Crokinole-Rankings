@@ -49,9 +49,16 @@ export async function getEvents(): Promise<IEventCardProps[]> {
 
     if (!data?.length) return [];
     const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
-    return data.map((e) =>
-        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
-    );
+    return data.map((e) => {
+        const row = e as Record<string, unknown>;
+        const totalParticipantsVal = row.total_participants ?? row.capacity ?? null;
+        return mapEventRowToCard({
+            ...e,
+            current_rank: countMap.get(e.id) ?? 0,
+            total_participants: totalParticipantsVal as number | null,
+            capacity: (row.capacity ?? row.total_participants ?? null) as number | null,
+        });
+    });
 }
 
 const mapEventRowToCard = (event: {
@@ -77,7 +84,8 @@ const mapEventRowToCard = (event: {
     longitude?: number | null;
     qualifying_heats?: QualifyingHeatsData | null;
 }): IEventCardProps => {
-    const totalParticipants = event.total_participants ?? event.capacity ?? undefined;
+    const row = event as Record<string, unknown>;
+    const totalParticipants = (row.total_participants ?? row.capacity ?? row.totalParticipants ?? undefined) as number | undefined;
     const currentRank = totalParticipants != null ? (event.current_rank ?? 0) : (event.current_rank ?? undefined);
     return {
     id: event.id,
@@ -171,9 +179,16 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
 
     if (!data?.length) return [];
     const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
-    return data.map((e) =>
-        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
-    );
+    return data.map((e) => {
+        const row = e as Record<string, unknown>;
+        const totalParticipantsVal = row.total_participants ?? row.capacity ?? null;
+        return mapEventRowToCard({
+            ...e,
+            current_rank: countMap.get(e.id) ?? 0,
+            total_participants: totalParticipantsVal as number | null,
+            capacity: (row.capacity ?? row.total_participants ?? null) as number | null,
+        });
+    });
 }
 
 const UPCOMING_AT_LOCATION_LIMIT = 6;
@@ -201,9 +216,16 @@ export async function getUpcomingEventsAtLocation(
 
     if (!data?.length) return [];
     const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
-    return data.map((e) =>
-        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
-    );
+    return data.map((e) => {
+        const row = e as Record<string, unknown>;
+        const totalParticipantsVal = row.total_participants ?? row.capacity ?? null;
+        return mapEventRowToCard({
+            ...e,
+            current_rank: countMap.get(e.id) ?? 0,
+            total_participants: totalParticipantsVal as number | null,
+            capacity: (row.capacity ?? row.total_participants ?? null) as number | null,
+        });
+    });
 }
 
 export async function getPastEvents(): Promise<IEventCardProps[]> {
@@ -221,9 +243,16 @@ export async function getPastEvents(): Promise<IEventCardProps[]> {
 
     if (!data?.length) return [];
     const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
-    return data.map((e) =>
-        mapEventRowToCard({ ...e, current_rank: countMap.get(e.id) ?? 0 })
-    );
+    return data.map((e) => {
+        const row = e as Record<string, unknown>;
+        const totalParticipantsVal = row.total_participants ?? row.capacity ?? null;
+        return mapEventRowToCard({
+            ...e,
+            current_rank: countMap.get(e.id) ?? 0,
+            total_participants: totalParticipantsVal as number | null,
+            capacity: (row.capacity ?? row.total_participants ?? null) as number | null,
+        });
+    });
 }
 
 const EVENT_COVERS_BUCKET = "event-covers";
