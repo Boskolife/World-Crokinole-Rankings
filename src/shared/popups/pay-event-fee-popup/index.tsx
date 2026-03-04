@@ -58,7 +58,8 @@ function PayEventFeeForm({
                 setIsSubmitting(false);
                 return;
             }
-            if (result.paymentIntent?.status === "succeeded") {
+            const intent = (result as { paymentIntent?: { status: string } }).paymentIntent;
+            if (intent?.status === "succeeded") {
                 closePopup("pay-event-fee");
                 onSuccess();
                 router.refresh();
