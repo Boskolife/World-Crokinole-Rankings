@@ -100,3 +100,44 @@ export const ratingListDropdownOptions: DropdownOption[] = [
     { value: "Jan 2025 - Sep 2025 ", label: "Jan 2025 - Sep 2025 " },
     { value: "Oct 2025 - Dec 2025", label: "Oct 2025 - Dec 2025" },
 ];
+
+export const tournamentTypeOptions: DropdownOption[] = [
+    { value: "ranked", label: "Ranked" },
+    { value: "unranked", label: "Unranked" },
+];
+
+const POINTS_OPTIONS = [100, 150, 200, 220, 250, 300];
+export const tournamentPointsOptions: DropdownOption[] = POINTS_OPTIONS.map((n) => ({
+    value: String(n),
+    label: String(n),
+}));
+
+const TOTAL_PLAYERS_OPTIONS = [4, 8, 16, 32, 64];
+export const tournamentTotalPlayersOptions: DropdownOption[] = TOTAL_PLAYERS_OPTIONS.map((n) => ({
+    value: String(n),
+    label: String(n),
+}));
+
+export const tournamentOrganizerOptions: DropdownOption[] = [
+    { value: "me", label: "Me" },
+    { value: "club", label: "Club" },
+    { value: "other", label: "Other" },
+];
+
+export const stageFormatOptions: DropdownOption[] = [
+    { value: "single_elimination", label: "Single Elimination" },
+    { value: "double_elimination", label: "Double Elimination" },
+    { value: "round_robin", label: "Round Robin" },
+    { value: "swiss", label: "Swiss" },
+];
+
+export const seedingMethodOptions: DropdownOption[] = [
+    { value: "auto_rating", label: "Auto (by rating)" },
+    { value: "manual", label: "Manual" },
+    { value: "random", label: "Random" },
+];
+
+export const tournamentVisibilityOptions: DropdownOption[] = [
+    { value: "draft", label: "Draft (not public)" },
+    { value: "public", label: "Public" },
+];
