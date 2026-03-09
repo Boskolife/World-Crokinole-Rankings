@@ -61,6 +61,13 @@ export const SignUpForm: React.FC = () => {
                 return;
             }
 
+            if (authData?.user?.id) {
+                try {
+                    await fetch("/api/ensure-player", { method: "POST" });
+                } catch {
+                    // ignore
+                }
+            }
             router.push(`/${locale}${clientRoutes.steps(3)}`);
         } catch {
             setFormError(

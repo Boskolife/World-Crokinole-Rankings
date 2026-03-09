@@ -24,5 +24,6 @@ export interface IPlayer {
     fullNameWithTitles?: string | null;
     gender?: string | null;
     playerIdentifier?: string | null;
+    isAutoCreated?: boolean;
 }
 

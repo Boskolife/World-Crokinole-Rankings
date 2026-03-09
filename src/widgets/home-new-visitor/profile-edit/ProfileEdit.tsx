@@ -17,7 +17,6 @@ import {
     supabase,
     supabaseConfigError,
 } from "@/shared/supabase/client";
-import { ensurePlayerForUser } from "@/shared/supabase/data";
 
 type ProfileEditProps = {
     credentialsReadOnly?: boolean;
@@ -128,7 +127,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                     country: data.country?.trim(),
                 };
                 await supabase.rpc("ensure_profile", { p_id: user.id });
-                await ensurePlayerForUser(user.id);
+                await fetch("/api/ensure-player", { method: "POST" });
                 const { error: writeError } = await supabase
                     .from("profiles")
                     .update(payload)
@@ -181,7 +180,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 country: data.country?.trim(),
             };
             await supabase.rpc("ensure_profile", { p_id: user.id });
-            await ensurePlayerForUser(user.id);
+            await fetch("/api/ensure-player", { method: "POST" });
             const { error: writeError } = await supabase
                 .from("profiles")
                 .update(payload)

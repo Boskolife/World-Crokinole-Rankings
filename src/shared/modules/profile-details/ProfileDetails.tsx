@@ -46,12 +46,14 @@ export const ProfileDetails: React.FC = () => {
                         >
                             Edit profile
                         </RootLink>
-                        <RootLink
-                            href={clientRoutes.claimHistory}
-                            className={cn(css.profile_details_left_button, css.profile_details_left_button_link, css.profile_details_left_button_link_primary)}
-                        >
-                            Claim history
-                        </RootLink>
+                        {(!player || player.isAutoCreated) && (
+                            <RootLink
+                                href={clientRoutes.claimHistory}
+                                className={cn(css.profile_details_left_button, css.profile_details_left_button_link, css.profile_details_left_button_link_primary)}
+                            >
+                                Claim history
+                            </RootLink>
+                        )}
                     </div>
                 </div>
                 <div className={css.profile_details_right}>

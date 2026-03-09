@@ -25,7 +25,7 @@ export const Account: React.FC = () => {
             <RootLink href={clientRoutes.profileEdit} className={linkClass}>
                 Edit profile
             </RootLink>
-            {!player && (
+            {(!player || player.isAutoCreated) && (
                 <RootLink href={clientRoutes.claimHistory} className={linkPrimaryClass}>
                     Claim history
                 </RootLink>

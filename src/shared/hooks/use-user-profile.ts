@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
-import { ensurePlayerForUser } from "@/shared/supabase/data";
 import type { IProfile } from "@/shared/types";
 
 type ProfileCacheEntry = {
@@ -73,13 +72,19 @@ export const useUserProfile = () => {
             let nextProfile = (data ?? null) as IProfile | null;
             if (!nextProfile && userId) {
                 await supabase.rpc("ensure_profile", { p_id: userId });
-                await ensurePlayerForUser(userId);
                 const { data: inserted } = await supabase
                     .from("profiles")
                     .select("id, full_name, country, club, avatar_url, subscription_plan, is_admin")
                     .eq("id", userId)
                     .maybeSingle();
                 nextProfile = inserted as IProfile | null;
+            }
+            if (userId) {
+                try {
+                    await fetch("/api/ensure-player", { method: "POST" });
+                } catch {
+                    // ignore
+                }
             }
             setProfile(nextProfile);
             cache.set(userId, { profile: nextProfile, updatedAt: Date.now() });

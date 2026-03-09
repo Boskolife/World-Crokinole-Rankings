@@ -560,6 +560,7 @@ type PlayerRow = {
     full_name_with_titles?: string | null;
     gender?: string | null;
     player_identifier?: string | null;
+    is_auto_created?: boolean | null;
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -594,6 +595,7 @@ function mapPlayerRowToIPlayer(data: PlayerRow): IPlayer {
         fullNameWithTitles: data.full_name_with_titles ?? null,
         gender: data.gender ?? null,
         playerIdentifier: data.player_identifier ?? null,
+        isAutoCreated: data.is_auto_created ?? false,
     };
 }
 
@@ -722,21 +724,22 @@ export async function ensurePlayerForUser(userId: string): Promise<void> {
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, country")
         .eq("id", userId)
         .maybeSingle();
-    const name = (profile as { full_name?: string | null } | null)?.full_name?.trim() ?? null;
+    const row = profile as { full_name?: string | null; country?: string | null } | null;
+    const name = row?.full_name?.trim() ?? "";
+    const countryCode = row?.country?.trim() ?? "";
 
     const { error } = await supabase.from("players").insert({
         user_id: userId,
         name,
+        country_code: countryCode,
     });
     if (error) {
-        console.error("ensurePlayerForUser insert error:", {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-        });
+        const err = error as { message?: string; code?: string };
+        if (err.code === "23505") return;
+        console.error("ensurePlayerForUser insert error:", err.message ?? err.code ?? String(error));
     }
 }
 
