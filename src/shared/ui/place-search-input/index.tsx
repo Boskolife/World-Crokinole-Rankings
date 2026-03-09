@@ -20,6 +20,9 @@ type PlaceSearchInputProps = {
     onClear?: () => void;
     error?: string;
     className?: string;
+    labelClassName?: string;
+    inputClassName?: string;
+    wrapperClassName?: string;
 };
 
 declare global {
@@ -37,6 +40,9 @@ export function PlaceSearchInput({
     onClear,
     error,
     className,
+    labelClassName,
+    inputClassName,
+    wrapperClassName,
 }: PlaceSearchInputProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -109,7 +115,7 @@ export function PlaceSearchInput({
         return (
             <div className={cn(css.field, className)}>
                 {label && (
-                    <label className={css.label} htmlFor={id}>
+                    <label className={cn(css.label, labelClassName)} htmlFor={id}>
                         {label}
                     </label>
                 )}
@@ -123,19 +129,19 @@ export function PlaceSearchInput({
     return (
         <div className={cn(css.field, className)}>
             {label && (
-                <label className={css.label} htmlFor={id}>
+                <label className={cn(css.label, labelClassName)} htmlFor={id}>
                     {label}
                 </label>
             )}
             {isLoading ? (
                 <div className={css.loading}>Loading search…</div>
             ) : (
-                <div className={css.inputWrapper}>
+                <div className={cn(css.inputWrapper, wrapperClassName)}>
                     <input
                         ref={inputRef}
                         id={id}
                         type="text"
-                        className={cn(css.input, { [css.error]: !!error })}
+                        className={cn(css.input, { [css.error]: !!error }, inputClassName)}
                         placeholder={placeholder}
                         defaultValue={value}
                         onChange={handleInputChange}

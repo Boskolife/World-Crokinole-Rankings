@@ -6,8 +6,8 @@ import css from "./styles.module.scss";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { useAuth } from "@/shared/hooks/use-auth";
-import { CustomCheckbox, Button, CustomRoundedDropdown } from "@/shared/ui";
-import { locationCountryOptions } from "@/shared/constants/dropdown-options";
+import { CustomCheckbox, Button } from "@/shared/ui";
+import { PlaceSearchInput } from "@/shared/ui/place-search-input";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import { createClub } from "@/shared/supabase/data";
 import { useRouter } from "next/navigation";
@@ -90,6 +90,10 @@ export const CreateClubPopup: React.FC = () => {
             setError("Club name is required");
             return;
         }
+        if (!location.trim()) {
+            setError("Location is required");
+            return;
+        }
         if (!user?.id) {
             setError("You must be signed in to create a club");
             return;
@@ -167,21 +171,21 @@ export const CreateClubPopup: React.FC = () => {
                     />
                 </div>
 
-                <div className={inputCss.form_field}>
-                    <label
-                        className={inputCss.form_field_label}
-                        htmlFor="create-club-location"
-                    >
-                        Location
-                    </label>
-                    <CustomRoundedDropdown
-                        id="create-club-location"
-                        placeholder="Select location"
-                        options={locationCountryOptions}
-                        value={location}
-                        onChange={setLocation}
-                    />
-                </div>
+                <PlaceSearchInput
+                    id="create-club-location"
+                    label="Location"
+                    placeholder="Search for a place or address"
+                    value={location}
+                    onChange={(result) => setLocation(result.address)}
+                    onClear={() => setLocation("")}
+                    className={inputCss.form_field}
+                    labelClassName={inputCss.form_field_label}
+                    inputClassName={cn(
+                        inputCss.form_field_input,
+                        location && inputCss.form_field_input_with_icon
+                    )}
+                    wrapperClassName={inputCss.form_field_input_wrapper}
+                />
 
                 <CustomCheckbox
                     name="inviteOnly"
