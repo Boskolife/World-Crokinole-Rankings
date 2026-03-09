@@ -1,115 +1,116 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { useEvents, useDebounce } from "@/shared/hooks";
 import { getEventsCreatedByUser } from "@/shared/supabase/data";
 import { RootLink } from "@/shared/ui/links/root-link";
+import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
 import { clientRoutes } from "@/shared/routes/client";
+import { EventCard } from "@/widgets/events/components/event-card/EventCard";
+import { EventsMap } from "@/widgets/events/components/events-map/EventsMap";
 import type { IEventCardProps } from "@/shared/types";
 import { localeConfig } from "@/app/localization/config";
+import cn from "classnames";
 import css from "./styles.module.scss";
+import eventsCss from "@/widgets/events/ui/styles.module.scss";
 
-const STAGE_FORMAT_LABELS: Record<string, string> = {
-    single_elimination: "Elimination",
-    double_elimination: "Double Elimination",
-    round_robin: "Round Robin",
-    swiss: "Swiss",
-};
+const SEARCH_DEBOUNCE_MS = 300;
 
-function getFormatTag(event: IEventCardProps): string {
-    const format = (event.format ?? "").trim();
-    const isTournament = format.toLowerCase() === "tournament";
-    const raw = (event.structure ?? "").trim();
-    let stageFormat = "";
-    if (raw.startsWith("{")) {
-        try {
-            const p = JSON.parse(raw) as { stages?: Array<{ stageFormat?: string }> };
-            const first = p.stages?.[0];
-            if (first?.stageFormat) {
-                stageFormat = STAGE_FORMAT_LABELS[first.stageFormat] ?? first.stageFormat;
-            }
-        } catch {
-            //
-        }
+const createdEventsDateOptions = [
+    { value: "all", label: "All dates" },
+    { value: "30d", label: "Next 30 days" },
+    { value: "3m", label: "Next 3 months" },
+    { value: "6m", label: "Next 6 months" },
+    { value: "9m", label: "Next 9 months" },
+    { value: "1y", label: "Next 1 year" },
+    { value: "past_30d", label: "Last 30 days" },
+    { value: "past_3m", label: "Last 3 months" },
+    { value: "past_6m", label: "Last 6 months" },
+    { value: "past_9m", label: "Last 9 months" },
+    { value: "past_1y", label: "Last 1 year" },
+];
+
+const typeOptions = [
+    { value: "all", label: "All types" },
+    { value: "ranked", label: "Ranked" },
+    { value: "unranked", label: "Unranked" },
+];
+
+function filterByDateRange(
+    list: IEventCardProps[],
+    dateFilter: string
+): IEventCardProps[] {
+    if (dateFilter === "all") return list;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayTime = today.getTime();
+
+    const addPeriod = (months: number, days = 0) => {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() + months);
+        d.setDate(d.getDate() + days);
+        return d.getTime();
+    };
+
+    const isPast = dateFilter.startsWith("past_");
+    const key = isPast ? dateFilter.replace("past_", "") : dateFilter;
+    let rangeStart: number;
+    let rangeEnd: number;
+    switch (key) {
+        case "30d":
+            rangeStart = todayTime;
+            rangeEnd = addPeriod(0, 30);
+            break;
+        case "3m":
+            rangeStart = todayTime;
+            rangeEnd = addPeriod(3);
+            break;
+        case "6m":
+            rangeStart = todayTime;
+            rangeEnd = addPeriod(6);
+            break;
+        case "9m":
+            rangeStart = todayTime;
+            rangeEnd = addPeriod(9);
+            break;
+        case "1y":
+            rangeStart = todayTime;
+            rangeEnd = addPeriod(12);
+            break;
+        default:
+            return list;
     }
-    if (isTournament && stageFormat) return `Tournament / ${stageFormat}`;
-    if (isTournament) return "Tournament";
-    return format || "Event";
-}
 
-function ProfileCreatedEventCard({ event }: { event: IEventCardProps }) {
-    const formatTag = getFormatTag(event);
-    const isPast = event.endDate ? new Date(event.endDate) < new Date() : false;
-    const locale = (useParams()?.locale as string) ?? localeConfig.defaultLocale;
-
-    return (
-        <div className={css.card}>
-            <div className={css.card_image_wrap}>
-                {event.image ? (
-                    <Image
-                        src={event.image}
-                        alt={event.title}
-                        fill
-                        className={css.card_image}
-                        sizes="420px"
-                    />
-                ) : (
-                    <div className={css.card_image_placeholder}>
-                        <Image
-                            src="/images/logo.png"
-                            alt=""
-                            width={132}
-                            height={127}
-                            className={css.card_placeholder_img}
-                        />
-                    </div>
-                )}
-                <span className={css.card_tag}>{formatTag}</span>
-                <div className={css.card_participants}>
-                    <Icon name="ranking" className={css.card_participants_icon} />
-                    {event.totalParticipants != null && (
-                        <span className={css.card_participants_count}>
-                            {event.currentRank ?? 0}/{event.totalParticipants}
-                        </span>
-                    )}
-                </div>
-            </div>
-            <div className={css.card_body}>
-                <h3 className={css.card_title}>{event.title}</h3>
-                <div className={css.card_meta}>
-                    <span className={css.card_date}>{event.date}</span>
-                    <span className={css.card_location}>
-                        <Icon name="location" className={css.card_location_icon} />
-                        {event.location}
-                    </span>
-                    {isPast && event.winner && (
-                        <span className={css.card_winner}>
-                            <b>Winner:</b> {event.winner}
-                        </span>
-                    )}
-                </div>
-                <RootLink
-                    href={`/${locale}${clientRoutes.eventDetail(event.id)}`}
-                    className={css.card_manage}
-                >
-                    Manage Page
-                </RootLink>
-            </div>
-        </div>
-    );
+    return list.filter((event) => {
+        const dateStr = isPast ? event.endDate ?? event.startDate : event.startDate;
+        if (!dateStr) return false;
+        const eventDate = new Date(dateStr);
+        const eventDateOnly = new Date(
+            eventDate.getFullYear(),
+            eventDate.getMonth(),
+            eventDate.getDate()
+        );
+        const eventTime = eventDateOnly.getTime();
+        if (isPast) {
+            return eventTime <= todayTime && eventTime >= todayTime - (rangeEnd - rangeStart);
+        }
+        return eventTime >= rangeStart && eventTime <= rangeEnd;
+    });
 }
 
 export function ProfileCreatedEvents() {
     const { user } = useAuth();
     const [events, setEvents] = useState<IEventCardProps[]>([]);
     const [loading, setLoading] = useState(true);
-    const [dateFilter, setDateFilter] = useState("");
-    const [locationFilter, setLocationFilter] = useState("");
-    const [formatFilter, setFormatFilter] = useState("");
-    const [typeFilter, setTypeFilter] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearchQuery = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
+    const [dateFilter, setDateFilter] = useState("all");
+    const [locationFilter, setLocationFilter] = useState("all");
+    const [formatFilter, setFormatFilter] = useState("all");
+    const [typeFilter, setTypeFilter] = useState("all");
     const params = useParams();
     const locale = (params?.locale as string) ?? localeConfig.defaultLocale;
 
@@ -125,41 +126,63 @@ export function ProfileCreatedEvents() {
             .finally(() => setLoading(false));
     }, [user?.id]);
 
-    const filteredEvents = useMemo(() => {
-        let list = [...events];
-        if (dateFilter) {
-            list = list.filter((e) => {
-                const d = e.startDate ?? e.endDate ?? "";
-                return d && d.startsWith(dateFilter);
-            });
-        }
-        if (locationFilter) list = list.filter((e) => e.location === locationFilter);
-        if (formatFilter) list = list.filter((e) => (e.format ?? "") === formatFilter);
-        if (typeFilter) {
-            if (typeFilter === "ranked") list = list.filter((e) => e.isRanked);
-            if (typeFilter === "unranked") list = list.filter((e) => !e.isRanked);
-        }
-        return list;
-    }, [events, dateFilter, locationFilter, formatFilter, typeFilter]);
-
-    const dateOptions = useMemo(() => {
-        const set = new Set<string>();
-        events.forEach((e) => {
-            const d = e.startDate ?? e.endDate;
-            if (d) set.add(d.slice(0, 7));
-        });
-        return ["", ...Array.from(set).sort()];
-    }, [events]);
-
     const locationOptions = useMemo(() => {
         const set = new Set(events.map((e) => e.location).filter(Boolean));
-        return ["", ...Array.from(set).sort()];
+        return [
+            { value: "all", label: "All locations" },
+            ...Array.from(set)
+                .sort()
+                .map((loc) => ({ value: loc, label: loc })),
+        ];
     }, [events]);
 
     const formatOptions = useMemo(() => {
         const set = new Set(events.map((e) => (e.format ?? "").trim()).filter(Boolean));
-        return ["", ...Array.from(set).sort()];
+        return [
+            { value: "all", label: "All formats" },
+            ...Array.from(set)
+                .sort()
+                .map((f) => ({ value: f, label: f })),
+        ];
     }, [events]);
+
+    const filteredEvents = useMemo(() => {
+        let list = [...events];
+        if (debouncedSearchQuery.trim()) {
+            const q = debouncedSearchQuery.trim().toLowerCase();
+            list = list.filter(
+                (e) =>
+                    (e.title ?? "").toLowerCase().includes(q) ||
+                    (e.location ?? "").toLowerCase().includes(q) ||
+                    (e.format ?? "").toLowerCase().includes(q)
+            );
+        }
+        list = filterByDateRange(list, dateFilter);
+        if (locationFilter !== "all") list = list.filter((e) => e.location === locationFilter);
+        if (formatFilter !== "all") list = list.filter((e) => (e.format ?? "") === formatFilter);
+        if (typeFilter !== "all") {
+            if (typeFilter === "ranked") list = list.filter((e) => e.isRanked);
+            if (typeFilter === "unranked") list = list.filter((e) => !e.isRanked);
+        }
+        return list;
+    }, [
+        events,
+        debouncedSearchQuery,
+        dateFilter,
+        locationFilter,
+        formatFilter,
+        typeFilter,
+    ]);
+
+    const {
+        activeSwitcher,
+        displayedEvents,
+        handleSwitcherClick,
+    } = useEvents({
+        events: filteredEvents,
+        needPagination: false,
+        totalItems: filteredEvents.length,
+    });
 
     if (!user) return null;
 
@@ -176,55 +199,82 @@ export function ProfileCreatedEvents() {
                 </RootLink>
             </div>
             <div className={css.filters_row}>
-                <div className={css.filters}>
-                    <select
-                        className={css.filter_select}
+                <div className={eventsCss.events_head_filters}>
+                    <div className={eventsCss.events_head_search}>
+                        <SearchInput
+                            placeholder="Search events"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            ariaLabel="Search events by title, location or format"
+                        />
+                    </div>
+                    <CustomRoundedDropdown
+                        id="Date"
+                        options={createdEventsDateOptions}
+                        placeholder="Date"
+                        className={eventsCss.events_head_dropdown}
                         value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
-                        aria-label="Date"
-                    >
-                        <option value="">Date</option>
-                        {dateOptions.filter(Boolean).map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                        ))}
-                    </select>
-                    <select
-                        className={css.filter_select}
+                        onChange={setDateFilter}
+                    />
+                    <CustomRoundedDropdown
+                        id="Location"
+                        options={locationOptions}
+                        placeholder="Location"
+                        className={eventsCss.events_head_dropdown}
                         value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                        aria-label="Location"
-                    >
-                        <option value="">Location</option>
-                        {locationOptions.filter(Boolean).map((loc) => (
-                            <option key={loc} value={loc}>{loc}</option>
-                        ))}
-                    </select>
-                    <select
-                        className={css.filter_select}
+                        onChange={setLocationFilter}
+                    />
+                    <CustomRoundedDropdown
+                        id="Format"
+                        options={formatOptions}
+                        placeholder="Format"
+                        className={eventsCss.events_head_dropdown}
                         value={formatFilter}
-                        onChange={(e) => setFormatFilter(e.target.value)}
-                        aria-label="Format"
-                    >
-                        <option value="">Format</option>
-                        {formatOptions.filter(Boolean).map((f) => (
-                            <option key={f} value={f}>{f}</option>
-                        ))}
-                    </select>
-                    <select
-                        className={css.filter_select}
+                        onChange={setFormatFilter}
+                    />
+                    <CustomRoundedDropdown
+                        id="Type"
+                        options={typeOptions}
+                        placeholder="Type"
+                        className={eventsCss.events_head_dropdown}
                         value={typeFilter}
-                        onChange={(e) => setTypeFilter(e.target.value)}
-                        aria-label="Type"
-                    >
-                        <option value="">Type</option>
-                        <option value="ranked">Ranked</option>
-                        <option value="unranked">Unranked</option>
-                    </select>
+                        onChange={setTypeFilter}
+                    />
                 </div>
-                <div className={css.view_tabs}>
-                    <span className={css.view_tab_active}>List</span>
-                    <span className={css.view_tab}>Grid</span>
-                    <span className={css.view_tab}>Map</span>
+                <div
+                    className={cn(eventsCss.events_head_switcher, {
+                        [eventsCss.events_head_switcher_list]: activeSwitcher === "list",
+                        [eventsCss.events_head_switcher_map]: activeSwitcher === "map",
+                    })}
+                >
+                    <button
+                        className={cn(eventsCss.events_head_switcher_button, {
+                            [eventsCss.events_head_switcher_button_active]:
+                                activeSwitcher === "list",
+                        })}
+                        onClick={() => handleSwitcherClick("list")}
+                        type="button"
+                        aria-label="Show events as list"
+                    >
+                        <Icon
+                            name="list"
+                            className={eventsCss.events_head_switcher_button_icon}
+                        />
+                    </button>
+                    <button
+                        className={cn(eventsCss.events_head_switcher_button, {
+                            [eventsCss.events_head_switcher_button_active]:
+                                activeSwitcher === "map",
+                        })}
+                        onClick={() => handleSwitcherClick("map")}
+                        type="button"
+                        aria-label="Show events on map"
+                    >
+                        <Icon
+                            name="map"
+                            className={eventsCss.events_head_switcher_button_icon}
+                        />
+                    </button>
                 </div>
             </div>
             {loading ? (
@@ -233,10 +283,20 @@ export function ProfileCreatedEvents() {
                 <div className={css.empty}>
                     You have not created any events or tournaments yet.
                 </div>
+            ) : activeSwitcher === "map" ? (
+                <EventsMap events={filteredEvents} />
             ) : (
-                <div className={css.grid}>
-                    {filteredEvents.map((event) => (
-                        <ProfileCreatedEventCard key={event.id} event={event} />
+                <div className={eventsCss.events_content}>
+                    {displayedEvents.map((event) => (
+                        <EventCard
+                            key={event.id}
+                            {...event}
+                            isPastEvent={
+                                event.endDate
+                                    ? new Date(event.endDate) < new Date()
+                                    : false
+                            }
+                        />
                     ))}
                 </div>
             )}

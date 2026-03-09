@@ -23,13 +23,18 @@ const stageFormatLabel = (value: string) =>
 const seedingMethodLabel = (value: string) =>
     seedingMethodOptions.find((o) => o.value === value)?.label ?? value;
 
+type StructureParsed = {
+    description?: string;
+    stages?: Array<{ stageFormat?: string; seedingMethod?: string; numberOfRounds?: string }>;
+};
+
 function formatStructureDisplay(structure: string | undefined): string {
     if (!structure?.trim()) return "";
     const raw = structure.trim();
-    let parsed: { description?: string; stages?: Array<{ stageFormat?: string; seedingMethod?: string; numberOfRounds?: string }> } | null = null;
+    let parsed: StructureParsed | null = null;
     if (raw.startsWith("{")) {
         try {
-            parsed = JSON.parse(raw) as typeof parsed;
+            parsed = JSON.parse(raw) as StructureParsed;
         } catch {
             return raw;
         }
@@ -38,8 +43,8 @@ function formatStructureDisplay(structure: string | undefined): string {
         if (jsonStart >= 0) {
             const desc = raw.slice(0, jsonStart).trim();
             try {
-                parsed = JSON.parse(raw.slice(jsonStart)) as typeof parsed;
-                if (desc) parsed = { ...parsed, description: desc };
+                const parsedJson: StructureParsed = JSON.parse(raw.slice(jsonStart));
+                parsed = desc ? { ...parsedJson, description: desc } : parsedJson;
             } catch {
                 return raw;
             }
