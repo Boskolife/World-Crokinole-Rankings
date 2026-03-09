@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormField, TextareaField, CustomDropdown } from "@/shared/ui";
+import { PlaceSearchInput } from "@/shared/ui/place-search-input";
 import { Icon } from "@/shared/ui/icons";
 import { createEvent, getActiveEventsCountByUser } from "@/shared/supabase/data";
 import { useAuth } from "@/shared/hooks/use-auth";
@@ -17,7 +18,6 @@ import {
     eventTypeOptions,
     needToRegisterOptions,
     qualifyingHeatsOptions,
-    locationCountryOptions,
 } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import css from "./styles.module.scss";
@@ -116,6 +116,7 @@ export function CreateEventForm({
     const [coverError, setCoverError] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [locationLatLng, setLocationLatLng] = useState<{ lat: number; lng: number } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -194,6 +195,22 @@ export function CreateEventForm({
             return;
         }
 
+        const heatsCountNum = Math.max(0, parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0);
+        if (heatsCountNum > 0) {
+            const now = Date.now();
+            for (let n = 1; n <= heatsCountNum; n++) {
+                const startStr = heatDateTimes[n];
+                if (startStr && new Date(startStr).getTime() <= now) {
+                    setSubmitError(`Qualifying Heat ${n} date & time must be in the future`);
+                    return;
+                }
+            }
+            if (finalDateTime && new Date(finalDateTime).getTime() <= now) {
+                setSubmitError("Final date & time must be in the future");
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         try {
             const price = (data.fee ?? "").trim() === "" ? "0" : (data.fee ?? "").trim();
@@ -201,7 +218,6 @@ export function CreateEventForm({
             const numCap = cap !== null && !Number.isNaN(cap) ? cap : null;
             const formatLabel = (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
-            const heatsCountNum = Math.max(0, parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0);
             let qualifyingHeats: { heats: { start: string; end: string }[]; final?: { start: string; end: string } } | undefined;
             if (heatsCountNum > 0) {
                 const twoHoursMs = 2 * 60 * 60 * 1000;
@@ -241,6 +257,8 @@ export function CreateEventForm({
                 structure: (data.additionalInfo ?? "").trim(),
                 coverFile,
                 capacity: numCap,
+                latitude: locationLatLng?.lat ?? undefined,
+                longitude: locationLatLng?.lng ?? undefined,
                 qualifyingHeats: qualifyingHeats ?? null,
                 createdByUserId: user?.id ?? undefined,
             });
@@ -390,14 +408,19 @@ export function CreateEventForm({
                             error={errors.endDateTime?.message}
                             hideClearButton
                         />
-                        <CustomDropdown
+                        <PlaceSearchInput
                             id="create-event-location"
-                            name="location"
                             label="Location"
-                            placeholder="Select location"
-                            options={locationCountryOptions}
+                            placeholder="Search for a place or address"
                             value={watchedLocation ?? ""}
-                            register={register}
+                            onChange={(result) => {
+                                setValue("location", result.address, { shouldValidate: true });
+                                setLocationLatLng({ lat: result.latitude, lng: result.longitude });
+                            }}
+                            onClear={() => {
+                                setValue("location", "", { shouldValidate: true });
+                                setLocationLatLng(null);
+                            }}
                             error={errors.location?.message}
                         />
                         {!isFreePlan && (

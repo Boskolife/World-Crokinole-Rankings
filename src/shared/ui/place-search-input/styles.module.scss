@@ -1,0 +1,82 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: start;
+    width: 100%;
+}
+
+.label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--blue-grey, #00284b);
+}
+
+.inputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 1px solid var(--blue-dark);
+    border-radius: 8px;
+    font-size: 16px;
+    color: var(--black);
+    background: var(--white);
+    outline: none;
+    caret-color: var(--black-50);
+    transition: border-color 0.3s ease;
+
+    &::placeholder {
+        color: var(--black-50);
+    }
+
+    &:hover {
+        border-color: var(--blue-dark-2);
+    }
+
+    &:focus {
+        border-color: var(--blue-grey);
+    }
+
+    &.error {
+        border-color: var(--red);
+    }
+}
+
+.clearBtn {
+    position: absolute;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--black-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        color: var(--black);
+    }
+}
+
+.errorText {
+    font-size: 14px;
+    color: var(--red);
+}
+
+.loading {
+    font-size: 14px;
+    color: var(--black-50);
+}

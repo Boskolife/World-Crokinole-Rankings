@@ -195,6 +195,25 @@ export function EditEventForm({
             return;
         }
 
+        const heatsCountNum = Math.max(
+            0,
+            parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0
+        );
+        if (heatsCountNum > 0) {
+            const now = Date.now();
+            for (let n = 1; n <= heatsCountNum; n++) {
+                const startStr = heatDateTimes[n];
+                if (startStr && new Date(startStr).getTime() <= now) {
+                    setSubmitError(`Qualifying Heat ${n} date & time must be in the future`);
+                    return;
+                }
+            }
+            if (finalDateTime && new Date(finalDateTime).getTime() <= now) {
+                setSubmitError("Final date & time must be in the future");
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         try {
             const price = (data.fee ?? "").trim() === "" ? "0" : (data.fee ?? "").trim();
@@ -203,10 +222,6 @@ export function EditEventForm({
             const formatLabel =
                 (data.format?.charAt(0).toUpperCase() ?? "") + (data.format?.slice(1) ?? "");
 
-            const heatsCountNum = Math.max(
-                0,
-                parseInt(String(data.qualifyingHeatsCount ?? "0"), 10) || 0
-            );
             let qualifyingHeats:
                 | { heats: { start: string; end: string }[]; final?: { start: string; end: string } }
                 | undefined;

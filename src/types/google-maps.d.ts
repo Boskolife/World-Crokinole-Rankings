@@ -132,6 +132,34 @@ declare namespace google {
 
         interface MapsEventListener {}
     }
+
+    namespace maps.places {
+        class Autocomplete {
+            constructor(
+                inputField: HTMLInputElement,
+                opts?: AutocompleteOptions
+            );
+            addListener(eventName: string, handler: () => void): void;
+            getPlace(): PlaceResult;
+        }
+
+        interface AutocompleteOptions {
+            types?: string[];
+            fields?: string[];
+            componentRestrictions?: { country: string | string[] };
+        }
+
+        interface PlaceResult {
+            formatted_address?: string;
+            name?: string;
+            geometry?: {
+                location: {
+                    lat(): number;
+                    lng(): number;
+                };
+            };
+        }
+    }
 }
 
 
