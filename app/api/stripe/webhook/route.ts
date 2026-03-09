@@ -136,6 +136,12 @@ export async function POST(request: NextRequest) {
             throw new Error(`Failed to update subscription: ${subscriptionError.message}`);
         }
 
+        await supabase
+            .from("subscriptions")
+            .update({ status: "canceled" })
+            .eq("user_id", userId)
+            .neq("stripe_subscription_id", sub.id);
+
         if (sub.status === "active" || sub.status === "trialing") {
             const { error: profileError } = await supabase
                 .from("profiles")

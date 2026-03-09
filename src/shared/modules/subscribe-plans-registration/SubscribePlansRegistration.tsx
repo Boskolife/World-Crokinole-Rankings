@@ -154,7 +154,7 @@ export const SubscribePlansRegistration: React.FC = () => {
                     value={planMode}
                     onChange={handleModeChange}
                 />
-                {displayMode === "annual" && (
+                {displayMode === "monthly" && (
                     <p className={css.subscribe_plans_description}>
                         Save 20% by choosing the annual subscription!
                     </p>

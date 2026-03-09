@@ -88,10 +88,13 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                console.error("Failed to create checkout session");
+                const message = data.error || "Failed to create checkout session";
+                console.error(message);
+                alert(message);
             }
         } catch (error) {
             console.error("Error creating checkout session:", error);
+            alert("Error creating checkout session. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -104,6 +107,9 @@ export const SubscribeCard: React.FC<ISubscribeCardProps> = ({
                 [css.inverted]: inverted,
             })}
         >
+            {currentPlan && (
+                <div className={css.subscribe_card_current_plan}>NOW</div>
+            )}
             <h3 className={css.subscribe_card_title}>{name}</h3>
             <p className={css.subscribe_card_description}>
                 <span

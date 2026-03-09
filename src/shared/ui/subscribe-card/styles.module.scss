@@ -21,13 +21,13 @@
         top: 8px;
         right: 8px;
         background: var(--white);
-        color: var(--blue-grey);
+        color: #00284b;
         padding: 8px 16px;
-        border-radius: 10px;
-        box-shadow: 4px 4px 16px 0px #00213D1A;
-        border: 1px solid var(--black-10);
+        border-radius: 12px;
+        box-shadow: 4px 4px 16px 0px rgba(0, 33, 61, 0.1);
         @include adaptive-value("font-size", 16, 14, 1);
         font-weight: 500;
+        line-height: 1.35;
 
         @include media-down(sm) {
             top: 4px;

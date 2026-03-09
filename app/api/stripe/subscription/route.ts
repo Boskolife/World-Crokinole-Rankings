@@ -23,12 +23,13 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const { data: subscription, error } = await supabase
+        const { data: rawSubscription, error } = await supabase
             .from("subscriptions")
             .select("*")
             .eq("user_id", userId)
             .eq("status", "active")
-            .maybeSingle();
+            .order("current_period_end", { ascending: false })
+            .limit(1);
 
         if (error) {
             return NextResponse.json(
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        const subscription = Array.isArray(rawSubscription) ? rawSubscription[0] ?? null : rawSubscription;
         if (!subscription) {
             return NextResponse.json({ subscription: null });
         }

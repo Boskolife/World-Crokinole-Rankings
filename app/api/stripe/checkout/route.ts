@@ -48,6 +48,55 @@ export async function POST(request: NextRequest) {
             process.env.NEXT_PUBLIC_BASE_URL ||
             (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
+        const { data: rawExisting } = await supabase
+            .from("subscriptions")
+            .select("stripe_subscription_id")
+            .eq("user_id", userId)
+            .eq("status", "active")
+            .order("current_period_end", { ascending: false })
+            .limit(1);
+
+        const existingRow = Array.isArray(rawExisting) ? rawExisting[0] : rawExisting;
+        const existingSubscriptionId = (existingRow as { stripe_subscription_id?: string } | null)?.stripe_subscription_id;
+
+        if (existingSubscriptionId) {
+            try {
+                const sub = await stripe.subscriptions.retrieve(existingSubscriptionId, {
+                    expand: ["items.data"],
+                });
+                const item = sub.items?.data?.[0];
+                if (item?.id) {
+                    await stripe.subscriptions.update(existingSubscriptionId, {
+                        items: [{ id: item.id, price: priceId }],
+                        proration_behavior: "always_invoice",
+                        metadata: {
+                            userId,
+                            planId,
+                            billingPeriod,
+                        },
+                    });
+                    const updated = await stripe.subscriptions.retrieve(existingSubscriptionId, {
+                        expand: ["latest_invoice"],
+                    });
+                    const invoice = updated.latest_invoice as Stripe.Invoice | null | undefined;
+                    if (
+                        invoice &&
+                        typeof invoice === "object" &&
+                        invoice.hosted_invoice_url
+                    ) {
+                        return NextResponse.json({ url: invoice.hosted_invoice_url });
+                    }
+                    return NextResponse.json({
+                        url: `${baseUrl}/membership-plans?success=true`,
+                    });
+                }
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Subscription update failed";
+                console.error("Checkout subscription update error:", err);
+                return NextResponse.json({ error: message }, { status: 502 });
+            }
+        }
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: [
