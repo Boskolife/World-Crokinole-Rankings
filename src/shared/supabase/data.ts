@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "./client";
 import type {
     IEventCardProps,
@@ -561,38 +562,15 @@ type PlayerRow = {
     player_identifier?: string | null;
 };
 
-export async function getPlayerById(id: string): Promise<IPlayer | null> {
-    let data: PlayerRow | null = null;
-    const byUserId = await supabase
-        .from("players")
-        .select("*, profiles(avatar_url)")
-        .eq("user_id", id)
-        .maybeSingle();
-    if (byUserId.error) return null;
-    if (byUserId.data) data = byUserId.data as PlayerRow;
-    if (!data && /^\d+$/.test(id)) {
-        const byNumericId = await supabase
-            .from("players")
-            .select("*, profiles(avatar_url)")
-            .eq("id", parseInt(id, 10))
-            .maybeSingle();
-        if (!byNumericId.error && byNumericId.data) data = byNumericId.data as PlayerRow;
-    }
-    if (!data) {
-        const byId = await supabase
-            .from("players")
-            .select("*, profiles(avatar_url)")
-            .eq("id", id)
-            .maybeSingle();
-        if (!byId.error && byId.data) data = byId.data as PlayerRow;
-    }
-    if (!data) return null;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    const profile = data.profiles as { avatar_url?: string | null } | null;
+function mapPlayerRowToIPlayer(data: PlayerRow): IPlayer {
+    const profile = (data as { profiles?: { avatar_url?: string | null } | null }).profiles;
     const avatarUrl = profile?.avatar_url ?? null;
-
+    const rowId = data.id != null ? String(data.id) : undefined;
     return {
         id: String(data.user_id ?? data.id),
+        rowId,
         name: data.name ?? "",
         countryCode: data.country_code ?? "",
         kingdom: data.kingdom ?? "",
@@ -617,6 +595,49 @@ export async function getPlayerById(id: string): Promise<IPlayer | null> {
         gender: data.gender ?? null,
         playerIdentifier: data.player_identifier ?? null,
     };
+}
+
+export async function getPlayerByIdWithClient(
+    client: SupabaseClient,
+    id: string
+): Promise<IPlayer | null> {
+    let data: PlayerRow | null = null;
+    const isUuid = UUID_REGEX.test(id);
+    const isNumeric = /^\d+$/.test(id);
+
+    const byUserId = await client
+        .from("players")
+        .select("*")
+        .eq("user_id", id)
+        .maybeSingle();
+    if (byUserId.error) {
+        console.error("getPlayerById by user_id:", byUserId.error);
+    }
+    if (byUserId.data) data = byUserId.data as PlayerRow;
+
+    if (!data && isNumeric) {
+        const byNumericId = await client
+            .from("players")
+            .select("*, profiles(avatar_url)")
+            .eq("id", parseInt(id, 10))
+            .maybeSingle();
+        if (!byNumericId.error && byNumericId.data) data = byNumericId.data as PlayerRow;
+    }
+    if (!data) {
+        const byId = await client
+            .from("players")
+            .select("*, profiles(avatar_url)")
+            .eq("id", id)
+            .maybeSingle();
+        if (!byId.error && byId.data) data = byId.data as PlayerRow;
+    }
+    if (!data) return null;
+
+    return mapPlayerRowToIPlayer(data);
+}
+
+export async function getPlayerById(id: string): Promise<IPlayer | null> {
+    return getPlayerByIdWithClient(supabase, id);
 }
 
 export interface GetPlayersParams {
@@ -677,6 +698,7 @@ export async function getPlayersWithFilters(
     const players =
         data?.map((player) => ({
             id: player.user_id || player.id,
+            rowId: player.id,
             name: player.name,
             countryCode: player.country_code,
             kingdom: player.kingdom,
@@ -688,6 +710,30 @@ export async function getPlayersWithFilters(
         players,
         total: count || 0,
     };
+}
+
+export async function linkPlayerToAccount(
+    playerRowId: string,
+    userId: string
+): Promise<{ error: Error | null }> {
+    const numericId = typeof playerRowId === "string" && /^\d+$/.test(playerRowId)
+        ? parseInt(playerRowId, 10)
+        : playerRowId;
+    const { data, error } = await supabase
+        .from("players")
+        .update({ user_id: userId })
+        .eq("id", numericId)
+        .select("id")
+        .maybeSingle();
+
+    if (error) {
+        console.error("Error linking player to account:", error);
+        return { error };
+    }
+    if (!data) {
+        return { error: new Error("No row updated: player id may not exist or RLS blocked update") };
+    }
+    return { error: null };
 }
 
 export async function getUniqueKingdoms(): Promise<
@@ -1921,6 +1967,7 @@ export async function getRankings(
             name: ranking.name,
             playerId: ranking.player_id ?? null,
             laurels: ranking.laurels,
+            rating: ranking.rating != null ? Number(ranking.rating) : undefined,
             trend: ranking.trend,
             trendUp: ranking.trend_up,
             wins: ranking.wins,

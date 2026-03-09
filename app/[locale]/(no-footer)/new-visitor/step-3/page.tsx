@@ -3,7 +3,7 @@
 import { HomeNewVisitor } from "@/widgets/home-new-visitor";
 import { Step3 } from "@/widgets/home-new-visitor/Step-3";
 import css from "./styles.module.scss";
-import { MatchHistory } from "@/widgets/home-new-visitor/match-history/MatchHistory";
+import { CompleteProfile } from "@/widgets/home-new-visitor/complete-profile/CompleteProfile";
 
 export default function Page() {
     return (
@@ -11,7 +11,7 @@ export default function Page() {
             <HomeNewVisitor className={css.height_auto}>
                 <Step3 />
             </HomeNewVisitor>
-            <MatchHistory />
+            <CompleteProfile credentialsReadOnly />
         </>
     );
 }

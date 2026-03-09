@@ -5,12 +5,15 @@ import Image from "next/image";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
 import cn from "classnames";
-import { useUserProfile } from "@/shared/hooks";
+import { useUserProfile, useCurrentUserPlayer } from "@/shared/hooks";
 
 export const ProfileDetails: React.FC = () => {
     const { fullName, email, profile } = useUserProfile();
-    const kingdom = profile?.country || "—";
-    const club = profile?.club || "—";
+    const { player } = useCurrentUserPlayer();
+    const kingdom = player?.kingdom || profile?.country || "—";
+    const club = player?.club || profile?.club || "—";
+    const singlesRating = player?.singlesRating ?? player?.rating;
+    const doublesRating = player?.doublesRating ?? null;
     const avatarSrc =
         profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
     return (
@@ -72,7 +75,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                —
+                                {player ? (singlesRating != null ? String(singlesRating) : "—") : "—"}
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>
@@ -104,7 +107,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                —
+                                {player ? (doublesRating != null ? String(doublesRating) : "—") : "—"}
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>

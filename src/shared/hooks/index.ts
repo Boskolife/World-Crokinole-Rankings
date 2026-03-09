@@ -8,6 +8,7 @@ export { useClubs } from "./use-clubs";
 export { useRankingsList } from "./use-rankings-list";
 export { useProfileInfo } from "./use-profile-info";
 export { useUserProfile } from "./use-user-profile";
+export { useCurrentUserPlayer } from "./use-current-user-player";
 export { useLanguageSwitcher } from "./use-language-switcher";
 export { useTableSort } from "./use-table-sort";
 export { useRemoveEventRegistration } from "./use-event-registration";

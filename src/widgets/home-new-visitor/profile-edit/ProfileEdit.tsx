@@ -137,7 +137,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 if (successRedirect) {
                     router.push(`/${locale}${successRedirect}`);
                 } else {
-                    router.push(`/${locale}${clientRoutes.steps(5)}`);
+                    router.push(`/${locale}${clientRoutes.steps(4)}`);
                 }
                 return;
             }

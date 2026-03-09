@@ -1,5 +1,6 @@
 export interface IPlayer {
     id: string;
+    rowId?: string;
     name: string;
     countryCode: string;
     kingdom: string;

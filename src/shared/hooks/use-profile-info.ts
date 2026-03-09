@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
-import { locationCountryOptions } from "@/shared/constants/dropdown-options";
+import { getUniqueKingdoms } from "@/shared/supabase/data";
+import type { DropdownOption } from "@/shared/constants/dropdown-options";
 
 const AVATAR_BUCKET = "avatars";
 const PLACEHOLDER_SRC = "/svg/avatar-placeholder.svg";
@@ -23,7 +24,19 @@ export const useProfileInfo = () => {
     const [avatarVersion, setAvatarVersion] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
+    const [countryOptions, setCountryOptions] = useState<DropdownOption[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        getUniqueKingdoms().then((kingdoms) => {
+            const current = profile?.country?.trim();
+            if (current && !kingdoms.some((o) => o.value === current)) {
+                setCountryOptions([{ value: current, label: current }, ...kingdoms]);
+            } else {
+                setCountryOptions(kingdoms);
+            }
+        });
+    }, [profile?.country]);
 
     const baseImageSrc = profile?.avatar_url?.trim() || imageSrc;
     const effectiveImageSrc =
@@ -90,7 +103,7 @@ export const useProfileInfo = () => {
         }
     };
 
-    const countries = locationCountryOptions;
+    const countries = countryOptions;
 
     const clubs = [
         { value: "Manchester United", label: "Manchester United" },

@@ -3,6 +3,7 @@ export interface IRankList {
     name: string;
     playerId?: string | null;
     laurels: number;
+    rating?: number;
     trend: string;
     wins: number;
     losses: number;

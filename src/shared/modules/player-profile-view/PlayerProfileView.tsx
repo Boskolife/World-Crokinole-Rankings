@@ -34,12 +34,14 @@ interface PlayerProfileViewProps {
     player: IPlayer;
     singlesRatingFromMatches?: number;
     doublesRatingFromMatches?: number;
+    actions?: React.ReactNode;
 }
 
 export const PlayerProfileView: React.FC<PlayerProfileViewProps> = ({
     player,
     singlesRatingFromMatches,
     doublesRatingFromMatches,
+    actions,
 }) => {
     const kingdom = player.kingdom || "-";
     const avatarSrc =
@@ -83,6 +85,11 @@ export const PlayerProfileView: React.FC<PlayerProfileViewProps> = ({
                             </span>
                         </div>
                     </div>
+                    {actions && (
+                        <div className={css.profile_details_left_buttons}>
+                            {actions}
+                        </div>
+                    )}
                 </div>
                 <div className={css.profile_details_right}>
                     <div className={css.profile_details_right_info}>

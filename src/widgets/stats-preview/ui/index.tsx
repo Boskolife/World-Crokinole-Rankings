@@ -1,18 +1,61 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import css from "./styles.module.scss";
 import cn from "classnames";
 import Image from "next/image";
 import { RootLink } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
-import { useUserProfile } from "@/shared/hooks";
+import { useUserProfile, useCurrentUserPlayer } from "@/shared/hooks";
 import { clientRoutes } from "@/shared/routes/client";
+import { getAllRankings } from "@/shared/supabase/data";
+import type { IRankList } from "@/shared/types/rank-list.interface";
+
+function findMyRanking(
+    list: IRankList[],
+    playerIds: (string | undefined)[]
+): IRankList | null {
+    const ids = playerIds.filter(Boolean) as string[];
+    if (ids.length === 0) return null;
+    return list.find((r) => r.playerId != null && ids.includes(r.playerId)) ?? null;
+}
 
 export const StatsPreview: React.FC = () => {
     const { fullName, profile } = useUserProfile();
-    const kingdom = profile?.country || "-";
-    const club = profile?.club || "-";
+    const { player } = useCurrentUserPlayer();
+    const [rankings, setRankings] = useState<{
+        laurels: IRankList | null;
+        singles: IRankList | null;
+        doubles: IRankList | null;
+    }>({ laurels: null, singles: null, doubles: null });
+
+    const kingdom = player?.kingdom || profile?.country || "-";
+    const club = player?.club || profile?.club || "-";
+    const displayName = fullName || player?.name || "—";
+    const avatarSrc = player?.avatarUrl?.trim() || profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
+
+    useEffect(() => {
+        if (!player?.id) {
+            setRankings({ laurels: null, singles: null, doubles: null });
+            return;
+        }
+        const matchIds = [player.id, player.rowId].filter(Boolean);
+        getAllRankings().then(({ laurels, singles, doubles }) => {
+            setRankings({
+                laurels: findMyRanking(laurels, matchIds) ?? null,
+                singles: findMyRanking(singles, matchIds) ?? null,
+                doubles: findMyRanking(doubles, matchIds) ?? null,
+            });
+        });
+    }, [player?.id, player?.rowId]);
+
+    const laurelsRank = rankings.laurels?.rank ?? "—";
+    const laurelsScore = rankings.laurels?.laurels ?? "—";
+    const singlesRank = rankings.singles?.rank ?? "—";
+    const singlesRating = rankings.singles?.rating ?? player?.singlesRating ?? player?.rating ?? "—";
+    const doublesRank = rankings.doubles?.rank ?? "—";
+    const doublesRating = rankings.doubles?.rating ?? player?.doublesRating ?? "—";
+
     return (
         <section className={css.stats_preview}>
             <div className={cn(css.stats_preview_inner, "container")}>
@@ -22,16 +65,16 @@ export const StatsPreview: React.FC = () => {
                         <div className={css.stats_preview_avatar}>
                             <Image
                                 className={css.stats_preview_avatar_img}
-                                src={profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg"}
+                                src={avatarSrc}
                                 alt="Profile"
                                 width={124}
                                 height={124}
-                                unoptimized={(profile?.avatar_url?.trim() ?? "").includes("supabase.co")}
+                                unoptimized={avatarSrc.includes("supabase.co")}
                             />
                         </div>
                         <div className={css.stats_preview_profile_info}>
                             <h3 className={css.stats_preview_profile_name}>
-                                {fullName}
+                                {displayName}
                             </h3>
                             <div className={css.stats_preview_profile_link}>
                                 <RootLink
@@ -68,11 +111,11 @@ export const StatsPreview: React.FC = () => {
                                     }
                                 >
                                     <span>Rank</span>
-                                    <span>55</span>
+                                    <span>{String(laurelsRank)}</span>
                                 </div>
                             </div>
                             <span className={css.stats_preview_rank_score}>
-                                1420
+                                {String(laurelsScore)}
                             </span>
                         </div>
                     </div>
@@ -104,7 +147,7 @@ export const StatsPreview: React.FC = () => {
                                         css.stats_preview_content_item_body_rank_value
                                     }
                                 >
-                                    55
+                                    {String(singlesRank)}
                                 </span>
                             </div>
                             <div
@@ -112,7 +155,7 @@ export const StatsPreview: React.FC = () => {
                                     css.stats_preview_content_item_body_value
                                 }
                             >
-                                <span>1420</span>
+                                <span>{String(singlesRating)}</span>
                             </div>
                         </div>
                     </div>
@@ -142,7 +185,7 @@ export const StatsPreview: React.FC = () => {
                                         css.stats_preview_content_item_body_rank_value
                                     }
                                 >
-                                    23
+                                    {String(doublesRank)}
                                 </span>
                             </div>
                             <div
@@ -150,7 +193,7 @@ export const StatsPreview: React.FC = () => {
                                     css.stats_preview_content_item_body_value
                                 }
                             >
-                                <span>1943</span>
+                                <span>{String(doublesRating)}</span>
                             </div>
                         </div>
                     </div>
