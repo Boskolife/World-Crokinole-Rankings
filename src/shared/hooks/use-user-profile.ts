@@ -12,6 +12,16 @@ type ProfileCacheEntry = {
 
 const cache = new Map<string, ProfileCacheEntry>();
 
+export function invalidateProfileCache(userId: string) {
+    cache.delete(userId);
+}
+
+export function notifyProfileUpdated(userId: string) {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("profile-updated", { detail: { userId } }));
+    }
+}
+
 function getFallbackName(email?: string | null) {
     if (!email) return "User";
     const [name] = email.split("@");
@@ -103,6 +113,15 @@ export const useUserProfile = () => {
         }
 
         refetch();
+    }, [userId, refetch]);
+
+    useEffect(() => {
+        if (!userId) return;
+        const handler = (e: CustomEvent<{ userId: string }>) => {
+            if (e.detail?.userId === userId) refetch();
+        };
+        window.addEventListener("profile-updated", handler as EventListener);
+        return () => window.removeEventListener("profile-updated", handler as EventListener);
     }, [userId, refetch]);
 
     const fullName =

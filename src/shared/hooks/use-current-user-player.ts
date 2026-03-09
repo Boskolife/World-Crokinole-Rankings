@@ -37,5 +37,14 @@ export const useCurrentUserPlayer = () => {
         refetch();
     }, [refetch, userId]);
 
+    useEffect(() => {
+        if (!userId) return;
+        const handler = (e: CustomEvent<{ userId: string }>) => {
+            if (e.detail?.userId === userId) refetch();
+        };
+        window.addEventListener("profile-updated", handler as EventListener);
+        return () => window.removeEventListener("profile-updated", handler as EventListener);
+    }, [userId, refetch]);
+
     return { player, isLoading, refetch };
 };

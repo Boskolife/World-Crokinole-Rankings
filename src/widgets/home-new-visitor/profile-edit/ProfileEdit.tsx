@@ -5,6 +5,7 @@ import { FormField } from "@/shared/ui/input";
 import { useForm } from "react-hook-form";
 import { Button, CustomDropdown } from "@/shared/ui";
 import { useProfileInfo, useUserProfile } from "@/shared/hooks";
+import { invalidateProfileCache, notifyProfileUpdated } from "@/shared/hooks/use-user-profile";
 import { IProfileEditFormData } from "@/shared/types";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
@@ -134,6 +135,9 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                     setFormError(writeError.message);
                     return;
                 }
+                await supabase.from("players").update({ name: data.fullName?.trim() ?? null }).eq("user_id", user.id);
+                invalidateProfileCache(user.id);
+                notifyProfileUpdated(user.id);
                 if (successRedirect) {
                     router.push(`/${locale}${successRedirect}`);
                 } else {
@@ -183,7 +187,9 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 setFormError(writeError.message);
                 return;
             }
-
+            await supabase.from("players").update({ name: data.fullName?.trim() ?? null }).eq("user_id", user.id);
+            invalidateProfileCache(user.id);
+            notifyProfileUpdated(user.id);
             if (successRedirect) {
                 router.push(`/${locale}${successRedirect}`);
             } else {
