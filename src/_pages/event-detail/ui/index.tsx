@@ -79,10 +79,20 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
           }
         : null;
 
+    const strengthOfField =
+        registeredPlayers.length > 0
+            ? Math.round(
+                  registeredPlayers.reduce(
+                      (sum, p) => sum + (p.rating ?? 0),
+                      0
+                  ) / registeredPlayers.length
+              )
+            : undefined;
+
     return (
         <>
             <PaymentReturnHandler />
-            <EventDetailHero event={event} />
+            <EventDetailHero event={{ ...event, strengthOfField }} />
             {isEventEnded && participationStats && (
                 <EventParticipationStats
                     participantsCount={participationStats.participantsCount}

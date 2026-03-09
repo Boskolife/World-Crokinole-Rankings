@@ -27,15 +27,14 @@ interface BadgesProps {
 export const Badges: React.FC<BadgesProps> = ({ player }) => {
     const badges = player ? parsePlayerTitles(player) : defaultBadges;
 
+    if (badges.length === 0) return null;
+
     return (
         <div className={css.badges}>
             <div className="container">
                 <h3 className={css.badges_title}>Titles (badges)</h3>
                 <div className={css.badges_list}>
-                    {badges.length === 0 ? (
-                        <span className={css.badges_item_text}>—</span>
-                    ) : (
-                        badges.map((badge) => (
+                    {badges.map((badge) => (
                             <div
                                 className={cn(css.badges_item, {
                                     [css.badges_item_archive]:
@@ -50,8 +49,7 @@ export const Badges: React.FC<BadgesProps> = ({ player }) => {
                                     {badge.status}
                                 </span>
                             </div>
-                        ))
-                    )}
+                        ))}
                 </div>
             </div>
         </div>

@@ -61,7 +61,6 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         totalParticipants,
         structure,
         strengthOfField,
-        tournamentPointsAvailable,
         qualifyingHeats,
         endDate,
         startDate,
@@ -188,11 +187,6 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                     value={strengthOfField ?? "—"}
                                     inline
                                 />
-                                <DetailRow
-                                    label="Tournament points available:"
-                                    value={tournamentPointsAvailable ?? "—"}
-                                    inline
-                                />
                             </div>
                         </div>
                         <div className={css.details_divider} />
@@ -220,14 +214,39 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                                 href={clientRoutes.signUp}
                                                 className={css.join_button}
                                             >
-                                                Join tournament
+                                                Join Event
                                             </RootLink>
                                         ) : regStatus?.isRegistered ? (
-                                            <span
-                                                className={cn(css.join_button, css.join_button_registered)}
-                                            >
-                                                Registered
-                                            </span>
+                                            <>
+                                                <span
+                                                    className={cn(css.join_button, css.join_button_registered)}
+                                                >
+                                                    Registered
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className={cn(css.join_button, css.join_button_leave)}
+                                                    onClick={() => {
+                                                        if (!user?.id) return;
+                                                        openPopup("leave-event-confirm", {
+                                                            eventId,
+                                                            userId: user.id,
+                                                            eventTitle: title,
+                                                            onSuccess: () => {
+                                                                refetchRegStatus();
+                                                                window.dispatchEvent(
+                                                                    new CustomEvent("event-registration-updated", {
+                                                                        detail: { eventId },
+                                                                    })
+                                                                );
+                                                                router.refresh();
+                                                            },
+                                                        });
+                                                    }}
+                                                >
+                                                    Leave event
+                                                </button>
+                                            </>
                                         ) : isFull ? (
                                             <span
                                                 className={cn(css.join_button, css.join_button_registered)}
@@ -244,7 +263,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                                 >
                                                     {state.status === "loading"
                                                         ? "Joining…"
-                                                        : "Join tournament"}
+                                                        : "Join Event"}
                                                 </button>
                                                 {state.status === "error" && (
                                                     <span className={css.join_error}>

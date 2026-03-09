@@ -258,6 +258,17 @@ $edit-outline: #d48f1f;
             filter: none;
         }
     }
+
+    &_leave {
+        background: transparent;
+        color: #c00;
+        border: 1px solid #c00;
+
+        &:hover:not(:disabled) {
+            background: rgba(204, 0, 0, 0.08);
+            filter: none;
+        }
+    }
 }
 
 .join_error {

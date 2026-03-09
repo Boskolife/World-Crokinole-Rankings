@@ -30,7 +30,13 @@ export function PaymentReturnHandler() {
                 if (typeof window !== "undefined") {
                     const cleanPath = pathname || window.location.pathname;
                     window.history.replaceState({}, "", cleanPath);
-                    window.dispatchEvent(new CustomEvent("event-registration-updated"));
+                    const eventIdMatch = cleanPath.match(/\/events\/(\d+)/);
+                    const eventId = eventIdMatch ? parseInt(eventIdMatch[1], 10) : undefined;
+                    window.dispatchEvent(
+                        new CustomEvent("event-registration-updated", {
+                            detail: eventId != null ? { eventId } : undefined,
+                        })
+                    );
                 }
                 router.refresh();
             })

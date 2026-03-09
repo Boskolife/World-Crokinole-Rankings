@@ -136,7 +136,15 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                     setFormError(writeError.message);
                     return;
                 }
-                await supabase.from("players").update({ name: data.fullName?.trim() ?? null }).eq("user_id", user.id);
+                const countryVal = data.country?.trim() ?? null;
+                await supabase
+                    .from("players")
+                    .update({
+                        name: data.fullName?.trim() ?? null,
+                        country_code: countryVal,
+                        kingdom: countryVal,
+                    })
+                    .eq("user_id", user.id);
                 invalidateProfileCache(user.id);
                 notifyProfileUpdated(user.id);
                 if (successRedirect) {
@@ -189,7 +197,15 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 setFormError(writeError.message);
                 return;
             }
-            await supabase.from("players").update({ name: data.fullName?.trim() ?? null }).eq("user_id", user.id);
+            const countryVal = data.country?.trim() ?? null;
+            await supabase
+                .from("players")
+                .update({
+                    name: data.fullName?.trim() ?? null,
+                    country_code: countryVal,
+                    kingdom: countryVal,
+                })
+                .eq("user_id", user.id);
             invalidateProfileCache(user.id);
             notifyProfileUpdated(user.id);
             if (successRedirect) {

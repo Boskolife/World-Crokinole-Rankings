@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import cn from "classnames";
@@ -10,6 +10,7 @@ import { useAuth } from "@/shared/hooks/use-auth";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { clientRoutes } from "@/shared/routes/client";
+import { getEventRegisteredPlayers } from "@/shared/supabase/data";
 import type { IPlayer } from "@/shared/types";
 import css from "./EventRegisteredPlayers.module.scss";
 
@@ -26,6 +27,23 @@ export function EventRegisteredPlayers({ players, eventId, createdBy }: EventReg
     const router = useRouter();
     const { openPopup } = usePopup();
     const { user } = useAuth();
+    const [list, setList] = useState<IPlayer[]>(players);
+
+    useEffect(() => {
+        setList(players);
+    }, [players]);
+
+    useEffect(() => {
+        if (eventId == null) return;
+        const handler = (e: CustomEvent<{ eventId: number }>) => {
+            if (e.detail?.eventId === eventId) {
+                getEventRegisteredPlayers(eventId).then(setList);
+            }
+        };
+        window.addEventListener("event-registration-updated", handler as EventListener);
+        return () => window.removeEventListener("event-registration-updated", handler as EventListener);
+    }, [eventId]);
+
     const isCreator = Boolean(eventId && createdBy && user?.id && createdBy === user.id);
     const {
         sortColumn,
@@ -33,7 +51,7 @@ export function EventRegisteredPlayers({ players, eventId, createdBy }: EventReg
         sortedData: sortedPlayers,
         handleSort,
     } = useTableSort<IPlayer>({
-        data: players,
+        data: list,
         sortFn: (player, column) => {
             switch (column) {
                 case "name":
