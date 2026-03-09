@@ -1,21 +1,32 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import css from "./styles.module.scss";
 import { SwitcherModule, RatingChart } from "@/shared/modules";
-import {
-    ratingListSwitcherOptions,
-    ratingListDropdownOptions,
-} from "@/shared/constants/dropdown-options";
+import type { RatingChartPeriodFilter } from "@/shared/modules/rating-chart/RatingChart";
+import { ratingListSwitcherOptions, getRatingListPeriodOptions } from "@/shared/constants/dropdown-options";
 import { CustomRoundedDropdown } from "@/shared/ui";
 import ratingChartData from "@/data/rating-chart-data.json";
+import type { IRatingHistoryFromSinglesDoubles } from "@/shared/supabase/data";
 
-export const RatingList: React.FC = () => {
+interface RatingListProps {
+    ratingData?: IRatingHistoryFromSinglesDoubles | null;
+}
+
+export const RatingList: React.FC<RatingListProps> = ({ ratingData }) => {
     const [selectedType, setSelectedType] = useState<string>("Singles");
+    const [selectedPeriod, setSelectedPeriod] = useState<string>("both");
 
+    const periodOptions = useMemo(() => getRatingListPeriodOptions(), []);
+    const periodPlaceholder = periodOptions[0]?.label ?? "Last 24 months";
+
+    const source: IRatingHistoryFromSinglesDoubles = ratingData ?? (ratingChartData as unknown as IRatingHistoryFromSinglesDoubles);
     const currentData =
         selectedType === "Singles"
-            ? ratingChartData.singles
-            : ratingChartData.doubles;
+            ? source.singles
+            : source.doubles;
+
+    const periodFilter: RatingChartPeriodFilter =
+        selectedPeriod === "thisYear" ? "thisYear" : selectedPeriod === "lastYear" ? "lastYear" : "both";
 
     return (
         <div className={css.rating_list}>
@@ -34,9 +45,11 @@ export const RatingList: React.FC = () => {
                     </div>
                     <CustomRoundedDropdown
                         className={css.rating_list_dropdown}
-                        options={ratingListDropdownOptions}
-                        placeholder="Jan 2025 - Sep 2025"
-                        id="rating-list-switcher"
+                        options={periodOptions}
+                        value={selectedPeriod}
+                        onChange={(value) => setSelectedPeriod(value)}
+                        placeholder={periodPlaceholder}
+                        id="rating-list-period"
                     />
                 </div>
                 <p className={css.rating_list_description}>
@@ -44,10 +57,11 @@ export const RatingList: React.FC = () => {
                 </p>
                 <div className={css.rating_list_chart_wrapper}>
                     <RatingChart
-                        key={selectedType}
+                        key={`${selectedType}-${selectedPeriod}`}
                         data={currentData.ratingData}
                         currentValue={currentData.currentValue}
                         change={currentData.change}
+                        periodFilter={periodFilter}
                         className={css.rating_list_chart}
                     />
                 </div>

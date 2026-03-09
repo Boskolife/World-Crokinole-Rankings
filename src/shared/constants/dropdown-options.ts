@@ -96,10 +96,14 @@ export const ratingListSwitcherOptions: DropdownOption[] = [
     { value: "Doubles", label: "Doubles" },
 ];
 
-export const ratingListDropdownOptions: DropdownOption[] = [
-    { value: "Jan 2025 - Sep 2025 ", label: "Jan 2025 - Sep 2025 " },
-    { value: "Oct 2025 - Dec 2025", label: "Oct 2025 - Dec 2025" },
-];
+export function getRatingListPeriodOptions(): DropdownOption[] {
+    const year = new Date().getFullYear();
+    return [
+        { value: "both", label: `Last 24 months` },
+        { value: "thisYear", label: `Jan – Dec ${year}` },
+        { value: "lastYear", label: `Jan – Dec ${year - 1}` },
+    ];
+}
 
 export const tournamentTypeOptions: DropdownOption[] = [
     { value: "ranked", label: "Ranked" },

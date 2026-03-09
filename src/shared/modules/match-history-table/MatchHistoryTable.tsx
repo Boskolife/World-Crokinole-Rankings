@@ -101,30 +101,38 @@ export const MatchHistoryTable: React.FC<IMatchHistoryTableProps> = ({
                                         css.match_history_table_cell_place
                                     }
                                 >
-                                    {getPlaceIcon(match.place) && (
-                                        <span
-                                            className={
-                                                css.match_history_table_cell_place_icon
-                                            }
-                                        >
-                                            {getPlaceIcon(match.place)}
-                                        </span>
+                                    {match.place ? (
+                                        <>
+                                            {getPlaceIcon(match.place) && (
+                                                <span
+                                                    className={
+                                                        css.match_history_table_cell_place_icon
+                                                    }
+                                                >
+                                                    {getPlaceIcon(match.place)}
+                                                </span>
+                                            )}
+                                            <span>{match.place}</span>
+                                        </>
+                                    ) : (
+                                        "—"
                                     )}
-                                    <span>{match.place}</span>
                                 </div>
                             </td>
                             <td className={css.match_history_table_cell}>
                                 {formatDate(match.date)}
                             </td>
                             <td className={css.match_history_table_cell}>
-                                <RootLink
-                                    href={match.tournamentPageUrl}
-                                    className={
-                                        css.match_history_table_cell_link
-                                    }
-                                >
-                                    Tournament Page
-                                </RootLink>
+                                {match.tournamentPageUrl ? (
+                                    <RootLink
+                                        href={match.tournamentPageUrl}
+                                        className={
+                                            css.match_history_table_cell_link
+                                        }
+                                    >
+                                        Tournament Page
+                                    </RootLink>
+                                ) : null}
                             </td>
                         </tr>
                     ))}

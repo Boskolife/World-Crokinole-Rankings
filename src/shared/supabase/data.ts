@@ -514,7 +514,6 @@ export async function getPlayers(): Promise<IPlayer[]> {
     const { data, error } = await supabase
         .from("players")
         .select("*")
-        .not("user_id", "is", null)
         .order("rating", { ascending: false });
 
     if (error) {
@@ -534,26 +533,89 @@ export async function getPlayers(): Promise<IPlayer[]> {
     );
 }
 
+type PlayerRow = {
+    user_id?: string | null;
+    id?: number | string;
+    name?: string | null;
+    country_code?: string | null;
+    kingdom?: string | null;
+    club?: string | null;
+    rating?: number | null;
+    profiles?: { avatar_url?: string | null } | null;
+    singles_rating?: number | null;
+    doubles_rating?: number | null;
+    combined_rating?: number | null;
+    singles_won?: number | null;
+    singles_played?: number | null;
+    win_pct_singles?: string | null;
+    doubles_won?: number | null;
+    doubles_played?: number | null;
+    win_pct_doubles?: string | null;
+    total_won?: number | null;
+    total_played?: number | null;
+    win_pct_total?: string | null;
+    title?: string | null;
+    club_title?: string | null;
+    full_name_with_titles?: string | null;
+    gender?: string | null;
+    player_identifier?: string | null;
+};
+
 export async function getPlayerById(id: string): Promise<IPlayer | null> {
-    const { data, error } = await supabase
+    let data: PlayerRow | null = null;
+    const byUserId = await supabase
         .from("players")
         .select("*, profiles(avatar_url)")
         .eq("user_id", id)
         .maybeSingle();
-
-    if (error || !data) return null;
+    if (byUserId.error) return null;
+    if (byUserId.data) data = byUserId.data as PlayerRow;
+    if (!data && /^\d+$/.test(id)) {
+        const byNumericId = await supabase
+            .from("players")
+            .select("*, profiles(avatar_url)")
+            .eq("id", parseInt(id, 10))
+            .maybeSingle();
+        if (!byNumericId.error && byNumericId.data) data = byNumericId.data as PlayerRow;
+    }
+    if (!data) {
+        const byId = await supabase
+            .from("players")
+            .select("*, profiles(avatar_url)")
+            .eq("id", id)
+            .maybeSingle();
+        if (!byId.error && byId.data) data = byId.data as PlayerRow;
+    }
+    if (!data) return null;
 
     const profile = data.profiles as { avatar_url?: string | null } | null;
     const avatarUrl = profile?.avatar_url ?? null;
 
     return {
         id: String(data.user_id ?? data.id),
-        name: data.name,
-        countryCode: data.country_code,
-        kingdom: data.kingdom,
-        club: data.club,
-        rating: data.rating,
+        name: data.name ?? "",
+        countryCode: data.country_code ?? "",
+        kingdom: data.kingdom ?? "",
+        club: data.club ?? "",
+        rating: data.rating ?? data.combined_rating ?? 0,
         avatarUrl: avatarUrl?.trim() || null,
+        singlesRating: data.singles_rating ?? null,
+        doublesRating: data.doubles_rating ?? null,
+        combinedRating: data.combined_rating ?? null,
+        singlesWon: data.singles_won ?? null,
+        singlesPlayed: data.singles_played ?? null,
+        winPctSingles: data.win_pct_singles ?? null,
+        doublesWon: data.doubles_won ?? null,
+        doublesPlayed: data.doubles_played ?? null,
+        winPctDoubles: data.win_pct_doubles ?? null,
+        totalWon: data.total_won ?? null,
+        totalPlayed: data.total_played ?? null,
+        winPctTotal: data.win_pct_total ?? null,
+        title: data.title ?? null,
+        clubTitle: data.club_title ?? null,
+        fullNameWithTitles: data.full_name_with_titles ?? null,
+        gender: data.gender ?? null,
+        playerIdentifier: data.player_identifier ?? null,
     };
 }
 
@@ -583,8 +645,7 @@ export async function getPlayersWithFilters(
 
     let query = supabase
         .from("players")
-        .select("*", { count: "exact" })
-        .not("user_id", "is", null);
+        .select("*", { count: "exact" });
 
     if (search) {
         const searchPattern = `%${search}%`;
@@ -635,7 +696,6 @@ export async function getUniqueKingdoms(): Promise<
     const { data, error } = await supabase
         .from("players")
         .select("kingdom")
-        .not("user_id", "is", null)
         .not("kingdom", "is", null);
 
     if (error) {
@@ -659,7 +719,6 @@ export async function getUniqueClubs(): Promise<
     const { data, error } = await supabase
         .from("players")
         .select("club")
-        .not("user_id", "is", null)
         .not("club", "is", null)
         .neq("club", "");
 
@@ -1167,7 +1226,6 @@ export async function getPlayersForInvite(
     let query = supabase
         .from("players")
         .select("*", { count: "exact" })
-        .not("user_id", "is", null)
         .or(`club.is.null,${clubNeq}`);
     if (search.trim()) {
         const pattern = `%${search.trim()}%`;
@@ -1913,6 +1971,313 @@ export async function getMatchHistory(): Promise<IMatchHistory[]> {
             tournamentPageUrl: match.tournament_page_url,
         })) || []
     );
+}
+
+export async function getMatchHistoryForPlayer(playerName: string): Promise<IMatchHistory[]> {
+    if (!playerName?.trim()) return [];
+    const name = playerName.trim();
+    const { data, error } = await supabase
+        .from("match_history")
+        .select("*")
+        .ilike("player_name", name)
+        .order("date", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching match history for player:", error);
+        return [];
+    }
+
+    return (
+        data?.map((match) => ({
+            id: match.id,
+            tournamentName: match.tournament_name,
+            playerName: match.player_name,
+            score: match.score,
+            place: match.place,
+            date: match.date,
+            tournamentPageUrl: match.tournament_page_url,
+        })) || []
+    );
+}
+
+async function getPlayerNamesByIds(ids: string[]): Promise<Map<string, string>> {
+    const uniq = [...new Set(ids)].filter(Boolean);
+    if (uniq.length === 0) return new Map();
+    const { data, error } = await supabase
+        .from("players")
+        .select("id, name")
+        .in("id", uniq);
+    if (error || !data?.length) return new Map();
+    const map = new Map<string, string>();
+    for (const row of data) {
+        map.set(String(row.id), row.name ?? "—");
+    }
+    return map;
+}
+
+export async function getMatchHistoryFromSinglesAndDoubles(playerId: string): Promise<IMatchHistory[]> {
+    if (!playerId?.trim()) return [];
+
+    const [singlesRes, doublesRes] = await Promise.all([
+        supabase
+            .from("singles")
+            .select("id, match_date, match_number, player1_id, player2_id, points_won_p1, points_won_p2, winner")
+            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
+            .order("match_date", { ascending: false }),
+        supabase
+            .from("doubles")
+            .select("id, match_date, match_number, player1_id, player2_id, player3_id, player4_id, points_won_team1, points_won_team2, winner")
+            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId},player3_id.eq.${playerId},player4_id.eq.${playerId}`)
+            .order("match_date", { ascending: false }),
+    ]);
+
+    const items: Array<{ date: string; tournamentName: string; opponentName: string; score: number; id: string }> = [];
+    const opponentIds = new Set<string>();
+
+    for (const row of singlesRes.data ?? []) {
+        const r = row as { id: number; match_date: string; match_number: number; player1_id: string; player2_id: string; points_won_p1: number; points_won_p2: number; winner: string | null };
+        const opponentId = r.player1_id === playerId ? r.player2_id : r.player1_id;
+        const myPoints = r.player1_id === playerId ? Number(r.points_won_p1) : Number(r.points_won_p2);
+        opponentIds.add(opponentId);
+        items.push({
+            id: `singles-${r.id}`,
+            date: r.match_date,
+            tournamentName: "Singles",
+            opponentName: opponentId,
+            score: Math.round(myPoints),
+        });
+    }
+
+    for (const row of doublesRes.data ?? []) {
+        const r = row as { id: number; match_date: string; match_number: number; player1_id: string; player2_id: string; player3_id: string; player4_id: string; points_won_team1: number; points_won_team2: number; winner: string | null };
+        const isTeam1 = r.player1_id === playerId || r.player2_id === playerId;
+        const opponentIdsThis = isTeam1 ? [r.player3_id, r.player4_id] : [r.player1_id, r.player2_id];
+        const myPoints = isTeam1 ? Number(r.points_won_team1) : Number(r.points_won_team2);
+        opponentIdsThis.forEach((id) => opponentIds.add(id));
+        items.push({
+            id: `doubles-${r.id}`,
+            date: r.match_date,
+            tournamentName: "Doubles",
+            opponentName: opponentIdsThis.join(","),
+            score: Math.round(myPoints),
+        });
+    }
+
+    const nameMap = await getPlayerNamesByIds([...opponentIds]);
+
+    const resolveNames = (key: string): string => {
+        if (key.includes(",")) {
+            return key
+                .split(",")
+                .map((id) => nameMap.get(id.trim()) ?? id)
+                .join(", ");
+        }
+        return nameMap.get(key) ?? key;
+    };
+
+    const result: IMatchHistory[] = items
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .map((item) => ({
+            id: item.id,
+            tournamentName: item.tournamentName,
+            playerName: resolveNames(item.opponentName),
+            score: item.score,
+            place: 0,
+            date: item.date,
+            tournamentPageUrl: "",
+        }));
+
+    return result;
+}
+
+export interface IRatingChartDataPoint {
+    month: string;
+    thisYear: number;
+    lastYear: number;
+}
+
+export interface IRatingChartSeries {
+    ratingData: IRatingChartDataPoint[];
+    currentValue: number;
+    change: string;
+}
+
+export interface IRatingHistoryFromSinglesDoubles {
+    singles: IRatingChartSeries & { matchCount: number };
+    doubles: IRatingChartSeries & { matchCount: number };
+}
+
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+type MatchRatingPoint = { date: string; rating: number };
+
+function buildRatingSeriesFromMatches(
+    periodStartDate: string,
+    initialRating: number,
+    matchesSortedByDate: Array<{ date: string; ratingChange: number }>
+): IRatingChartSeries {
+    const points: MatchRatingPoint[] = [];
+    let runningRating = initialRating;
+    points.push({ date: periodStartDate, rating: runningRating });
+    for (const m of matchesSortedByDate) {
+        runningRating += m.ratingChange;
+        points.push({ date: m.date, rating: runningRating });
+    }
+
+    const periodStart = new Date(periodStartDate + "T12:00:00");
+    const byYearMonth = new Map<string, number>();
+    let lastRating = initialRating;
+    for (const { date, rating } of points) {
+        const d = new Date(date + "T12:00:00");
+        lastRating = rating;
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        byYearMonth.set(key, rating);
+    }
+
+    const currentValue = Math.round(lastRating);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const lastYear = currentYear - 1;
+    let prevLast = initialRating;
+    const lastYearRatings: number[] = [];
+    for (let m = 0; m < 12; m++) {
+        const lastVal = byYearMonth.get(`${lastYear}-${m}`);
+        if (lastVal !== undefined) prevLast = lastVal;
+        lastYearRatings.push(Math.round(lastVal ?? prevLast));
+    }
+    let prevThis = prevLast;
+    const thisYearRatings: number[] = [];
+    for (let m = 0; m < 12; m++) {
+        const thisVal = byYearMonth.get(`${currentYear}-${m}`);
+        if (thisVal !== undefined) prevThis = thisVal;
+        thisYearRatings.push(Math.round(thisVal ?? prevThis));
+    }
+    const ratingData: IRatingChartDataPoint[] = MONTH_NAMES.map((month, i) => ({
+        month,
+        thisYear: thisYearRatings[i] ?? 0,
+        lastYear: lastYearRatings[i] ?? 0,
+    }));
+
+    const firstMonthInWindow = byYearMonth.get(`${periodStart.getFullYear()}-${periodStart.getMonth()}`);
+    const firstMonthRating = firstMonthInWindow ?? initialRating;
+    const diff = Math.round(currentValue - firstMonthRating);
+    const change = diff >= 0 ? `+${diff}` : String(diff);
+
+    return { ratingData, currentValue, change };
+}
+
+export async function getRatingHistoryFromSinglesAndDoubles(playerId: string): Promise<IRatingHistoryFromSinglesDoubles> {
+    if (!playerId?.trim()) {
+        const empty = buildRatingSeriesFromMatches(new Date().toISOString().slice(0, 10), 0, []);
+        return {
+            singles: { ...empty, matchCount: 0 },
+            doubles: { ...empty, matchCount: 0 },
+        };
+    }
+
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 24);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+    const { data: playerRow } = await supabase
+        .from("players")
+        .select("singles_rating, doubles_rating, rating")
+        .or(`id.eq.${playerId},user_id.eq.${playerId}`)
+        .maybeSingle();
+    const fallbackSingles = playerRow?.singles_rating != null ? Number(playerRow.singles_rating) : (playerRow?.rating != null ? Number(playerRow.rating) : 0);
+    const fallbackDoubles = playerRow?.doubles_rating != null ? Number(playerRow.doubles_rating) : (playerRow?.rating != null ? Number(playerRow.rating) : 0);
+
+    const [singlesRes, doublesRes] = await Promise.all([
+        supabase
+            .from("singles")
+            .select("match_date, player1_id, player2_id, p1_rating_old, p1_rating_new, p1_rating_change, p2_rating_old, p2_rating_new, p2_rating_change")
+            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
+            .gte("match_date", cutoffStr)
+            .order("match_date", { ascending: true }),
+        supabase
+            .from("doubles")
+            .select("match_date, player1_id, player2_id, player3_id, player4_id, p1_rating_old, p1_rating_new, p1_rating_change, p2_rating_old, p2_rating_new, p2_rating_change, p3_rating_old, p3_rating_new, p3_rating_change, p4_rating_old, p4_rating_new, p4_rating_change")
+            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId},player3_id.eq.${playerId},player4_id.eq.${playerId}`)
+            .gte("match_date", cutoffStr)
+            .order("match_date", { ascending: true }),
+    ]);
+
+    const singlesMatches: Array<{ date: string; ratingChange: number }> = [];
+    let singlesInitialRating = 0;
+    for (const row of singlesRes.data ?? []) {
+        const r = row as { match_date: string; player1_id: string; player2_id: string; p1_rating_old: number | null; p1_rating_new: number | null; p1_rating_change: number | null; p2_rating_old: number | null; p2_rating_new: number | null; p2_rating_change: number | null };
+        const isP1 = r.player1_id === playerId;
+        const change = Number(isP1 ? (r.p1_rating_change ?? 0) : (r.p2_rating_change ?? 0));
+        const ratingBefore = isP1 ? r.p1_rating_old : r.p2_rating_old;
+        const ratingNew = isP1 ? (r.p1_rating_new ?? 0) : (r.p2_rating_new ?? 0);
+        if (singlesMatches.length === 0 && ratingBefore != null) singlesInitialRating = Number(ratingBefore);
+        else if (singlesMatches.length === 0) singlesInitialRating = Number(ratingNew) - change;
+        singlesMatches.push({ date: r.match_date, ratingChange: change });
+    }
+    if (singlesMatches.length === 0) singlesInitialRating = fallbackSingles;
+
+    const doublesMatches: Array<{ date: string; ratingChange: number }> = [];
+    let doublesInitialRating = 0;
+    for (const row of doublesRes.data ?? []) {
+        const r = row as { match_date: string; player1_id: string; player2_id: string; player3_id: string; player4_id: string; p1_rating_old: number | null; p1_rating_new: number | null; p1_rating_change: number | null; p2_rating_old: number | null; p2_rating_new: number | null; p2_rating_change: number | null; p3_rating_old: number | null; p3_rating_new: number | null; p3_rating_change: number | null; p4_rating_old: number | null; p4_rating_new: number | null; p4_rating_change: number | null };
+        let change = 0;
+        let ratingBefore: number | null = null;
+        let ratingNew = 0;
+        if (r.player1_id === playerId) {
+            change = Number(r.p1_rating_change ?? 0);
+            ratingBefore = r.p1_rating_old;
+            ratingNew = Number(r.p1_rating_new ?? 0);
+        } else if (r.player2_id === playerId) {
+            change = Number(r.p2_rating_change ?? 0);
+            ratingBefore = r.p2_rating_old;
+            ratingNew = Number(r.p2_rating_new ?? 0);
+        } else if (r.player3_id === playerId) {
+            change = Number(r.p3_rating_change ?? 0);
+            ratingBefore = r.p3_rating_old;
+            ratingNew = Number(r.p3_rating_new ?? 0);
+        } else if (r.player4_id === playerId) {
+            change = Number(r.p4_rating_change ?? 0);
+            ratingBefore = r.p4_rating_old;
+            ratingNew = Number(r.p4_rating_new ?? 0);
+        }
+        if (doublesMatches.length === 0 && ratingBefore != null) doublesInitialRating = Number(ratingBefore);
+        else if (doublesMatches.length === 0) doublesInitialRating = Number(ratingNew) - change;
+        doublesMatches.push({ date: r.match_date, ratingChange: change });
+    }
+    if (doublesMatches.length === 0) doublesInitialRating = fallbackDoubles;
+
+    const singlesSeries = buildRatingSeriesFromMatches(cutoffStr, singlesInitialRating, singlesMatches);
+    const doublesSeries = buildRatingSeriesFromMatches(cutoffStr, doublesInitialRating, doublesMatches);
+    return {
+        singles: { ...singlesSeries, matchCount: singlesMatches.length },
+        doubles: { ...doublesSeries, matchCount: doublesMatches.length },
+    };
+}
+
+export async function updatePlayerRatingsFromMatches(
+    playerId: string,
+    singlesRating: number,
+    doublesRating: number,
+    hasSinglesMatches: boolean,
+    hasDoublesMatches: boolean
+): Promise<void> {
+    const updates: Record<string, number | null> = {};
+    if (hasSinglesMatches) updates.singles_rating = Math.round(singlesRating);
+    if (hasDoublesMatches) updates.doubles_rating = Math.round(doublesRating);
+    if (Object.keys(updates).length === 0) return;
+    if (hasSinglesMatches && hasDoublesMatches) {
+        updates.combined_rating = Math.round((singlesRating + doublesRating) / 2);
+        updates.rating = updates.combined_rating;
+    } else if (hasSinglesMatches) {
+        updates.rating = Math.round(singlesRating);
+    } else if (hasDoublesMatches) {
+        updates.rating = Math.round(doublesRating);
+    }
+    const { error } = await supabase
+        .from("players")
+        .update(updates)
+        .or(`id.eq.${playerId},user_id.eq.${playerId}`);
+    if (error) console.error("updatePlayerRatingsFromMatches:", error.message);
 }
 
 export interface GetMatchHistoryForClaimParams {
