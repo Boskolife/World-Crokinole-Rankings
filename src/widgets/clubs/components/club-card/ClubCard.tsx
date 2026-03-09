@@ -116,13 +116,22 @@ export const ClubCard: React.FC<IClub & { showJoinButton?: boolean; isAuth?: boo
                 </RootLink>
                 {showJoinButton && (
                     !isAuth ? (
-                        <Button
-                            buttonType="secondary"
-                            disabled={true}
-                            className={css.club_card_button}
-                        >
-                            {isLocked ? "Invite Only" : "Sign in to join"}
-                        </Button>
+                        isLocked ? (
+                            <Button
+                                buttonType="secondary"
+                                disabled={true}
+                                className={css.club_card_button}
+                            >
+                                Invite Only
+                            </Button>
+                        ) : (
+                            <RootLink
+                                href={clientRoutes.signUp}
+                                className={cn(css.club_card_button, css.club_card_button_link)}
+                            >
+                                Join Club
+                            </RootLink>
+                        )
                     ) : isLocked ? (
                         <Button
                             buttonType="secondary"

@@ -13,6 +13,8 @@ import { useEventRegistrationStatus } from "@/shared/hooks/use-event-registratio
 import type { IEventCardProps } from "@/shared/types";
 import { localeConfig } from "@/app/localization/config";
 import { useParams } from "next/navigation";
+import { RootLink } from "@/shared/ui/links/root-link";
+import { clientRoutes } from "@/shared/routes/client";
 import css from "./EventDetailHero.module.scss";
 
 export interface EventDetailHeroProps {
@@ -214,12 +216,12 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                 {!isCreator && (
                                     <>
                                         {!isAuth ? (
-                                            <span
-                                                className={cn(css.join_button, css.join_button_disabled)}
-                                                title="Sign in to join"
+                                            <RootLink
+                                                href={clientRoutes.signUp}
+                                                className={css.join_button}
                                             >
                                                 Join tournament
-                                            </span>
+                                            </RootLink>
                                         ) : regStatus?.isRegistered ? (
                                             <span
                                                 className={cn(css.join_button, css.join_button_registered)}

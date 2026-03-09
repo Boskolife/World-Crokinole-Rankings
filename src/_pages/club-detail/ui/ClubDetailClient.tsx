@@ -328,9 +328,12 @@ export function ClubDetailClient({
                                 Request declined
                             </span>
                         ) : !isAuth ? (
-                            <span className={cn(css.club_detail_join_btn, css.club_detail_join_btn_disabled)} title="Sign in to join">
+                            <RootLink
+                                href={clientRoutes.signUp}
+                                className={css.club_detail_join_btn}
+                            >
                                 Join Club
-                            </span>
+                            </RootLink>
                         ) : (
                             <button
                                 type="button"
