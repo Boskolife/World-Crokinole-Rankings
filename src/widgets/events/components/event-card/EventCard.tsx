@@ -27,6 +27,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
     winner,
     currentRank,
     totalParticipants,
+    tournamentPointsAvailable,
 }) => {
     const free = isFreePrice(price);
     return (
@@ -98,6 +99,11 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         />
                         {location}
                     </span>
+                    {tournamentPointsAvailable != null && tournamentPointsAvailable > 0 && (
+                        <span className={css.event_card_points}>
+                            {tournamentPointsAvailable} pts
+                        </span>
+                    )}
                     {isPastEvent && (
                         <div className={css.event_card_status}>
                             <b>Winner:</b>

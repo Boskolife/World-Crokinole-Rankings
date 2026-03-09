@@ -27,14 +27,16 @@
     flex-direction: column;
     gap: 16px;
     text-align: start;
-    border-radius: 8px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 41, 75, 0.08);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 
     &_image {
         position: relative;
         width: 100%;
         height: 240px;
-        border-radius: 8px;
+        border-radius: 12px 12px 0 0;
         overflow: hidden;
 
         &::after {
@@ -125,7 +127,7 @@
     }
 
     &_content {
-        padding: 4px 12px 12px;
+        padding: 8px 16px 16px;
     }
 
     &_title_wrap {
@@ -162,11 +164,23 @@
     &_content_info {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
 
         span {
             font-size: 18px;
         }
+    }
+
+    &_points {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 120px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--blue-grey);
+        background: var(--blue-grey-light, #ecf5fd);
+        width: fit-content;
     }
 
     &_location {

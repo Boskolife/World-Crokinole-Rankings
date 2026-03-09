@@ -4,10 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useForm, useFieldArray } from "react-hook-form";
 import { FormField, TextareaField, CustomDropdown } from "@/shared/ui";
+import { PlaceSearchInput } from "@/shared/ui/place-search-input";
 import { Icon } from "@/shared/ui/icons";
 import {
     eventTypeOptions,
-    locationCountryOptions,
     tournamentPointsOptions,
     tournamentTotalPlayersOptions,
     tournamentOrganizerOptions,
@@ -85,16 +85,21 @@ const defaultStep3Values: CreateTournamentStep3Values = {
     tournamentVisibility: "draft",
 };
 
+export type CreateTournamentFormSubmitData = {
+    step1: CreateTournamentStep1Values;
+    step2: CreateTournamentStep2Values;
+    step3: CreateTournamentStep3Values;
+    coverFile: File | null;
+    locationLatLng: { lat: number; lng: number } | null;
+    timezone: string | null;
+};
+
 export type CreateTournamentFormProps = {
     backLinkHref?: string;
     backLinkLabel?: string;
     onNextStep?: (data: CreateTournamentStep1Values) => void;
     onStep2Next?: (data: CreateTournamentStep2Values) => void;
-    onSubmit?: (data: {
-        step1: CreateTournamentStep1Values;
-        step2: CreateTournamentStep2Values;
-        step3: CreateTournamentStep3Values;
-    }) => void;
+    onSubmit?: (data: CreateTournamentFormSubmitData) => void | Promise<void>;
 };
 
 export function CreateTournamentForm({
@@ -114,6 +119,7 @@ export function CreateTournamentForm({
         handleSubmit: formHandleSubmit,
         watch,
         setValue,
+        setError,
         formState: { errors },
     } = formStep1;
 
@@ -155,7 +161,28 @@ export function CreateTournamentForm({
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
     const [coverError, setCoverError] = useState<string | null>(null);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [locationLatLng, setLocationLatLng] = useState<{ lat: number; lng: number } | null>(null);
+    const [eventTimezone, setEventTimezone] = useState<string | null>(null);
+    const [timezoneError, setTimezoneError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const fetchTimezone = async (lat: number, lng: number): Promise<string | null> => {
+        try {
+            const res = await fetch(`/api/timezone?lat=${lat}&lng=${lng}`);
+            const json = (await res.json()) as { timezone?: string; error?: string };
+            if (!res.ok) {
+                setTimezoneError(json.error ?? "Could not get timezone");
+                return null;
+            }
+            setTimezoneError(null);
+            return json.timezone ?? null;
+        } catch {
+            setTimezoneError("Timezone request failed");
+            return null;
+        }
+    };
 
     useEffect(() => {
         if (coverFile) {
@@ -206,6 +233,10 @@ export function CreateTournamentForm({
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
     const onStep1Submit = (data: CreateTournamentStep1Values) => {
+        if (!(data.location ?? "").trim()) {
+            setError("location", { type: "required", message: "Location is required" });
+            return;
+        }
         setStep1Data(data);
         setCurrentStep(2);
         onNextStep?.(data);
@@ -217,9 +248,26 @@ export function CreateTournamentForm({
         onStep2Next?.(data);
     };
 
-    const onStep3Submit = (data: CreateTournamentStep3Values) => {
-        if (step1Data && step2Data) {
-            onSubmit?.({ step1: step1Data, step2: step2Data, step3: data });
+    const onStep3Submit = async (data: CreateTournamentStep3Values) => {
+        if (!step1Data || !step2Data) return;
+        setSubmitError(null);
+        const result = onSubmit?.({
+            step1: step1Data,
+            step2: step2Data,
+            step3: data,
+            coverFile,
+            locationLatLng,
+            timezone: eventTimezone,
+        });
+        if (result instanceof Promise) {
+            setIsSubmitting(true);
+            try {
+                await result;
+            } catch (err) {
+                setSubmitError(err instanceof Error ? err.message : "Failed to create tournament");
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -468,16 +516,30 @@ export function CreateTournamentForm({
                             </div>
                         </div>
 
-                        <CustomDropdown
+                        <PlaceSearchInput
                             id="create-tournament-location"
-                            name="location"
                             label="Location"
-                            placeholder="Choose location"
-                            options={locationCountryOptions}
+                            placeholder="Search for a place or address"
                             value={watchedLocation ?? ""}
-                            register={register}
+                            onChange={async (result) => {
+                                setValue("location", result.address, { shouldValidate: true });
+                                setLocationLatLng({ lat: result.latitude, lng: result.longitude });
+                                const tz = await fetchTimezone(result.latitude, result.longitude);
+                                setEventTimezone(tz);
+                            }}
+                            onClear={() => {
+                                setValue("location", "", { shouldValidate: true });
+                                setLocationLatLng(null);
+                                setEventTimezone(null);
+                                setTimezoneError(null);
+                            }}
                             error={errors.location?.message}
                         />
+                        {timezoneError && (
+                            <span className={inputCss.form_field_error} role="alert">
+                                {timezoneError}
+                            </span>
+                        )}
 
                         <FormField
                             id="create-tournament-start"
@@ -514,6 +576,9 @@ export function CreateTournamentForm({
                                     const end = new Date(v).getTime();
                                     if (end <= Date.now())
                                         return "End date & time must be in the future";
+                                    const startVal = watch("startDateTime");
+                                    if (startVal && new Date(v).getTime() <= new Date(startVal).getTime())
+                                        return "End date & time must be after start date & time";
                                     return true;
                                 },
                             }}
@@ -530,6 +595,7 @@ export function CreateTournamentForm({
                             placeholder="Enter 0 if participation is free"
                             register={register}
                             rules={{
+                                required: "Fee is required (enter 0 if free)",
                                 validate: (v) => {
                                     const s = (v ?? "").trim();
                                     if (s === "" || s === "0") return true;
@@ -729,6 +795,12 @@ export function CreateTournamentForm({
                             <h2 className={css.sectionTitle}>Advanced</h2>
                         </div>
 
+                        {submitError && (
+                            <div className={css.formError} role="alert">
+                                {submitError}
+                            </div>
+                        )}
+
                         <div className={css.step3Fields}>
                             <div className={css.toggleRow}>
                                 <div className={css.toggleLabelBlock}>
@@ -803,8 +875,9 @@ export function CreateTournamentForm({
                             <button
                                 type="submit"
                                 className={css.createTournamentBtn}
+                                disabled={isSubmitting}
                             >
-                                Create a tournament
+                                {isSubmitting ? "Creating…" : "Create tournament"}
                             </button>
                         </div>
                     </form>

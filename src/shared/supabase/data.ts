@@ -282,6 +282,7 @@ export interface CreateEventParams {
     timezone?: string | null;
     qualifyingHeats?: QualifyingHeatsData | null;
     createdByUserId?: string | null;
+    tournamentPointsAvailable?: number | null;
 }
 
 export async function createEvent(params: CreateEventParams): Promise<IEventCardProps> {
@@ -302,6 +303,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
         timezone,
         qualifyingHeats,
         createdByUserId,
+        tournamentPointsAvailable,
     } = params;
 
     const { data: newEvent, error: insertError } = await supabase
@@ -326,7 +328,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
             current_rank: 0,
             total_participants: capacity ?? null,
             strength_of_field: null,
-            tournament_points_available: null,
+            tournament_points_available: tournamentPointsAvailable ?? null,
             created_by: createdByUserId ?? null,
         })
         .select("id")
