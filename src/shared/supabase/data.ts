@@ -1954,29 +1954,29 @@ export async function getRankings(
         .from("rankings")
         .select("*")
         .eq("category", category)
-        .order("rank", { ascending: true });
+        .order('"rank"', { ascending: true });
 
     if (error) {
         console.error("Error fetching rankings:", error);
         return [];
     }
 
-    return (
+    const list =
         data?.map((ranking) => ({
-            rank: ranking.rank,
-            name: ranking.name,
+            rank: Number(ranking.rank),
+            name: ranking.name ?? "",
             playerId: ranking.player_id ?? null,
-            laurels: ranking.laurels,
+            laurels: Number(ranking.laurels) ?? 0,
             rating: ranking.rating != null ? Number(ranking.rating) : undefined,
-            trend: ranking.trend,
-            trendUp: ranking.trend_up,
-            wins: ranking.wins,
-            losses: ranking.losses,
-            ties: ranking.ties,
-            kingdom: ranking.kingdom,
-            club: ranking.club,
-        })) || []
-    );
+            trend: ranking.trend ?? "—",
+            trendUp: Boolean(ranking.trend_up),
+            wins: Number(ranking.wins) ?? 0,
+            losses: Number(ranking.losses) ?? 0,
+            ties: Number(ranking.ties) ?? 0,
+            kingdom: ranking.kingdom ?? "",
+            club: ranking.club ?? "",
+        })) ?? [];
+    return list.slice().sort((a, b) => a.rank - b.rank);
 }
 
 export async function getAllRankings(): Promise<{
