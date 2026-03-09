@@ -91,15 +91,11 @@ export const SubscribePlansRegistration: React.FC = () => {
 
             const planName = planMap[planId] || "standard";
 
+            await supabase.rpc("ensure_profile", { p_id: user.id });
             const { error } = await supabase
                 .from("profiles")
-                .upsert(
-                    {
-                        id: user.id,
-                        subscription_plan: planName,
-                    },
-                    { onConflict: "id" }
-                );
+                .update({ subscription_plan: planName })
+                .eq("id", user.id);
 
             if (error) {
                 console.error("Failed to save plan:", error);

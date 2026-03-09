@@ -121,18 +121,17 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
 
         try {
             if (credentialsReadOnly) {
-                const { error: upsertError } = await supabase
+                const payload = {
+                    full_name: data.fullName?.trim(),
+                    country: data.country?.trim(),
+                };
+                await supabase.rpc("ensure_profile", { p_id: user.id });
+                const { error: writeError } = await supabase
                     .from("profiles")
-                    .upsert(
-                        {
-                            id: user.id,
-                            full_name: data.fullName?.trim(),
-                            country: data.country?.trim(),
-                        },
-                        { onConflict: "id" }
-                    );
-                if (upsertError) {
-                    setFormError(upsertError.message);
+                    .update(payload)
+                    .eq("id", user.id);
+                if (writeError) {
+                    setFormError(writeError.message);
                     return;
                 }
                 if (successRedirect) {
@@ -171,19 +170,17 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({
                 }
             }
 
-            const { error: upsertError } = await supabase
+            const payload = {
+                full_name: data.fullName?.trim(),
+                country: data.country?.trim(),
+            };
+            await supabase.rpc("ensure_profile", { p_id: user.id });
+            const { error: writeError } = await supabase
                 .from("profiles")
-                .upsert(
-                    {
-                        id: user.id,
-                        full_name: data.fullName?.trim(),
-                        country: data.country?.trim(),
-                    },
-                    { onConflict: "id" }
-                );
-
-            if (upsertError) {
-                setFormError(upsertError.message);
+                .update(payload)
+                .eq("id", user.id);
+            if (writeError) {
+                setFormError(writeError.message);
                 return;
             }
 

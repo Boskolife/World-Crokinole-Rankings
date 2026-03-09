@@ -59,7 +59,16 @@ export const useUserProfile = () => {
                 return;
             }
 
-            const nextProfile = (data ?? null) as IProfile | null;
+            let nextProfile = (data ?? null) as IProfile | null;
+            if (!nextProfile && userId) {
+                await supabase.rpc("ensure_profile", { p_id: userId });
+                const { data: inserted } = await supabase
+                    .from("profiles")
+                    .select("id, full_name, country, club, avatar_url, subscription_plan, is_admin")
+                    .eq("id", userId)
+                    .maybeSingle();
+                nextProfile = inserted as IProfile | null;
+            }
             setProfile(nextProfile);
             cache.set(userId, { profile: nextProfile, updatedAt: Date.now() });
         } catch {
