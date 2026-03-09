@@ -731,7 +731,13 @@ export async function ensurePlayerForUser(userId: string): Promise<void> {
         user_id: userId,
         name,
     });
-    if (error) console.error("ensurePlayerForUser insert error:", error);
+    if (error) {
+        console.error("ensurePlayerForUser insert error:", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+        });
+    }
 }
 
 export async function linkPlayerToAccount(
@@ -2144,16 +2150,29 @@ async function getPlayerNamesByIds(ids: string[]): Promise<Map<string, string>> 
 export async function getMatchHistoryFromSinglesAndDoubles(playerId: string): Promise<IMatchHistory[]> {
     if (!playerId?.trim()) return [];
 
+    const { data: playerRow } = await supabase
+        .from("players")
+        .select("id, user_id")
+        .or(`id.eq.${playerId},user_id.eq.${playerId}`)
+        .maybeSingle();
+    const prow = playerRow as { id?: number | string; user_id?: string | null } | null;
+    const playerIds = prow
+        ? [...new Set([String(prow.id), prow.user_id].filter(Boolean) as string[])]
+        : [playerId];
+    const playerIdSet = new Set(playerIds);
+    const singlesOr = playerIds.flatMap((id) => [`player1_id.eq.${id}`, `player2_id.eq.${id}`]).join(",");
+    const doublesOr = playerIds.flatMap((id) => [`player1_id.eq.${id}`, `player2_id.eq.${id}`, `player3_id.eq.${id}`, `player4_id.eq.${id}`]).join(",");
+
     const [singlesRes, doublesRes] = await Promise.all([
         supabase
             .from("singles")
             .select("id, match_date, match_number, player1_id, player2_id, points_won_p1, points_won_p2, winner")
-            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
+            .or(singlesOr)
             .order("match_date", { ascending: false }),
         supabase
             .from("doubles")
             .select("id, match_date, match_number, player1_id, player2_id, player3_id, player4_id, points_won_team1, points_won_team2, winner")
-            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId},player3_id.eq.${playerId},player4_id.eq.${playerId}`)
+            .or(doublesOr)
             .order("match_date", { ascending: false }),
     ]);
 
@@ -2162,8 +2181,9 @@ export async function getMatchHistoryFromSinglesAndDoubles(playerId: string): Pr
 
     for (const row of singlesRes.data ?? []) {
         const r = row as { id: number; match_date: string; match_number: number; player1_id: string; player2_id: string; points_won_p1: number; points_won_p2: number; winner: string | null };
-        const opponentId = r.player1_id === playerId ? r.player2_id : r.player1_id;
-        const myPoints = r.player1_id === playerId ? Number(r.points_won_p1) : Number(r.points_won_p2);
+        const isP1 = playerIdSet.has(r.player1_id);
+        const opponentId = isP1 ? r.player2_id : r.player1_id;
+        const myPoints = isP1 ? Number(r.points_won_p1) : Number(r.points_won_p2);
         opponentIds.add(opponentId);
         items.push({
             id: `singles-${r.id}`,
@@ -2176,7 +2196,7 @@ export async function getMatchHistoryFromSinglesAndDoubles(playerId: string): Pr
 
     for (const row of doublesRes.data ?? []) {
         const r = row as { id: number; match_date: string; match_number: number; player1_id: string; player2_id: string; player3_id: string; player4_id: string; points_won_team1: number; points_won_team2: number; winner: string | null };
-        const isTeam1 = r.player1_id === playerId || r.player2_id === playerId;
+        const isTeam1 = playerIdSet.has(r.player1_id) || playerIdSet.has(r.player2_id);
         const opponentIdsThis = isTeam1 ? [r.player3_id, r.player4_id] : [r.player1_id, r.player2_id];
         const myPoints = isTeam1 ? Number(r.points_won_team1) : Number(r.points_won_team2);
         opponentIdsThis.forEach((id) => opponentIds.add(id));
@@ -2307,23 +2327,30 @@ export async function getRatingHistoryFromSinglesAndDoubles(playerId: string): P
 
     const { data: playerRow } = await supabase
         .from("players")
-        .select("singles_rating, doubles_rating, rating")
+        .select("id, user_id, singles_rating, doubles_rating, rating")
         .or(`id.eq.${playerId},user_id.eq.${playerId}`)
         .maybeSingle();
-    const fallbackSingles = playerRow?.singles_rating != null ? Number(playerRow.singles_rating) : (playerRow?.rating != null ? Number(playerRow.rating) : 0);
-    const fallbackDoubles = playerRow?.doubles_rating != null ? Number(playerRow.doubles_rating) : (playerRow?.rating != null ? Number(playerRow.rating) : 0);
+    const prow = playerRow as { id?: number | string; user_id?: string | null; singles_rating?: number | null; doubles_rating?: number | null; rating?: number | null } | null;
+    const playerIds = prow
+        ? [...new Set([String(prow.id), prow.user_id].filter(Boolean) as string[])]
+        : [playerId];
+    const playerIdSet = new Set(playerIds);
+    const fallbackSingles = prow?.singles_rating != null ? Number(prow.singles_rating) : (prow?.rating != null ? Number(prow.rating) : 0);
+    const fallbackDoubles = prow?.doubles_rating != null ? Number(prow.doubles_rating) : (prow?.rating != null ? Number(prow.rating) : 0);
 
+    const singlesOr = playerIds.flatMap((id) => [`player1_id.eq.${id}`, `player2_id.eq.${id}`]).join(",");
+    const doublesOr = playerIds.flatMap((id) => [`player1_id.eq.${id}`, `player2_id.eq.${id}`, `player3_id.eq.${id}`, `player4_id.eq.${id}`]).join(",");
     const [singlesRes, doublesRes] = await Promise.all([
         supabase
             .from("singles")
             .select("match_date, player1_id, player2_id, p1_rating_old, p1_rating_new, p1_rating_change, p2_rating_old, p2_rating_new, p2_rating_change")
-            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
+            .or(singlesOr)
             .gte("match_date", cutoffStr)
             .order("match_date", { ascending: true }),
         supabase
             .from("doubles")
             .select("match_date, player1_id, player2_id, player3_id, player4_id, p1_rating_old, p1_rating_new, p1_rating_change, p2_rating_old, p2_rating_new, p2_rating_change, p3_rating_old, p3_rating_new, p3_rating_change, p4_rating_old, p4_rating_new, p4_rating_change")
-            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId},player3_id.eq.${playerId},player4_id.eq.${playerId}`)
+            .or(doublesOr)
             .gte("match_date", cutoffStr)
             .order("match_date", { ascending: true }),
     ]);
@@ -2332,7 +2359,7 @@ export async function getRatingHistoryFromSinglesAndDoubles(playerId: string): P
     let singlesInitialRating = 0;
     for (const row of singlesRes.data ?? []) {
         const r = row as { match_date: string; player1_id: string; player2_id: string; p1_rating_old: number | null; p1_rating_new: number | null; p1_rating_change: number | null; p2_rating_old: number | null; p2_rating_new: number | null; p2_rating_change: number | null };
-        const isP1 = r.player1_id === playerId;
+        const isP1 = playerIdSet.has(r.player1_id);
         const change = Number(isP1 ? (r.p1_rating_change ?? 0) : (r.p2_rating_change ?? 0));
         const ratingBefore = isP1 ? r.p1_rating_old : r.p2_rating_old;
         const ratingNew = isP1 ? (r.p1_rating_new ?? 0) : (r.p2_rating_new ?? 0);
@@ -2349,19 +2376,19 @@ export async function getRatingHistoryFromSinglesAndDoubles(playerId: string): P
         let change = 0;
         let ratingBefore: number | null = null;
         let ratingNew = 0;
-        if (r.player1_id === playerId) {
+        if (playerIdSet.has(r.player1_id)) {
             change = Number(r.p1_rating_change ?? 0);
             ratingBefore = r.p1_rating_old;
             ratingNew = Number(r.p1_rating_new ?? 0);
-        } else if (r.player2_id === playerId) {
+        } else if (playerIdSet.has(r.player2_id)) {
             change = Number(r.p2_rating_change ?? 0);
             ratingBefore = r.p2_rating_old;
             ratingNew = Number(r.p2_rating_new ?? 0);
-        } else if (r.player3_id === playerId) {
+        } else if (playerIdSet.has(r.player3_id)) {
             change = Number(r.p3_rating_change ?? 0);
             ratingBefore = r.p3_rating_old;
             ratingNew = Number(r.p3_rating_new ?? 0);
-        } else if (r.player4_id === playerId) {
+        } else if (playerIdSet.has(r.player4_id)) {
             change = Number(r.p4_rating_change ?? 0);
             ratingBefore = r.p4_rating_old;
             ratingNew = Number(r.p4_rating_new ?? 0);
