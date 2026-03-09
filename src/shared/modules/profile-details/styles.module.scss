@@ -91,25 +91,27 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 12px 24px;
-        border-radius: 8px;
-        background-color: var(--blue-grey);
-        color: var(--white);
+        padding: 12px 20px;
+        border-radius: 120px;
+        background-color: var(--white);
+        border: 1px solid var(--gold-dark);
+        color: var(--gold-dark);
         font-weight: 500;
         font-size: 16px;
+        line-height: 1.35;
         text-decoration: none;
-        transition: opacity 0.2s;
+        transition: opacity 0.2s, color 0.2s, border-color 0.2s;
 
         &:hover {
             opacity: 0.9;
-            color: var(--white);
+            color: var(--gold-dark);
+            border-color: var(--gold-dark);
         }
 
         &_primary {
             background-color: transparent;
             border: 1px solid var(--gold-dark);
             color: var(--gold-dark);
-            border-radius: 120px;
 
             &:hover {
                 opacity: 1;
