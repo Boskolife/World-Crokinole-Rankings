@@ -486,6 +486,63 @@
     }
 }
 
+.admin_image_upload {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .admin_image_preview {
+        max-width: 200px;
+        max-height: 140px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--black-10);
+    }
+
+    .admin_image_actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .admin_image_upload_btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: var(--white);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--black-5);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .admin_image_remove_btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        border: none;
+        border-radius: 4px;
+        background: #fee2e2;
+        color: #dc3545;
+        cursor: pointer;
+
+        &:hover {
+            background: #fecaca;
+        }
+    }
+
+    .admin_image_error {
+        font-size: 13px;
+        color: #dc3545;
+    }
+}
+
 .join_tournament_title {
     margin: 0 0 8px 0;
     font-size: 24px;

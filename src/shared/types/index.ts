@@ -6,3 +6,4 @@ export * from "./player.interface";
 export * from "./profile.interface";
 export * from "./tournament.interface";
 export * from "./match-history.interface";
+export * from "./news.interface";

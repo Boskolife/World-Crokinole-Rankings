@@ -2,16 +2,20 @@ import React from "react";
 import css from "./styles.module.scss";
 import Image from "next/image";
 import { RootLink } from "@/shared/ui";
-import newsItems from "@/data/news.json";
+import type { INewsItem } from "@/shared/types";
 
-export const News: React.FC = () => {
+interface NewsProps {
+    items: INewsItem[];
+}
+
+export const News: React.FC<NewsProps> = ({ items }) => {
     return (
         <div className={css.news}>
             <div className="container">
                 <h2 className={css.news_title}>What’s New</h2>
                 <div className={css.news_content}>
-                    {newsItems.news.map((item, index) => (
-                        <div className={css.news_content_item} key={index}>
+                    {items.map((item) => (
+                        <div className={css.news_content_item} key={item.id}>
                             <div className={css.news_content_item_image}>
                                 <Image
                                     src={

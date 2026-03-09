@@ -19,6 +19,7 @@ type AdminSection =
     | "tournaments" 
     | "rankings" 
     | "match-history" 
+    | "news"
     | "profiles" 
     | "subscriptions";
 
@@ -109,6 +110,7 @@ export default function AdminPage() {
         { id: "tournaments", label: "Tournaments" },
         { id: "rankings", label: "Rankings" },
         { id: "match-history", label: "Match History" },
+        { id: "news", label: "News" },
         { id: "profiles", label: "Profiles" },
         { id: "subscriptions", label: "Subscriptions" },
     ];
@@ -154,6 +156,7 @@ export default function AdminPage() {
                     {activeSection === "tournaments" && <TournamentsManager />}
                     {activeSection === "rankings" && <RankingsManager />}
                     {activeSection === "match-history" && <MatchHistoryManager />}
+                    {activeSection === "news" && <NewsManager />}
                     {activeSection === "profiles" && <ProfilesManager />}
                     {activeSection === "subscriptions" && <SubscriptionsManager />}
                 </div>
@@ -186,6 +189,10 @@ function MatchHistoryManager() {
     return <TableManager tableName="match_history" />;
 }
 
+function NewsManager() {
+    return <TableManager tableName="news" />;
+}
+
 function ProfilesManager() {
     return <TableManager tableName="profiles" />;
 }
@@ -201,6 +208,7 @@ const TABLE_ORDER_COLUMN: Record<string, string> = {
     tournaments: "created_at",
     rankings: "id",
     match_history: "created_at",
+    news: "sort_order",
     profiles: "created_at",
     subscriptions: "created_at",
 };
@@ -358,6 +366,21 @@ function TableManager({ tableName }: { tableName: string }) {
     const renderCell = (item: any, col: string) => {
         if (tableName === "profiles" && col === "avatar") {
             const url = item.avatar_url?.trim();
+            if (!url) return <td key={col} className={css.avatarCell} />;
+            return (
+                <td key={col} className={css.avatarCell}>
+                    <img
+                        src={url}
+                        alt=""
+                        className={css.avatarThumb}
+                        width={36}
+                        height={36}
+                    />
+                </td>
+            );
+        }
+        if (tableName === "news" && col === "image") {
+            const url = item.image?.trim();
             if (!url) return <td key={col} className={css.avatarCell} />;
             return (
                 <td key={col} className={css.avatarCell}>

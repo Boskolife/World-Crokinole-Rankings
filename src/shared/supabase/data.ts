@@ -8,6 +8,7 @@ import type {
     ITournament,
     IRankList,
     IMatchHistory,
+    INewsItem,
 } from "@/shared/types";
 
 function formatEventDate(startDate: string, endDate: string, timezone?: string | null): string {
@@ -2094,6 +2095,32 @@ export async function getAllRankings(): Promise<{
         singles,
         doubles,
     };
+}
+
+export async function getNews(): Promise<INewsItem[]> {
+    const { data, error } = await supabase
+        .from("news")
+        .select("id, image, title, description, link, link_text, sort_order, created_at")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching news:", error);
+        return [];
+    }
+
+    return (
+        data?.map((row: { id: number; image: string | null; title: string; description: string; link: string; link_text: string; sort_order?: number; created_at?: string }) => ({
+            id: row.id,
+            image: row.image ?? null,
+            title: row.title ?? "",
+            description: row.description ?? "",
+            link: row.link ?? "#",
+            linkText: row.link_text ?? "Read more",
+            sortOrder: row.sort_order,
+            createdAt: row.created_at,
+        })) ?? []
+    );
 }
 
 export async function getMatchHistory(): Promise<IMatchHistory[]> {
