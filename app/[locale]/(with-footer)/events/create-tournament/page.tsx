@@ -4,18 +4,16 @@ import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth, useUserProfile } from "@/shared/hooks";
 import { localeConfig } from "@/app/localization/config";
-import { CreateEventForm } from "@/widgets/events/create-event-form";
-import css from "@/widgets/events/create-event-form/styles.module.scss";
+import { CreateTournamentForm } from "@/widgets/events/create-tournament-form";
+import css from "@/widgets/events/create-tournament-form/styles.module.scss";
 
-export default function CreateEventPage() {
+export default function CreateTournamentPage() {
     const { isAuth, isMounted } = useAuth();
     const { profile, isLoading: profileLoading } = useUserProfile();
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
     const profileReady = !profileLoading && profile !== null;
-    const isFreePlan =
-        !profile?.subscription_plan || profile.subscription_plan === "standard";
 
     useEffect(() => {
         if (!isMounted) return;
@@ -41,10 +39,10 @@ export default function CreateEventPage() {
     }
 
     return (
-        <CreateEventForm
+        <CreateTournamentForm
             backLinkHref={`/${locale}/events`}
             backLinkLabel="Back to Events"
-            isFreePlan={isFreePlan}
+            onNextStep={() => {}}
         />
     );
 }

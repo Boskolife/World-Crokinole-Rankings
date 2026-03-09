@@ -481,6 +481,13 @@ export function CreateTournamentForm({
                             register={register}
                             rules={{
                                 required: "Start date & time is required",
+                                validate: (v) => {
+                                    if (!v) return true;
+                                    const start = new Date(v).getTime();
+                                    if (start <= Date.now())
+                                        return "Start date & time must be in the future";
+                                    return true;
+                                },
                             }}
                             error={errors.startDateTime?.message}
                             hideClearButton
@@ -495,6 +502,13 @@ export function CreateTournamentForm({
                             register={register}
                             rules={{
                                 required: "End date & time is required",
+                                validate: (v) => {
+                                    if (!v) return true;
+                                    const end = new Date(v).getTime();
+                                    if (end <= Date.now())
+                                        return "End date & time must be in the future";
+                                    return true;
+                                },
                             }}
                             error={errors.endDateTime?.message}
                             hideClearButton
@@ -508,6 +522,21 @@ export function CreateTournamentForm({
                             inputMode="numeric"
                             placeholder="Enter 0 if participation is free"
                             register={register}
+                            rules={{
+                                validate: (v) => {
+                                    const s = (v ?? "").trim();
+                                    if (s === "" || s === "0") return true;
+                                    const n = parseFloat(s);
+                                    if (Number.isNaN(n) || n < 0)
+                                        return "Enter a valid fee (e.g. 0, 10, or 5.50)";
+                                    if (/^0\d/.test(s))
+                                        return "Fee cannot have leading zeros (e.g. use 1 instead of 01)";
+                                    const parts = s.split(".");
+                                    if (parts.length === 2 && (parts[1]?.length ?? 0) > 2)
+                                        return "Maximum 2 decimal places";
+                                    return true;
+                                },
+                            }}
                             error={errors.fee?.message}
                             hideClearButton
                         />

@@ -43,6 +43,7 @@ export const HeroEvents: React.FC = () => {
         (isPremiumOrAdmin ||
             (isFreePlan && freePlanActiveCount !== null && freePlanActiveCount < 1));
     const createEventPath = `/${locale}/events/create`;
+    const createTournamentPath = `/${locale}/events/create-tournament`;
 
     return (
         <section className={css.hero}>
@@ -94,7 +95,7 @@ export const HeroEvents: React.FC = () => {
                                 buttonType="secondary"
                                 icon="plus"
                                 className={css.hero_create_club_btn}
-                                onClick={() => router.push(createEventPath)}
+                                onClick={() => router.push(createTournamentPath)}
                             >
                                 Create Ranked Tournament
                             </Button>
