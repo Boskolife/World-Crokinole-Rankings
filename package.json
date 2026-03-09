@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import-players": "node scripts/import-players-from-csv.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^5.6.1",

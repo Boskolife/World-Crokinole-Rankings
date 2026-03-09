@@ -42,7 +42,7 @@ export async function PlayerProfilePage({ id }: PlayerProfilePageProps) {
             <Tournaments tournaments={tournaments} />
             <RatingList ratingData={ratingData} />
             <MatchHistory matches={matchHistory} />
-            <Badges />
+            <Badges player={player} />
         </div>
     );
 }
