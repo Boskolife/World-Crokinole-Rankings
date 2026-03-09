@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { find } from "geo-tz";
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -18,34 +19,27 @@ export async function GET(request: NextRequest) {
             { status: 400 }
         );
     }
-    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!key) {
+    if (latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
         return NextResponse.json(
-            { error: "Time Zone API key not configured" },
-            { status: 503 }
+            { error: "lat must be -90..90, lng must be -180..180" },
+            { status: 400 }
         );
     }
-    const timestamp = Math.floor(Date.now() / 1000);
-    const url = `https://maps.googleapis.com/maps/api/timezone/json?location=${latNum},${lngNum}&timestamp=${timestamp}&key=${key}`;
     try {
-        const res = await fetch(url);
-        const data = (await res.json()) as {
-            status: string;
-            timeZoneId?: string;
-            errorMessage?: string;
-        };
-        if (data.status !== "OK" || !data.timeZoneId) {
+        const zones = find(latNum, lngNum);
+        const timezone = zones[0] ?? null;
+        if (!timezone) {
             return NextResponse.json(
-                { error: data.errorMessage ?? "Could not resolve timezone" },
+                { error: "No timezone for this location" },
                 { status: 400 }
             );
         }
-        return NextResponse.json({ timezone: data.timeZoneId });
+        return NextResponse.json({ timezone });
     } catch (e) {
-        console.error("Timezone API error:", e);
+        console.error("Timezone lookup error:", e);
         return NextResponse.json(
-            { error: "Failed to fetch timezone" },
-            { status: 502 }
+            { error: "Failed to resolve timezone" },
+            { status: 500 }
         );
     }
 }

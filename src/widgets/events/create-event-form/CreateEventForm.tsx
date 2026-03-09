@@ -120,7 +120,24 @@ export function CreateEventForm({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [locationLatLng, setLocationLatLng] = useState<{ lat: number; lng: number } | null>(null);
     const [eventTimezone, setEventTimezone] = useState<string | null>(null);
+    const [timezoneError, setTimezoneError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const fetchTimezone = async (lat: number, lng: number): Promise<string | null> => {
+        try {
+            const res = await fetch(`/api/timezone?lat=${lat}&lng=${lng}`);
+            const json = (await res.json()) as { timezone?: string; error?: string };
+            if (!res.ok) {
+                setTimezoneError(json.error ?? "Could not get timezone");
+                return null;
+            }
+            setTimezoneError(null);
+            return json.timezone ?? null;
+        } catch {
+            setTimezoneError("Timezone request failed");
+            return null;
+        }
+    };
 
     useEffect(() => {
         if (coverFile) {
@@ -195,9 +212,14 @@ export function CreateEventForm({
                 return;
             }
         }
+        let tz = eventTimezone;
+        if (!tz && locationLatLng) {
+            tz = await fetchTimezone(locationLatLng.lat, locationLatLng.lng);
+            if (tz) setEventTimezone(tz);
+        }
         const toUtc = (localStr: string) =>
-            eventTimezone
-                ? localInTimezoneToUtc(localStr, eventTimezone)
+            tz
+                ? localInTimezoneToUtc(localStr, tz)
                 : new Date(localStr).toISOString();
         const startDate = toUtc(data.startDateTime);
         const endDate = toUtc(data.endDateTime);
@@ -236,8 +258,8 @@ export function CreateEventForm({
                 for (let n = 1; n <= heatsCountNum; n++) {
                     const startStr = heatDateTimes[n];
                     if (startStr) {
-                        const startUtc = eventTimezone
-                            ? localInTimezoneToUtc(startStr, eventTimezone)
+                        const startUtc = tz
+                            ? localInTimezoneToUtc(startStr, tz)
                             : new Date(startStr).toISOString();
                         const startMs = new Date(startUtc).getTime();
                         heats.push({
@@ -248,8 +270,8 @@ export function CreateEventForm({
                 }
                 let finalSlot: { start: string; end: string } | undefined;
                 if (finalDateTime) {
-                    const finalStartUtc = eventTimezone
-                        ? localInTimezoneToUtc(finalDateTime, eventTimezone)
+                    const finalStartUtc = tz
+                        ? localInTimezoneToUtc(finalDateTime, tz)
                         : new Date(finalDateTime).toISOString();
                     const startMs = new Date(finalStartUtc).getTime();
                     finalSlot = {
@@ -276,7 +298,7 @@ export function CreateEventForm({
                 capacity: numCap,
                 latitude: locationLatLng?.lat ?? undefined,
                 longitude: locationLatLng?.lng ?? undefined,
-                timezone: eventTimezone ?? undefined,
+                timezone: tz ?? undefined,
                 qualifyingHeats: qualifyingHeats ?? null,
                 createdByUserId: user?.id ?? undefined,
             });
@@ -441,23 +463,22 @@ export function CreateEventForm({
                             onChange={async (result) => {
                                 setValue("location", result.address, { shouldValidate: true });
                                 setLocationLatLng({ lat: result.latitude, lng: result.longitude });
-                                try {
-                                    const res = await fetch(
-                                        `/api/timezone?lat=${result.latitude}&lng=${result.longitude}`
-                                    );
-                                    const json = (await res.json()) as { timezone?: string };
-                                    setEventTimezone(json.timezone ?? null);
-                                } catch {
-                                    setEventTimezone(null);
-                                }
+                                const tz = await fetchTimezone(result.latitude, result.longitude);
+                                setEventTimezone(tz);
                             }}
                             onClear={() => {
                                 setValue("location", "", { shouldValidate: true });
                                 setLocationLatLng(null);
                                 setEventTimezone(null);
+                                setTimezoneError(null);
                             }}
                             error={errors.location?.message}
                         />
+                        {timezoneError && (
+                            <span className={inputCss.form_field_error} role="alert">
+                                {timezoneError}
+                            </span>
+                        )}
                         {!isFreePlan && (
                         <CustomDropdown
                             id="create-event-type"
