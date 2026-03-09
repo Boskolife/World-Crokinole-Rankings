@@ -30,8 +30,9 @@ export const EventCard: React.FC<IEventCardProps> = ({
 }) => {
     const free = isFreePrice(price);
     return (
-        <div className={css.event_card}>
-            <div className={css.event_card_image}>
+        <RootLink href={clientRoutes.eventDetail(id)} className={css.event_card_link}>
+            <div className={css.event_card}>
+                <div className={css.event_card_image}>
                 <span
                     className={cn(css.event_card_registration, {
                         [css._required]: isRegistrationRequired,
@@ -41,23 +42,23 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         ? "Registration is Required"
                         : "No registration required"}
                 </span>
-                <div className={css.event_card_ranking}>
-                    <span className={css.event_card_ranking_icon_wrapper}>
-                        <Icon
-                            name="ranking"
-                            className={cn(css.event_card_ranking_icon, {
-                                [css._ranked]: isRanked,
-                            })}
-                        />
-                    </span>
-                    {totalParticipants != null && (
-                        <div className={css.event_card_ranking_value_wrapper}>
-                            <span>{currentRank ?? 0}</span>
-                            <span>/</span>
-                            <span>{totalParticipants}</span>
-                        </div>
-                    )}
-                </div>
+                {isRanked && (
+                    <div className={css.event_card_ranking}>
+                        <span className={css.event_card_ranking_icon_wrapper}>
+                            <Icon
+                                name="ranking"
+                                className={cn(css.event_card_ranking_icon, css._ranked)}
+                            />
+                        </span>
+                        {totalParticipants != null && (
+                            <div className={css.event_card_ranking_value_wrapper}>
+                                <span>{currentRank ?? 0}</span>
+                                <span>/</span>
+                                <span>{totalParticipants}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
                 {image ? (
                     <Image
                         className={css.event_card_image_img}
@@ -79,9 +80,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
             </div>
             <div className={css.event_card_content}>
                 <div className={css.event_card_title_wrap}>
-                    <RootLink href={clientRoutes.eventDetail(id)}>
-                        <h3 className={css.event_card_title}>{title}</h3>
-                    </RootLink>
+                    <h3 className={css.event_card_title}>{title}</h3>
                     <span
                         className={cn(css.event_card_price, {
                             [css._free]: free,
@@ -111,5 +110,6 @@ export const EventCard: React.FC<IEventCardProps> = ({
                 </div>
             </div>
         </div>
+        </RootLink>
     );
 };

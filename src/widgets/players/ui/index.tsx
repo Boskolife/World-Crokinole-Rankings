@@ -10,6 +10,9 @@ import {
     getUniqueKingdoms,
     getUniqueClubs,
 } from "@/shared/supabase/data";
+import { useDebounce } from "@/shared/hooks";
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 interface PlayersProps {
     initialPlayers?: IPlayer[];
@@ -20,8 +23,8 @@ export const Players: React.FC<PlayersProps> = ({ initialPlayers = [] }) => {
     const [totalPlayers, setTotalPlayers] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [search, setSearch] = useState("");
     const [searchValue, setSearchValue] = useState("");
+    const debouncedSearch = useDebounce(searchValue, SEARCH_DEBOUNCE_MS);
     const [selectedKingdom, setSelectedKingdom] = useState("");
     const [selectedClub, setSelectedClub] = useState("");
     const [kingdomOptions, setKingdomOptions] = useState<
@@ -37,7 +40,7 @@ export const Players: React.FC<PlayersProps> = ({ initialPlayers = [] }) => {
         setIsLoading(true);
         try {
             const result = await getPlayersWithFilters({
-                search,
+                search: debouncedSearch || undefined,
                 kingdom: selectedKingdom || undefined,
                 club: selectedClub || undefined,
                 page: currentPage,
@@ -52,7 +55,7 @@ export const Players: React.FC<PlayersProps> = ({ initialPlayers = [] }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [search, selectedKingdom, selectedClub, currentPage, pageSize]);
+    }, [debouncedSearch, selectedKingdom, selectedClub, currentPage, pageSize]);
 
     const loadFilterOptions = useCallback(async () => {
         try {
@@ -76,13 +79,16 @@ export const Players: React.FC<PlayersProps> = ({ initialPlayers = [] }) => {
     }, [loadPlayers]);
 
     const handleSearch = () => {
-        setSearch(searchValue);
         setCurrentPage(1);
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
     };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch]);
 
     const handleKingdomChange = (value: string) => {
         setSelectedKingdom(value);

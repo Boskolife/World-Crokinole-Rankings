@@ -16,6 +16,9 @@ import {
     getUniqueLocations,
     getClubsWhereUserIsAdmin,
 } from "@/shared/supabase/data";
+import { useDebounce } from "@/shared/hooks";
+
+const SEARCH_DEBOUNCE_MS = 300;
 import { sortOrderOptions } from "@/shared/constants";
 import { useAuth } from "@/shared/hooks/use-auth";
 
@@ -40,8 +43,8 @@ export const Clubs: React.FC<IClubsProps> = ({
     const [userClubIds, setUserClubIds] = useState<Set<number>>(new Set());
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [search, setSearch] = useState("");
     const [searchValue, setSearchValue] = useState("");
+    const debouncedSearch = useDebounce(searchValue, SEARCH_DEBOUNCE_MS);
     const [selectedLocation, setSelectedLocation] = useState("");
     const [sortBy, setSortBy] = useState("");
     const [locationOptions, setLocationOptions] = useState<
@@ -87,7 +90,7 @@ export const Clubs: React.FC<IClubsProps> = ({
             setIsLoading(true);
             try {
                 const result = await getClubsWithFilters({
-                    search,
+                    search: debouncedSearch || undefined,
                     location: selectedLocation || undefined,
                     page: currentPage,
                     pageSize,
@@ -105,16 +108,19 @@ export const Clubs: React.FC<IClubsProps> = ({
         };
 
         loadClubs();
-    }, [search, selectedLocation, currentPage, sortBy, needPagination, pageSize]);
+    }, [debouncedSearch, selectedLocation, currentPage, sortBy, needPagination, pageSize]);
 
     const handleSearch = () => {
-        setSearch(searchValue);
         setCurrentPage(1);
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
     };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch]);
 
     const handleLocationChange = (value: string) => {
         setSelectedLocation(value);

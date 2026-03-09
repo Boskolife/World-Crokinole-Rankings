@@ -357,7 +357,14 @@ export function EditEventForm({
                             label="Title"
                             placeholder="Enter the event name"
                             register={register}
-                            rules={{ required: "Title is required" }}
+                            maxLength={100}
+                            rules={{
+                                required: "Title is required",
+                                maxLength: {
+                                    value: 100,
+                                    message: "Title must be 100 characters or less",
+                                },
+                            }}
                             error={errors.title?.message}
                             hideClearButton
                         />
@@ -477,6 +484,18 @@ export function EditEventForm({
                             inputMode="numeric"
                             placeholder="Max number of participants (0 for unlimited)"
                             register={register}
+                            rules={{
+                                validate: (v) => {
+                                    const s = (v ?? "").trim();
+                                    if (s === "" || s === "0") return true;
+                                    const n = parseInt(s, 10);
+                                    if (Number.isNaN(n) || n < 0)
+                                        return "Capacity must be 0 (unlimited) or a positive number";
+                                    if (n % 2 !== 0)
+                                        return "Capacity must be an even number";
+                                    return true;
+                                },
+                            }}
                             error={errors.capacity?.message}
                             hideClearButton
                         />

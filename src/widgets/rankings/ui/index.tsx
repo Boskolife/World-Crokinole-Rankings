@@ -7,7 +7,9 @@ import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { RankingList } from "../components/ranking-list/RankingList";
 import { Pagination } from "@/shared/modules";
 import { CustomButton } from "@/shared/ui/buttons";
-import { useRankingsList } from "@/shared/hooks";
+import { useRankingsList, useDebounce } from "@/shared/hooks";
+
+const SEARCH_DEBOUNCE_MS = 300;
 import {
     rankingsSwitcherOptions,
     RankingsCategoryValue,
@@ -81,6 +83,7 @@ export const Rankings: React.FC<RankingsProps> = ({
     viewFullListHref,
 }) => {
     const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearchQuery = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
     const [kingdomFilter, setKingdomFilter] = useState("");
     const [clubFilter, setClubFilter] = useState("");
 
@@ -91,24 +94,24 @@ export const Rankings: React.FC<RankingsProps> = ({
         () => ({
             laurels: filterList(
                 rankings.laurels,
-                searchQuery,
+                debouncedSearchQuery,
                 kingdomFilter,
                 clubFilter
             ),
             singles: filterList(
                 rankings.singles,
-                searchQuery,
+                debouncedSearchQuery,
                 kingdomFilter,
                 clubFilter
             ),
             doubles: filterList(
                 rankings.doubles,
-                searchQuery,
+                debouncedSearchQuery,
                 kingdomFilter,
                 clubFilter
             ),
         }),
-        [rankings, searchQuery, kingdomFilter, clubFilter]
+        [rankings, debouncedSearchQuery, kingdomFilter, clubFilter]
     );
 
     const {

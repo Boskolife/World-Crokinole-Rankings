@@ -1,21 +1,57 @@
+.event_card_link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px;
+    padding: 8px;
+    margin: -8px;
+    box-sizing: content-box;
+
+    &:hover .event_card {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0, 41, 75, 0.15);
+    }
+
+    &:hover .event_card_image::after {
+        opacity: 1;
+    }
+
+    &:hover .event_card_image .event_card_image_img {
+        transform: scale(1.04);
+    }
+}
+
 .event_card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 16px;
     text-align: start;
+    border-radius: 8px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 
     &_image {
         position: relative;
-
         width: 100%;
         height: 240px;
         border-radius: 8px;
         overflow: hidden;
 
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 41, 75, 0.08);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
         &_img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.35s ease;
         }
 
         &_placeholder {
@@ -88,6 +124,10 @@
         }
     }
 
+    &_content {
+        padding: 4px 12px 12px;
+    }
+
     &_title_wrap {
         display: flex;
         align-items: center;
@@ -96,6 +136,13 @@
     }
 
     &_title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-break: break-word;
+
         &:hover {
             color: var(--gold);
             transition: all 0.3s ease;

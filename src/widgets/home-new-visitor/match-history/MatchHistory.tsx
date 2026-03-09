@@ -12,6 +12,7 @@ import { clientRoutes } from "@/shared/routes/client";
 import { getPlayersWithFilters, getUniqueKingdoms, linkPlayerToAccount } from "@/shared/supabase/data";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { useDebounce } from "@/shared/hooks";
 
 interface MatchHistoryProps {
     compact?: boolean;
@@ -46,7 +47,7 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
     const pageSize = compact ? 4 : 10;
 
     const [searchValue, setSearchValue] = useState("");
-    const [search, setSearch] = useState("");
+    const debouncedSearch = useDebounce(searchValue, 300);
     const [country, setCountry] = useState("");
     const [kingdomOptions, setKingdomOptions] = useState<Array<{ value: string; label: string }>>([]);
 
@@ -60,7 +61,7 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
         setIsLoading(true);
         try {
             const { players, total } = await getPlayersWithFilters({
-                search: search || undefined,
+                search: debouncedSearch || undefined,
                 kingdom: country || undefined,
                 page: currentPage,
                 pageSize,
@@ -96,7 +97,7 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [search, country, currentPage, pageSize, userFullNameNorm]);
+    }, [debouncedSearch, country, currentPage, pageSize, userFullNameNorm]);
 
     useEffect(() => {
         loadPlayers();
@@ -120,9 +121,12 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
     };
 
     const handleSearch = () => {
-        setSearch(searchValue);
         setCurrentPage(1);
     };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch]);
 
     const linkRow = selectedRowId
         ? playersData.find((r) => r.rowId === selectedRowId)

@@ -81,6 +81,7 @@ export function CreateEventForm({
         handleSubmit: formHandleSubmit,
         watch,
         setValue,
+        setError,
         formState: { errors },
     } = useForm<CreateEventFormValues>({ defaultValues: initialDefaults });
 
@@ -169,6 +170,10 @@ export function CreateEventForm({
 
     const onSubmit = async (data: CreateEventFormValues) => {
         setSubmitError(null);
+        if (!(data.location ?? "").trim()) {
+            setError("location", { type: "required", message: "Location is required" });
+            return;
+        }
         if (!isSupabaseConfigured) {
             setSubmitError(supabaseConfigError ?? "Supabase is not configured");
             return;
@@ -364,7 +369,14 @@ export function CreateEventForm({
                             label="Title"
                             placeholder="Enter the event name"
                             register={register}
-                            rules={{ required: "Title is required" }}
+                            maxLength={100}
+                            rules={{
+                                required: "Title is required",
+                                maxLength: {
+                                    value: 100,
+                                    message: "Title must be 100 characters or less",
+                                },
+                            }}
                             error={errors.title?.message}
                             hideClearButton
                         />
@@ -467,6 +479,7 @@ export function CreateEventForm({
                             placeholder="Enter 0 if participation is free"
                             register={register}
                             rules={{
+                                required: "Fee is required (enter 0 if free)",
                                 validate: (v) => {
                                     const s = (v ?? "").trim();
                                     if (s === "" || s === "0") return true;
@@ -493,6 +506,19 @@ export function CreateEventForm({
                             inputMode="numeric"
                             placeholder="Max number of participants (0 for unlimited)"
                             register={register}
+                            rules={{
+                                required: "Capacity is required (enter 0 for unlimited)",
+                                validate: (v) => {
+                                    const s = (v ?? "").trim();
+                                    if (s === "" || s === "0") return true;
+                                    const n = parseInt(s, 10);
+                                    if (Number.isNaN(n) || n < 0)
+                                        return "Capacity must be 0 (unlimited) or a positive number";
+                                    if (n % 2 !== 0)
+                                        return "Capacity must be an even number";
+                                    return true;
+                                },
+                            }}
                             error={errors.capacity?.message}
                             hideClearButton
                         />
@@ -518,6 +544,8 @@ export function CreateEventForm({
                                     options={qualifyingHeatsOptions}
                                     value={watchedHeatsCount ?? "0"}
                                     register={register}
+                                    rules={{ required: "Please select" }}
+                                    error={errors.qualifyingHeatsCount?.message}
                                     buttonClassName={css.heatsDropdownButton}
                                 />
                             </div>

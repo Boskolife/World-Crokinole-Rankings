@@ -1,4 +1,5 @@
 export { useAuth } from "./use-auth";
+export { useDebounce } from "./use-debounce";
 export { useHeader, useProfileDropdown, useNotificationDropdown } from "./use-header";
 export { useClubJoinRequestNotifications } from "./use-notifications";
 export type { NotificationItem } from "./use-notifications";

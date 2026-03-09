@@ -378,7 +378,14 @@ export function CreateTournamentForm({
                             label="Tournament name"
                             placeholder="e.g., Crokino World Opening"
                             register={register}
-                            rules={{ required: "Tournament name is required" }}
+                            maxLength={100}
+                            rules={{
+                                required: "Tournament name is required",
+                                maxLength: {
+                                    value: 100,
+                                    message: "Title must be 100 characters or less",
+                                },
+                            }}
                             error={errors.title?.message}
                             hideClearButton
                         />

@@ -22,6 +22,15 @@
             gap: 12px;
         }
 
+        &_search {
+            width: 180px;
+            min-width: 160px;
+
+            @include media-down(sm) {
+                width: 100%;
+            }
+        }
+
         &_dropdown {
             width: 220px;
 

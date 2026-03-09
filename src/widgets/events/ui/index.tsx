@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import css from "./styles.module.scss";
-import { CustomRoundedDropdown } from "@/shared/ui";
+import { CustomRoundedDropdown, SearchInput } from "@/shared/ui";
 import { Icon } from "@/shared/ui/icons";
 import cn from "classnames";
 import { EventCard } from "../components/event-card/EventCard";
@@ -11,52 +11,28 @@ import { CustomButton } from "@/shared/ui/buttons";
 import { clientRoutes } from "@/shared/routes/client";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
-import { useEvents } from "@/shared/hooks";
+import { useEvents, useDebounce } from "@/shared/hooks";
+import { getUniqueEventLocations, getUniqueEventFormats } from "@/shared/supabase/data";
 
-const dateOptions = [
-    { value: "all", label: "All dates" },
-    { value: "today", label: "Today" },
-    { value: "tomorrow", label: "Tomorrow" },
-    { value: "this week", label: "This week" },
-    { value: "next week", label: "Next week" },
-    { value: "this month", label: "This month" },
-    { value: "next month", label: "Next month" },
-];
+const SEARCH_DEBOUNCE_MS = 300;
 
-const locationOptions = [
-    { value: "all", label: "All locations" },
-    { value: "Toronto, Canada", label: "Toronto, Canada" },
-    { value: "Chicago, IL", label: "Chicago, IL" },
-    { value: "London, UK", label: "London, UK" },
-    { value: "New York, NY", label: "New York, NY" },
-    { value: "Vancouver, BC", label: "Vancouver, BC" },
-    { value: "Detroit, MI", label: "Detroit, MI" },
-    { value: "Paris, France", label: "Paris, France" },
-    { value: "Boston, MA", label: "Boston, MA" },
-    { value: "Montreal, QC", label: "Montreal, QC" },
-    { value: "Seattle, WA", label: "Seattle, WA" },
-    { value: "Philadelphia, PA", label: "Philadelphia, PA" },
-];
+const getDateOptions = (isPastEvents: boolean) => {
+    const prefix = isPastEvents ? "Last" : "Next";
+    return [
+        { value: "all", label: "All dates" },
+        { value: "30d", label: `${prefix} 30 days` },
+        { value: "3m", label: `${prefix} 3 months` },
+        { value: "6m", label: `${prefix} 6 months` },
+        { value: "9m", label: `${prefix} 9 months` },
+        { value: "1y", label: `${prefix} 1 year` },
+    ];
+};
 
-const formatOptions = [
-    { value: "all", label: "All formats" },
-    { value: "Double Elimination Tournament", label: "Double Elimination" },
-    { value: "Round Robin / Single Elimination", label: "Round Robin / Single Elimination" },
-    { value: "Swiss System Tournament", label: "Swiss System" },
-    { value: "Best of 7 Series", label: "Best of 7 Series" },
-    { value: "Double Round Robin", label: "Double Round Robin" },
-    { value: "Single Tournament / Round Robin", label: "Single Tournament / Round Robin" },
-    { value: "Knockout Tournament", label: "Knockout" },
-    { value: "Round Robin", label: "Round Robin" },
-    { value: "Multi-Format Tournament", label: "Multi-Format" },
-    { value: "Single Elimination", label: "Single Elimination" },
-    { value: "Casual Tournament", label: "Casual Tournament" },
-];
 
 const typeOptions = [
     { value: "all", label: "All types" },
-    { value: "online", label: "Online" },
-    { value: "in-person", label: "In-person" },
+    { value: "ranked", label: "Ranked" },
+    { value: "unranked", label: "Unranked" },
 ];
 
 interface IEventsProps {
@@ -77,50 +53,92 @@ export const Events: React.FC<IEventsProps> = ({
     isPastEvents = false,
 }) => {
     const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const debouncedSearchQuery = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
     const [dateFilter, setDateFilter] = useState<string>("all");
     const [locationFilter, setLocationFilter] = useState<string>("all");
     const [formatFilter, setFormatFilter] = useState<string>("all");
     const [typeFilter, setTypeFilter] = useState<string>("all");
+    const [locationOptions, setLocationOptions] = useState<Array<{ value: string; label: string }>>([
+        { value: "all", label: "All locations" },
+    ]);
+    const [formatOptions, setFormatOptions] = useState<Array<{ value: string; label: string }>>([
+        { value: "all", label: "All formats" },
+    ]);
+
+    useEffect(() => {
+        Promise.all([getUniqueEventLocations(), getUniqueEventFormats()]).then(
+            ([locations, formats]) => {
+                setLocationOptions([{ value: "all", label: "All locations" }, ...locations]);
+                setFormatOptions([{ value: "all", label: "All formats" }, ...formats]);
+            }
+        );
+    }, []);
 
     const filteredEvents = useMemo(() => {
         let filtered = [...events];
 
+        if (debouncedSearchQuery.trim()) {
+            const q = debouncedSearchQuery.trim().toLowerCase();
+            filtered = filtered.filter(
+                (event) =>
+                    (event.title ?? "").toLowerCase().includes(q) ||
+                    (event.location ?? "").toLowerCase().includes(q) ||
+                    (event.format ?? "").toLowerCase().includes(q)
+            );
+        }
+
         if (dateFilter !== "all") {
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const thisWeekEnd = new Date(today);
-            thisWeekEnd.setDate(thisWeekEnd.getDate() + 7);
-            const nextWeekStart = new Date(today);
-            nextWeekStart.setDate(nextWeekStart.getDate() + 7);
-            const nextWeekEnd = new Date(nextWeekStart);
-            nextWeekEnd.setDate(nextWeekEnd.getDate() + 7);
-            const thisMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            const nextMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-            const nextMonthEnd = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+            const todayTime = today.getTime();
+
+            const addPeriod = (months: number, days = 0) => {
+                const d = new Date(today);
+                d.setMonth(d.getMonth() + months);
+                d.setDate(d.getDate() + days);
+                return d.getTime();
+            };
+
+            let rangeStart: number;
+            let rangeEnd: number;
+            switch (dateFilter) {
+                case "30d":
+                    rangeStart = todayTime;
+                    rangeEnd = addPeriod(0, 30);
+                    break;
+                case "3m":
+                    rangeStart = todayTime;
+                    rangeEnd = addPeriod(3);
+                    break;
+                case "6m":
+                    rangeStart = todayTime;
+                    rangeEnd = addPeriod(6);
+                    break;
+                case "9m":
+                    rangeStart = todayTime;
+                    rangeEnd = addPeriod(9);
+                    break;
+                case "1y":
+                    rangeStart = todayTime;
+                    rangeEnd = addPeriod(12);
+                    break;
+                default:
+                    rangeStart = 0;
+                    rangeEnd = 0;
+            }
 
             filtered = filtered.filter((event) => {
-                if (!event.startDate) return false;
-                const eventDate = new Date(event.startDate);
+                const dateStr = isPastEvents ? event.endDate ?? event.startDate : event.startDate;
+                if (!dateStr) return false;
+                const eventDate = new Date(dateStr);
                 const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
-                
-                switch (dateFilter) {
-                    case "today":
-                        return eventDateOnly.getTime() === today.getTime();
-                    case "tomorrow":
-                        return eventDateOnly.getTime() === tomorrow.getTime();
-                    case "this week":
-                        return eventDateOnly >= today && eventDateOnly <= thisWeekEnd;
-                    case "next week":
-                        return eventDateOnly >= nextWeekStart && eventDateOnly <= nextWeekEnd;
-                    case "this month":
-                        return eventDateOnly >= today && eventDateOnly <= thisMonthEnd;
-                    case "next month":
-                        return eventDateOnly >= nextMonthStart && eventDateOnly <= nextMonthEnd;
-                    default:
-                        return true;
+                const eventTime = eventDateOnly.getTime();
+
+                if (isPastEvents) {
+                    return eventTime <= todayTime && eventTime >= todayTime - (rangeEnd - rangeStart);
                 }
+                return eventTime >= rangeStart && eventTime <= rangeEnd;
             });
         }
 
@@ -134,18 +152,14 @@ export const Events: React.FC<IEventsProps> = ({
 
         if (typeFilter !== "all") {
             filtered = filtered.filter((event) => {
-                if (typeFilter === "online") {
-                    return event.location.toLowerCase().includes("online") || 
-                           event.location.toLowerCase().includes("virtual");
-                } else {
-                    return !event.location.toLowerCase().includes("online") && 
-                           !event.location.toLowerCase().includes("virtual");
-                }
+                if (typeFilter === "ranked") return event.isRanked === true;
+                if (typeFilter === "unranked") return event.isRanked !== true;
+                return true;
             });
         }
 
         return filtered;
-    }, [events, dateFilter, locationFilter, formatFilter, typeFilter]);
+    }, [events, debouncedSearchQuery, dateFilter, locationFilter, formatFilter, typeFilter, isPastEvents]);
 
     const {
         eventsContainerRef,
@@ -168,9 +182,17 @@ export const Events: React.FC<IEventsProps> = ({
                 <h2 className={css.events_title}>{title}</h2>
                 <div className={css.events_head}>
                     <div className={css.events_head_filters}>
+                        <div className={css.events_head_search}>
+                            <SearchInput
+                                placeholder="Search events"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                ariaLabel="Search events by title, location or format"
+                            />
+                        </div>
                         <CustomRoundedDropdown
                             id="Date"
-                            options={dateOptions}
+                            options={getDateOptions(isPastEvents)}
                             placeholder="Date"
                             className={css.events_head_dropdown}
                             value={dateFilter}

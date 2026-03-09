@@ -1726,6 +1726,52 @@ export async function getUniqueLocations(): Promise<
     }));
 }
 
+export async function getUniqueEventLocations(): Promise<
+    Array<{ value: string; label: string }>
+> {
+    const { data, error } = await supabase
+        .from("events")
+        .select("location")
+        .not("location", "is", null);
+
+    if (error) {
+        console.error("Error fetching event locations:", error);
+        return [];
+    }
+
+    const uniqueLocations = Array.from(
+        new Set(data?.map((e) => e.location).filter(Boolean) || [])
+    ).sort();
+
+    return uniqueLocations.map((location) => ({
+        value: location,
+        label: location,
+    }));
+}
+
+export async function getUniqueEventFormats(): Promise<
+    Array<{ value: string; label: string }>
+> {
+    const { data, error } = await supabase
+        .from("events")
+        .select("format")
+        .not("format", "is", null);
+
+    if (error) {
+        console.error("Error fetching event formats:", error);
+        return [];
+    }
+
+    const uniqueFormats = Array.from(
+        new Set(data?.map((e) => e.format).filter(Boolean) || [])
+    ).sort();
+
+    return uniqueFormats.map((format) => ({
+        value: format,
+        label: format,
+    }));
+}
+
 const CLUB_LOGOS_BUCKET = "club-logos";
 
 function getFileExtension(filename: string): string {
