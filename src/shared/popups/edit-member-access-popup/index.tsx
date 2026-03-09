@@ -8,6 +8,7 @@ import { setClubMemberRole, removeClubMember } from "@/shared/supabase/data";
 import type { IClub } from "@/shared/types";
 import type { IClubMember } from "@/shared/supabase/data";
 import { useRouter } from "next/navigation";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import cn from "classnames";
 
 interface EditMemberAccessPopupData {
@@ -15,15 +16,6 @@ interface EditMemberAccessPopupData {
     member: IClubMember;
     adminCount?: number;
     onRemoved?: () => void;
-}
-
-function getCountryFlagSrc(country: string | null): string {
-    if (!country) return "/images/usa.png";
-    const c = (country || "").toLowerCase();
-    if (c.includes("usa") || c.includes("united states")) return "/images/usa.png";
-    if (c.includes("uk") || c.includes("united kingdom")) return "https://flagcdn.com/w80/gb.png";
-    if (c.includes("new zealand")) return "https://flagcdn.com/w80/nz.png";
-    return "/images/usa.png";
 }
 
 export const EditMemberAccessPopup: React.FC = () => {
@@ -105,7 +97,7 @@ export const EditMemberAccessPopup: React.FC = () => {
                 </p>
                 <div className={css.edit_member_card}>
                     <img
-                        src={getCountryFlagSrc(null)}
+                        src={getCountryFlagUrl(null)}
                         alt=""
                         width={40}
                         height={40}

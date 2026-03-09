@@ -10,6 +10,7 @@ import { RootLink } from "@/shared/ui/links/root-link";
 import { clientRoutes } from "@/shared/routes/client";
 import { Icon } from "@/shared/ui/icons";
 import type { IClub } from "@/shared/types";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "./styles.module.scss";
 
 export const ProfileMyClubs: React.FC = () => {
@@ -72,17 +73,13 @@ export const ProfileMyClubs: React.FC = () => {
                                 </span>
                             </div>
                             <div className={css.profile_my_clubs_card_meta_item}>
-                                {club.country ? (
-                                    <Image
-                                        src={club.country}
-                                        alt=""
-                                        width={24}
-                                        height={24}
-                                        className={css.profile_my_clubs_card_flag}
-                                    />
-                                ) : (
-                                    <span className={css.profile_my_clubs_card_flag_emoji}>🇺🇸</span>
-                                )}
+                                <Image
+                                    src={getCountryFlagUrl(club.country || club.location)}
+                                    alt=""
+                                    width={24}
+                                    height={24}
+                                    className={css.profile_my_clubs_card_flag}
+                                />
                                 <span>{club.location || "USA"}</span>
                             </div>
                         </div>

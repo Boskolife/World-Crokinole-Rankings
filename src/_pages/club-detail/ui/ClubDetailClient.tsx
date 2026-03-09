@@ -18,6 +18,7 @@ import type {
     IClubDiscount,
 } from "@/shared/supabase/data";
 import { getClubJoinRequestCount, acceptClubInvite, rejectClubInvite } from "@/shared/supabase/data";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "./styles.module.scss";
 import cn from "classnames";
 
@@ -26,15 +27,6 @@ interface ClubDetailClientProps {
     members: IClubMember[];
     admins: IClubAdmin[];
     discounts: IClubDiscount[];
-}
-
-function getCountryFlagSrc(country: string | null): string {
-    if (!country) return "/images/usa.png";
-    const c = country.toLowerCase();
-    if (c.includes("usa") || c.includes("united states")) return "/images/usa.png";
-    if (c.includes("uk") || c.includes("united kingdom")) return "https://flagcdn.com/w80/gb.png";
-    if (c.includes("new zealand")) return "https://flagcdn.com/w80/nz.png";
-    return "/images/usa.png";
 }
 
 const DEFAULT_DISCOUNT_DESCRIPTION =
@@ -354,7 +346,7 @@ export function ClubDetailClient({
                         </div>
                         <div className={css.club_detail_meta_item}>
                             <Image
-                                src={club.country || "/images/usa.png"}
+                                src={getCountryFlagUrl(club.country || club.location)}
                                 alt=""
                                 width={24}
                                 height={24}
@@ -523,7 +515,7 @@ export function ClubDetailClient({
                                 {admins.map((admin) => (
                                     <li key={admin.id} className={css.club_detail_admin_item}>
                                         <Image
-                                            src={getCountryFlagSrc(admin.country)}
+                                            src={getCountryFlagUrl(admin.country)}
                                             alt=""
                                             width={24}
                                             height={24}

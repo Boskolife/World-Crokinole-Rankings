@@ -7,6 +7,7 @@ import { RootLink } from "@/shared/ui/links/root-link";
 import { IClub } from "@/shared/types/clubs.interface";
 import { clientRoutes } from "@/shared/routes/client";
 import { useClubJoinRequest } from "@/shared/hooks/use-club-join-request";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import cn from "classnames";
 
 export const ClubCard: React.FC<IClub & { showJoinButton?: boolean; isAuth?: boolean }> = ({
@@ -68,15 +69,13 @@ export const ClubCard: React.FC<IClub & { showJoinButton?: boolean; isAuth?: boo
                     </span>
                 </div>
                 <div className={css.club_card_info_location}>
-                    {country && (
-                        <Image
-                            src={country}
-                            width={20}
-                            height={20}
-                            alt="Country"
-                            className={css.club_card_info_location_icon}
-                        />
-                    )}
+                    <Image
+                        src={getCountryFlagUrl(country || location)}
+                        width={20}
+                        height={20}
+                        alt=""
+                        className={css.club_card_info_location_icon}
+                    />
                     <span className={css.club_card_info_location_value}>
                         {location || "—"}
                     </span>

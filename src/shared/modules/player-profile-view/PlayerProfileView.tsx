@@ -74,15 +74,17 @@ export const PlayerProfileView: React.FC<PlayerProfileViewProps> = ({
                             >
                                 {player.name}
                             </h4>
-                            <span
-                                className={
-                                    css.profile_details_left_profile_role
-                                }
-                            >
-                                {kingdom === "-"
-                                    ? "👑 King"
-                                    : `👑 King of ${kingdom}`}
-                            </span>
+                            {kingdom !== "-" &&
+                                kingdom.trim() !== "" &&
+                                (player.title?.trim() || player.clubTitle?.trim()) && (
+                                    <span
+                                        className={
+                                            css.profile_details_left_profile_role
+                                        }
+                                    >
+                                        👑 King of {kingdom}
+                                    </span>
+                                )}
                         </div>
                     </div>
                     {actions && (
@@ -103,7 +105,9 @@ export const PlayerProfileView: React.FC<PlayerProfileViewProps> = ({
                                 return !raw || /^[\s,]*$/.test(raw) ? undefined : raw;
                             })()}
                         />
-                        <InfoItem label="Kingdom" value={kingdom} />
+                        {kingdom !== "-" && kingdom.trim() !== "" && (
+                            <InfoItem label="Kingdom" value={kingdom} />
+                        )}
                         {(player.singlesPlayed != null || player.doublesPlayed != null) && (
                             <>
                                 <InfoItem label="Singles (W–L)" value={player.singlesWon != null && player.singlesPlayed != null ? `${player.singlesWon}–${player.singlesPlayed - player.singlesWon}` : undefined} />
