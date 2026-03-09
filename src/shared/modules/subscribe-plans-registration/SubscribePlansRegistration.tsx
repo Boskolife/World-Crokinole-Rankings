@@ -13,6 +13,7 @@ import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { supabase, isSupabaseConfigured } from "@/shared/supabase/client";
+import { ensurePlayerForUser } from "@/shared/supabase/data";
 
 const switcherOptions = [
     { value: "monthly", label: "Monthly" },
@@ -92,6 +93,7 @@ export const SubscribePlansRegistration: React.FC = () => {
             const planName = planMap[planId] || "standard";
 
             await supabase.rpc("ensure_profile", { p_id: user.id });
+            await ensurePlayerForUser(user.id);
             const { error } = await supabase
                 .from("profiles")
                 .update({ subscription_plan: planName })

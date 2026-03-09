@@ -42,29 +42,36 @@ function PayEventFeeForm({
         async (e: React.FormEvent) => {
             e.preventDefault();
             if (!stripe || !elements) return;
-            setIsSubmitting(true);
             setError(null);
-            const returnUrl =
-                typeof window !== "undefined"
-                    ? `${window.location.origin}${window.location.pathname}?payment=success`
-                    : "";
-            const result = await stripe.confirmPayment({
-                elements,
-                clientSecret,
-                confirmParams: { return_url: returnUrl },
-            });
-            if (result.error) {
-                setError(result.error.message ?? "Payment failed");
-                setIsSubmitting(false);
+            const { error: submitError } = await elements.submit();
+            if (submitError) {
+                setError(submitError.message ?? "Validation failed");
                 return;
             }
-            const intent = (result as { paymentIntent?: { status: string } }).paymentIntent;
-            if (intent?.status === "succeeded") {
-                closePopup("pay-event-fee");
-                onSuccess();
-                router.refresh();
+            setIsSubmitting(true);
+            try {
+                const returnUrl =
+                    typeof window !== "undefined"
+                        ? `${window.location.origin}${window.location.pathname}?payment=success`
+                        : "";
+                const result = await stripe.confirmPayment({
+                    elements,
+                    clientSecret,
+                    confirmParams: { return_url: returnUrl },
+                });
+                if (result.error) {
+                    setError(result.error.message ?? "Payment failed");
+                    return;
+                }
+                const intent = (result as { paymentIntent?: { status: string } }).paymentIntent;
+                if (intent?.status === "succeeded") {
+                    closePopup("pay-event-fee");
+                    onSuccess();
+                    router.refresh();
+                }
+            } finally {
+                setIsSubmitting(false);
             }
-            setIsSubmitting(false);
         },
         [stripe, elements, clientSecret, closePopup, onSuccess, router]
     );
@@ -152,7 +159,7 @@ export const PayEventFeePopup: React.FC = () => {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [data, user?.id, user?.email, eventId, isValidFee, feeNum]);
 
     const handleSuccess = useCallback(() => {
         window.dispatchEvent(new CustomEvent("event-registration-updated", { detail: { eventId } }));

@@ -4,6 +4,7 @@ import {
     EventQualifyingHeats,
     EventRegisteredPlayers,
     EventDetailUpcomingEvents,
+    PaymentReturnHandler,
 } from "@/widgets/event-detail";
 import {
     getEventById,
@@ -80,6 +81,7 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
 
     return (
         <>
+            <PaymentReturnHandler />
             <EventDetailHero event={event} />
             {isEventEnded && participationStats && (
                 <EventParticipationStats

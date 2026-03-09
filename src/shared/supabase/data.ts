@@ -712,6 +712,28 @@ export async function getPlayersWithFilters(
     };
 }
 
+export async function ensurePlayerForUser(userId: string): Promise<void> {
+    const { data: existing } = await supabase
+        .from("players")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+    if (existing) return;
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .maybeSingle();
+    const name = (profile as { full_name?: string | null } | null)?.full_name?.trim() ?? null;
+
+    const { error } = await supabase.from("players").insert({
+        user_id: userId,
+        name,
+    });
+    if (error) console.error("ensurePlayerForUser insert error:", error);
+}
+
 export async function linkPlayerToAccount(
     playerRowId: string,
     userId: string
@@ -719,6 +741,16 @@ export async function linkPlayerToAccount(
     const numericId = typeof playerRowId === "string" && /^\d+$/.test(playerRowId)
         ? parseInt(playerRowId, 10)
         : playerRowId;
+
+    const { error: deleteError } = await supabase
+        .from("players")
+        .delete()
+        .eq("user_id", userId)
+        .neq("id", numericId);
+    if (deleteError) {
+        console.error("Error deleting auto-created player before link:", deleteError);
+    }
+
     const { data, error } = await supabase
         .from("players")
         .update({ user_id: userId })
