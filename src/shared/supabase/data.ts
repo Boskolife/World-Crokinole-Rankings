@@ -199,6 +199,32 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
     });
 }
 
+export async function getEventsCreatedByUser(userId: string): Promise<IEventCardProps[]> {
+    if (!userId?.trim()) return [];
+    const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("created_by", userId.trim())
+        .order("start_date", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching events by user:", error);
+        return [];
+    }
+    if (!data?.length) return [];
+    const countMap = await getEventRegistrationCounts(data.map((e) => e.id));
+    return data.map((e) => {
+        const row = e as Record<string, unknown>;
+        const totalParticipantsVal = row.total_participants ?? row.capacity ?? null;
+        return mapEventRowToCard({
+            ...e,
+            current_rank: countMap.get(e.id) ?? 0,
+            total_participants: totalParticipantsVal as number | null,
+            capacity: (row.capacity ?? row.total_participants ?? null) as number | null,
+        });
+    });
+}
+
 const UPCOMING_AT_LOCATION_LIMIT = 6;
 
 export async function getUpcomingEventsAtLocation(

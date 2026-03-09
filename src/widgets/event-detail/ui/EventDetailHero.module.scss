@@ -211,6 +211,10 @@ $edit-outline: #d48f1f;
     font-size: 16px;
     font-weight: 700;
     color: $title-value;
+
+    &_pre {
+        white-space: pre-line;
+    }
 }
 
 .card_actions {

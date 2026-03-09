@@ -32,6 +32,7 @@ export interface EventQualifyingHeatsProps {
     isEventEnded?: boolean;
     isRanked?: boolean;
     fee?: string;
+    isTournament?: boolean;
 }
 
 function formatHeatDateTime(start: string, end: string): string {
@@ -66,6 +67,7 @@ export function EventQualifyingHeats({
     isEventEnded = false,
     isRanked = true,
     fee,
+    isTournament = false,
 }: EventQualifyingHeatsProps) {
     const router = useRouter();
     const { openPopup } = usePopup();
@@ -241,6 +243,7 @@ export function EventQualifyingHeats({
                                                 players: playersByHeat[i] ?? [],
                                                 eventId,
                                                 createdBy,
+                                                isTournament,
                                             })
                                         }
                                     >

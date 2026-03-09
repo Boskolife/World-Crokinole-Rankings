@@ -30,6 +30,10 @@ export const EventCard: React.FC<IEventCardProps> = ({
     tournamentPointsAvailable,
 }) => {
     const free = isFreePrice(price);
+    const isTournament = (format ?? "").toLowerCase() === "tournament";
+    const registrationText = isRegistrationRequired
+        ? (isTournament ? "Tournament registration is required" : "Registration is required")
+        : (isTournament ? "No tournament registration required" : "No registration required");
     return (
         <RootLink href={clientRoutes.eventDetail(id)} className={css.event_card_link}>
             <div className={css.event_card}>
@@ -39,9 +43,7 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         [css._required]: isRegistrationRequired,
                     })}
                 >
-                    {isRegistrationRequired
-                        ? "Registration is Required"
-                        : "No registration required"}
+                    {registrationText}
                 </span>
                 {isRanked && (
                     <div className={css.event_card_ranking}>

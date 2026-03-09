@@ -11,6 +11,7 @@ interface RemoveEventParticipantConfirmPopupData {
     eventId: number;
     userId: string;
     playerName: string;
+    isTournament?: boolean;
     onSuccess?: () => void;
 }
 
@@ -57,7 +58,7 @@ export const RemoveEventParticipantConfirmPopup: React.FC = () => {
                 )}
 
                 <p>
-                    Remove <strong>{data.playerName}</strong> from this event?
+                    Remove <strong>{data.playerName}</strong> from this {data.isTournament ? "tournament" : "event"}?
                 </p>
 
                 <div className={css.popup_buttons}>

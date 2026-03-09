@@ -1,0 +1,263 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+$gold: #f4b44b;
+$gold-dark: #d48f1f;
+$beige: #fff9ee;
+$border-default: #e6e6e6;
+$bg-default: #fafafa;
+$text: #0e0e0e;
+$text-muted: #a5a5a5;
+$avatar-bg: #737373;
+
+.section {
+    padding: 48px 0 60px;
+    background: #ffffff;
+
+    @include media-down(md) {
+        padding: 32px 0 40px;
+    }
+}
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    overflow-x: auto;
+
+    @include media-down(sm) {
+        padding: 0 16px;
+    }
+}
+
+.bracketWrap {
+    display: flex;
+    align-items: center;
+    gap: 64px;
+    min-width: min-content;
+
+    @include media-down(lg) {
+        gap: 40px;
+    }
+
+    @include media-down(md) {
+        gap: 24px;
+    }
+}
+
+.roundColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    flex-shrink: 0;
+}
+
+.pair {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    min-width: 320px;
+
+    @include media-down(md) {
+        min-width: 280px;
+    }
+}
+
+.slotRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+
+    @include media-down(md) {
+        padding: 6px 12px;
+    }
+}
+
+.slotRowWinner {
+    background: $beige;
+    border-left: 3px solid $gold;
+}
+
+.slotRowDefault {
+    background: $bg-default;
+    border-left: 3px solid $border-default;
+}
+
+.slotLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.seedBadge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 24px;
+    padding: 4px 8px;
+    border: 1px solid $border-default;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: $text-muted;
+}
+
+.seedBadgeWinner {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 24px;
+    padding: 4px 8px;
+    border: 1px solid $gold;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: $text;
+}
+
+.slotFlag {
+    position: relative;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.flagImg {
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.flagPlaceholder {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $avatar-bg;
+    opacity: 0.5;
+}
+
+.slotName {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: $text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.slotNameEmpty {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: $text-muted;
+}
+
+.slotRowDefault .slotName {
+    font-weight: 400;
+    color: $text-muted;
+}
+
+.slotRowWinner .slotNameEmpty {
+    color: $text-muted;
+}
+
+.slotScore,
+.slotScoreWinner {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 24px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-family: "Inter", sans-serif;
+    font-size: 18px;
+    line-height: 1.35;
+}
+
+.slotScoreWinner {
+    font-weight: 700;
+    color: $text;
+}
+
+.slotScore {
+    font-weight: 400;
+    color: $text-muted;
+}
+
+.championBanner {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px;
+    min-width: 280px;
+    background: $beige;
+    border: 1px solid $gold-dark;
+    border-radius: 4px;
+
+    @include media-down(md) {
+        min-width: 240px;
+        padding: 12px;
+    }
+}
+
+.championIconWrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.championIcon {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.championLabel {
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.25;
+    color: $gold-dark;
+    text-align: center;
+
+    @include media-down(md) {
+        font-size: 20px;
+    }
+}
+
+.championName {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: $text;
+}

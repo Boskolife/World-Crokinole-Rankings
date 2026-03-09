@@ -18,12 +18,13 @@ export interface EventRegisteredPlayersProps {
     players: IPlayer[];
     eventId?: number;
     createdBy?: string | null;
+    isTournament?: boolean;
 }
 
 const getCountryFlagUrl = (countryCode: string) =>
     `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
-export function EventRegisteredPlayers({ players, eventId, createdBy }: EventRegisteredPlayersProps) {
+export function EventRegisteredPlayers({ players, eventId, createdBy, isTournament = false }: EventRegisteredPlayersProps) {
     const router = useRouter();
     const { openPopup } = usePopup();
     const { user } = useAuth();
@@ -197,12 +198,13 @@ export function EventRegisteredPlayers({ players, eventId, createdBy }: EventReg
                                         <button
                                             type="button"
                                             className={css.removeBtn}
-                                            title="Remove from event"
+                                            title={isTournament ? "Remove from tournament" : "Remove from event"}
                                             onClick={() => {
                                                 openPopup("remove-event-participant-confirm", {
                                                     eventId,
                                                     userId: player.id,
                                                     playerName: player.name,
+                                                    isTournament,
                                                     onSuccess: () => {
                                                         window.dispatchEvent(
                                                             new CustomEvent("event-registration-updated", {

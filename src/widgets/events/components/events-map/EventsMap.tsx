@@ -53,9 +53,10 @@ function buildEventCardInfoContent(event: IEventCardProps, eventDetailUrl: strin
     const priceTrimmed = (event.price ?? "").trim().toLowerCase();
     const isFree = priceTrimmed === "" || priceTrimmed === "free" || priceTrimmed === "0";
     const price = isFree ? "Free" : "$" + escapeHtml(event.price ?? "");
+    const isTournament = (event.format ?? "").toLowerCase() === "tournament";
     const registrationText = event.isRegistrationRequired
-        ? "Registration is Required"
-        : "No registration required";
+        ? (isTournament ? "Tournament registration is required" : "Registration is required")
+        : (isTournament ? "No tournament registration required" : "No registration required");
     const registrationColor = event.isRegistrationRequired ? "#00284B" : "#F4B44B";
     const rankText =
         event.currentRank != null && event.totalParticipants != null

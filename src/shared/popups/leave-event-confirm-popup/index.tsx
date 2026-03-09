@@ -11,6 +11,7 @@ interface LeaveEventConfirmPopupData {
     eventId: number;
     userId: string;
     eventTitle?: string;
+    isTournament?: boolean;
     onSuccess?: () => void;
 }
 
@@ -23,6 +24,10 @@ export const LeaveEventConfirmPopup: React.FC = () => {
 
     if (!data) return null;
 
+    const isTournament = Boolean(data.isTournament);
+    const entityLabel = isTournament ? "tournament" : "event";
+    const leaveButtonLabel = isTournament ? "Leave tournament" : "Leave event";
+
     const handleLeave = async () => {
         setIsLeaving(true);
         setError(null);
@@ -32,7 +37,7 @@ export const LeaveEventConfirmPopup: React.FC = () => {
             closePopup("leave-event-confirm");
             data.onSuccess?.();
         } else {
-            setError("Failed to leave the event.");
+            setError(isTournament ? "Failed to leave the tournament." : "Failed to leave the event.");
         }
     };
 
@@ -46,10 +51,10 @@ export const LeaveEventConfirmPopup: React.FC = () => {
                 />
             </div>
             <div className={css.popup_content}>
-                <h2>Leave event</h2>
+                <h2>{leaveButtonLabel}</h2>
                 {error && <div className={css.popup_error}>{error}</div>}
                 <p>
-                    Are you sure you want to leave this event
+                    Are you sure you want to leave this {entityLabel}
                     {data.eventTitle ? ` (${data.eventTitle})` : ""}? You can join again later.
                 </p>
                 <div className={css.popup_buttons}>
@@ -66,7 +71,7 @@ export const LeaveEventConfirmPopup: React.FC = () => {
                         disabled={isLeaving}
                         style={{ background: isLeaving ? "#6c757d" : "#dc3545" }}
                     >
-                        {isLeaving ? "Leaving…" : "Leave event"}
+                        {isLeaving ? "Leaving…" : leaveButtonLabel}
                     </button>
                 </div>
             </div>

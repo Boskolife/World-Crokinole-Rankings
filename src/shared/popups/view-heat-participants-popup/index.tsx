@@ -20,6 +20,7 @@ type ViewHeatParticipantsPopupData = {
     players?: IPlayer[];
     eventId?: number;
     createdBy?: string | null;
+    isTournament?: boolean;
 };
 
 export const ViewHeatParticipantsPopup: React.FC = () => {
@@ -32,7 +33,9 @@ export const ViewHeatParticipantsPopup: React.FC = () => {
     const players = data?.players ?? [];
     const eventId = data?.eventId;
     const createdBy = data?.createdBy;
+    const isTournament = Boolean(data?.isTournament);
     const showRemove = Boolean(eventId && user?.id && createdBy === user?.id);
+    const removeFromLabel = isTournament ? "Remove from tournament" : "Remove from event";
 
     const handleRemoveClick = (player: IPlayer) => {
         if (eventId == null) return;
@@ -41,6 +44,7 @@ export const ViewHeatParticipantsPopup: React.FC = () => {
             eventId,
             userId: player.id,
             playerName: player.name,
+            isTournament,
             onSuccess: () => {
                 window.dispatchEvent(
                     new CustomEvent("event-registration-updated", { detail: { eventId } })
@@ -129,7 +133,7 @@ export const ViewHeatParticipantsPopup: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     className={modCss.removeBtn}
-                                                    title="Remove from event"
+                                                    title={removeFromLabel}
                                                     onClick={() => handleRemoveClick(player)}
                                                 >
                                                     <Icon

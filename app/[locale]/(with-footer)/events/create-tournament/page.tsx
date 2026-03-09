@@ -66,12 +66,10 @@ export default function CreateTournamentPage() {
         const numCapacity = capacity !== null && !Number.isNaN(capacity) ? capacity : null;
         const points = (step1.pointsAvailable ?? "").trim() === "" ? null : parseInt(step1.pointsAvailable, 10);
         const tournamentPoints = points !== null && !Number.isNaN(points) ? points : null;
-        const structureParts: string[] = [];
-        if ((step1.description ?? "").trim()) structureParts.push(step1.description.trim());
-        if (step2.stages?.length) {
-            structureParts.push(JSON.stringify({ stages: step2.stages }));
-        }
-        const structure = structureParts.join("\n\n");
+        const structure = JSON.stringify({
+            description: (step1.description ?? "").trim() || undefined,
+            stages: step2.stages?.length ? step2.stages : undefined,
+        });
 
         const created = await createEvent({
             title: (step1.title ?? "").trim(),

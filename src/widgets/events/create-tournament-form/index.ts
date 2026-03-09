@@ -1,5 +1,6 @@
 export { CreateTournamentForm } from "./CreateTournamentForm";
 export type {
+    CreateTournamentFormInitialData,
     CreateTournamentFormProps,
     CreateTournamentFormSubmitData,
     CreateTournamentStep1Values,

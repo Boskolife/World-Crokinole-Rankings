@@ -4,6 +4,7 @@ export { SubscribePlans } from "./subscribe-plans/SubscribePlans";
 export { ProfileDetails } from "./profile-details/ProfileDetails";
 export { PlayerProfileView } from "./player-profile-view/PlayerProfileView";
 export { ProfileMyClubs } from "./profile-my-clubs/ProfileMyClubs";
+export { ProfileCreatedEvents } from "./profile-created-events/ProfileCreatedEvents";
 export { PlayerTable } from "./player-table/PlayerTable";
 export { TournamentTable } from "./tournament-table/TournamentTable";
 export { MatchHistoryTable } from "./match-history-table/MatchHistoryTable";

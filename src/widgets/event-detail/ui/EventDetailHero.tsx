@@ -15,7 +15,54 @@ import { localeConfig } from "@/app/localization/config";
 import { useParams } from "next/navigation";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { clientRoutes } from "@/shared/routes/client";
+import { stageFormatOptions, seedingMethodOptions } from "@/shared/constants/dropdown-options";
 import css from "./EventDetailHero.module.scss";
+
+const stageFormatLabel = (value: string) =>
+    stageFormatOptions.find((o) => o.value === value)?.label ?? value;
+const seedingMethodLabel = (value: string) =>
+    seedingMethodOptions.find((o) => o.value === value)?.label ?? value;
+
+function formatStructureDisplay(structure: string | undefined): string {
+    if (!structure?.trim()) return "";
+    const raw = structure.trim();
+    let parsed: { description?: string; stages?: Array<{ stageFormat?: string; seedingMethod?: string; numberOfRounds?: string }> } | null = null;
+    if (raw.startsWith("{")) {
+        try {
+            parsed = JSON.parse(raw) as typeof parsed;
+        } catch {
+            return raw;
+        }
+    } else {
+        const jsonStart = raw.indexOf("{\"stages\":");
+        if (jsonStart >= 0) {
+            const desc = raw.slice(0, jsonStart).trim();
+            try {
+                parsed = JSON.parse(raw.slice(jsonStart)) as typeof parsed;
+                if (desc) parsed = { ...parsed, description: desc };
+            } catch {
+                return raw;
+            }
+        } else {
+            return raw;
+        }
+    }
+    if (!parsed) return raw;
+    const parts: string[] = [];
+    if (parsed.description) parts.push(parsed.description);
+    if (parsed.stages?.length) {
+        parsed.stages.forEach((s, i) => {
+            const format = stageFormatLabel(s.stageFormat ?? "");
+            const seeding = seedingMethodLabel(s.seedingMethod ?? "");
+            const rounds = (s.numberOfRounds ?? "").trim();
+            const line = rounds
+                ? `Stage ${i + 1}: ${format}, Seeding: ${seeding}, Rounds: ${rounds}`
+                : `Stage ${i + 1}: ${format}, Seeding: ${seeding}`;
+            parts.push(line);
+        });
+    }
+    return parts.join("\n");
+}
 
 export interface EventDetailHeroProps {
     event: IEventCardProps;
@@ -25,16 +72,18 @@ function DetailRow({
     label,
     value,
     inline = false,
+    preLine = false,
 }: {
     label: string;
     value: string | number | undefined;
     inline?: boolean;
+    preLine?: boolean;
 }) {
     if (value === undefined || value === "") return null;
     return (
         <div className={cn(css.detail_row, { [css.detail_row_inline]: inline })}>
             <span className={css.detail_label}>{label}</span>
-            <span className={css.detail_value}>{value}</span>
+            <span className={cn(css.detail_value, { [css.detail_value_pre]: preLine })}>{value}</span>
         </div>
     );
 }
@@ -76,6 +125,11 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
     const isCreator = Boolean(createdBy && user?.id && createdBy === user.id);
 
     const { status: regStatus, refetch: refetchRegStatus } = useEventRegistrationStatus(eventId, user?.id);
+
+    const isTournament = (format ?? "").toLowerCase() === "tournament";
+    const entityLabel = isTournament ? "Tournament" : "Event";
+    const joinLabel = `Join ${entityLabel}`;
+    const leaveLabel = `Leave ${entityLabel.toLowerCase()}`;
 
     const hasQualifyingHeats =
         qualifyingHeats?.heats != null && qualifyingHeats.heats.length > 0;
@@ -198,7 +252,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                             </div>
                             <div className={css.details_col}>
                                 <DetailRow label="Format" value={format} />
-                                <DetailRow label="Structure" value={structure} />
+                                <DetailRow label="Structure" value={formatStructureDisplay(structure)} preLine />
                                 <DetailRow label="Fee" value={feeStr} />
                                 {isEventEnded && winner && (
                                     <DetailRow label="Winner" value={winner} />
@@ -214,7 +268,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                                 href={clientRoutes.signUp}
                                                 className={css.join_button}
                                             >
-                                                Join Event
+                                                {joinLabel}
                                             </RootLink>
                                         ) : regStatus?.isRegistered ? (
                                             <>
@@ -232,6 +286,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                                             eventId,
                                                             userId: user.id,
                                                             eventTitle: title,
+                                                            isTournament,
                                                             onSuccess: () => {
                                                                 refetchRegStatus();
                                                                 window.dispatchEvent(
@@ -244,7 +299,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                                         });
                                                     }}
                                                 >
-                                                    Leave event
+                                                    {leaveLabel}
                                                 </button>
                                             </>
                                         ) : isFull ? (
@@ -263,7 +318,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                                 >
                                                     {state.status === "loading"
                                                         ? "Joining…"
-                                                        : "Join Event"}
+                                                        : joinLabel}
                                                 </button>
                                                 {state.status === "error" && (
                                                     <span className={css.join_error}>
@@ -280,14 +335,14 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                     })}
                                 >
                                     {isRegistrationRequired
-                                        ? "Registration is Required"
-                                        : "No registration required"}
+                                        ? (isTournament ? "Tournament registration is required" : "Registration is required")
+                                        : (isTournament ? "No tournament registration required" : "No registration required")}
                                 </span>
                             </div>
                         )}
                         {isEventEnded && (
                             <div className={css.event_ended_banner}>
-                                The event has ended
+                                {isTournament ? "The tournament has ended" : "The event has ended"}
                             </div>
                         )}
                     </div>

@@ -94,9 +94,19 @@ export type CreateTournamentFormSubmitData = {
     timezone: string | null;
 };
 
+export type CreateTournamentFormInitialData = {
+    step1: CreateTournamentStep1Values;
+    step2: CreateTournamentStep2Values;
+    step3: CreateTournamentStep3Values;
+};
+
 export type CreateTournamentFormProps = {
     backLinkHref?: string;
     backLinkLabel?: string;
+    initialData?: CreateTournamentFormInitialData;
+    initialCoverUrl?: string | null;
+    initialLocationLatLng?: { lat: number; lng: number } | null;
+    initialTimezone?: string | null;
     onNextStep?: (data: CreateTournamentStep1Values) => void;
     onStep2Next?: (data: CreateTournamentStep2Values) => void;
     onSubmit?: (data: CreateTournamentFormSubmitData) => void | Promise<void>;
@@ -105,15 +115,22 @@ export type CreateTournamentFormProps = {
 export function CreateTournamentForm({
     backLinkHref,
     backLinkLabel,
+    initialData,
+    initialCoverUrl,
+    initialLocationLatLng,
+    initialTimezone,
     onNextStep,
     onStep2Next,
     onSubmit,
 }: CreateTournamentFormProps) {
+    const isEditMode = Boolean(initialData);
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-    const [step1Data, setStep1Data] = useState<CreateTournamentStep1Values | null>(null);
-    const [step2Data, setStep2Data] = useState<CreateTournamentStep2Values | null>(null);
+    const [step1Data, setStep1Data] = useState<CreateTournamentStep1Values | null>(initialData?.step1 ?? null);
+    const [step2Data, setStep2Data] = useState<CreateTournamentStep2Values | null>(initialData?.step2 ?? null);
 
-    const formStep1 = useForm<CreateTournamentStep1Values>({ defaultValues });
+    const formStep1 = useForm<CreateTournamentStep1Values>({
+        defaultValues: initialData?.step1 ?? defaultValues,
+    });
     const {
         register,
         handleSubmit: formHandleSubmit,
@@ -124,7 +141,7 @@ export function CreateTournamentForm({
     } = formStep1;
 
     const formStep2 = useForm<CreateTournamentStep2Values>({
-        defaultValues: defaultStep2Values,
+        defaultValues: initialData?.step2 ?? defaultStep2Values,
     });
     const {
         register: registerStep2,
@@ -139,7 +156,7 @@ export function CreateTournamentForm({
     });
 
     const formStep3 = useForm<CreateTournamentStep3Values>({
-        defaultValues: defaultStep3Values,
+        defaultValues: initialData?.step3 ?? defaultStep3Values,
     });
     const {
         register: registerStep3,
@@ -159,12 +176,12 @@ export function CreateTournamentForm({
     const watchedLocation = watch("location");
 
     const [coverFile, setCoverFile] = useState<File | null>(null);
-    const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+    const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(initialCoverUrl ?? null);
     const [coverError, setCoverError] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [locationLatLng, setLocationLatLng] = useState<{ lat: number; lng: number } | null>(null);
-    const [eventTimezone, setEventTimezone] = useState<string | null>(null);
+    const [locationLatLng, setLocationLatLng] = useState<{ lat: number; lng: number } | null>(initialLocationLatLng ?? null);
+    const [eventTimezone, setEventTimezone] = useState<string | null>(initialTimezone ?? null);
     const [timezoneError, setTimezoneError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -193,9 +210,9 @@ export function CreateTournamentForm({
                 setCoverPreviewUrl(null);
             };
         } else {
-            setCoverPreviewUrl(null);
+            setCoverPreviewUrl(initialCoverUrl ?? null);
         }
-    }, [coverFile]);
+    }, [coverFile, initialCoverUrl]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -288,7 +305,7 @@ export function CreateTournamentForm({
             )}
             <div className={css.container}>
                 <div className={css.header}>
-                    <h1 className={css.title}>Create Tournament Form</h1>
+                    <h1 className={css.title}>{isEditMode ? "Edit Tournament" : "Create Tournament"}</h1>
                 </div>
 
                 {currentStep === 1 ? (
@@ -552,9 +569,11 @@ export function CreateTournamentForm({
                                 required: "Start date & time is required",
                                 validate: (v) => {
                                     if (!v) return true;
-                                    const start = new Date(v).getTime();
-                                    if (start <= Date.now())
-                                        return "Start date & time must be in the future";
+                                    if (!isEditMode) {
+                                        const start = new Date(v).getTime();
+                                        if (start <= Date.now())
+                                            return "Start date & time must be in the future";
+                                    }
                                     return true;
                                 },
                             }}
@@ -573,9 +592,11 @@ export function CreateTournamentForm({
                                 required: "End date & time is required",
                                 validate: (v) => {
                                     if (!v) return true;
-                                    const end = new Date(v).getTime();
-                                    if (end <= Date.now())
-                                        return "End date & time must be in the future";
+                                    if (!isEditMode) {
+                                        const end = new Date(v).getTime();
+                                        if (end <= Date.now())
+                                            return "End date & time must be in the future";
+                                    }
                                     const startVal = watch("startDateTime");
                                     if (startVal && new Date(v).getTime() <= new Date(startVal).getTime())
                                         return "End date & time must be after start date & time";
@@ -877,7 +898,7 @@ export function CreateTournamentForm({
                                 className={css.createTournamentBtn}
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Creating…" : "Create tournament"}
+                                {isSubmitting ? (isEditMode ? "Saving…" : "Creating…") : (isEditMode ? "Save" : "Create tournament")}
                             </button>
                         </div>
                     </form>

@@ -2,6 +2,7 @@ import {
     EventDetailHero,
     EventParticipationStats,
     EventQualifyingHeats,
+    TournamentBracketGrid,
     EventRegisteredPlayers,
     EventDetailUpcomingEvents,
     PaymentReturnHandler,
@@ -118,12 +119,22 @@ export async function EventDetailPage({ id }: EventDetailPageProps) {
                     isEventEnded={isEventEnded}
                     isRanked={event.isRanked}
                     fee={event.price}
+                    isTournament={(event.format ?? "").toLowerCase() === "tournament"}
+                />
+            )}
+            {(event.format ?? "").toLowerCase() === "tournament" && event.structure && (
+                <TournamentBracketGrid
+                    structure={event.structure}
+                    players={registeredPlayers}
+                    totalParticipants={event.totalParticipants}
+                    winner={event.winner}
                 />
             )}
             <EventRegisteredPlayers
                 players={registeredPlayers}
                 eventId={event.id}
                 createdBy={event.createdBy}
+                isTournament={(event.format ?? "").toLowerCase() === "tournament"}
             />
             <EventDetailUpcomingEvents events={upcomingAtLocation} />
         </>
