@@ -106,7 +106,8 @@
     }
 
     &_button {
-        @include adaptive-value("width", 180, 100, 1);
+        @include adaptive-value("width", 220, 120, 1);
+        min-height: 44px;
 
         @include media-down(xl) {
             width: 100%;
