@@ -9,6 +9,7 @@ import { PlaceSearchInput } from "@/shared/ui/place-search-input";
 import { Icon } from "@/shared/ui/icons";
 import { createEvent, getActiveEventsCountByUser } from "@/shared/supabase/data";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { localInTimezoneToUtc } from "@/shared/lib/event-timezone";
 import {
     isSupabaseConfigured,
     supabaseConfigError,
@@ -118,6 +119,7 @@ export function CreateEventForm({
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [locationLatLng, setLocationLatLng] = useState<{ lat: number; lng: number } | null>(null);
+    const [eventTimezone, setEventTimezone] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -193,8 +195,12 @@ export function CreateEventForm({
                 return;
             }
         }
-        const startDate = new Date(data.startDateTime).toISOString();
-        const endDate = new Date(data.endDateTime).toISOString();
+        const toUtc = (localStr: string) =>
+            eventTimezone
+                ? localInTimezoneToUtc(localStr, eventTimezone)
+                : new Date(localStr).toISOString();
+        const startDate = toUtc(data.startDateTime);
+        const endDate = toUtc(data.endDateTime);
         if (endDate <= startDate) {
             setSubmitError("End date & time must be after start date & time");
             return;
@@ -230,19 +236,25 @@ export function CreateEventForm({
                 for (let n = 1; n <= heatsCountNum; n++) {
                     const startStr = heatDateTimes[n];
                     if (startStr) {
-                        const start = new Date(startStr).getTime();
+                        const startUtc = eventTimezone
+                            ? localInTimezoneToUtc(startStr, eventTimezone)
+                            : new Date(startStr).toISOString();
+                        const startMs = new Date(startUtc).getTime();
                         heats.push({
-                            start: new Date(start).toISOString(),
-                            end: new Date(start + twoHoursMs).toISOString(),
+                            start: new Date(startMs).toISOString(),
+                            end: new Date(startMs + twoHoursMs).toISOString(),
                         });
                     }
                 }
                 let finalSlot: { start: string; end: string } | undefined;
                 if (finalDateTime) {
-                    const start = new Date(finalDateTime).getTime();
+                    const finalStartUtc = eventTimezone
+                        ? localInTimezoneToUtc(finalDateTime, eventTimezone)
+                        : new Date(finalDateTime).toISOString();
+                    const startMs = new Date(finalStartUtc).getTime();
                     finalSlot = {
-                        start: new Date(start).toISOString(),
-                        end: new Date(start + twoHoursMs).toISOString(),
+                        start: new Date(startMs).toISOString(),
+                        end: new Date(startMs + twoHoursMs).toISOString(),
                     };
                 }
                 if (heats.length > 0) {
@@ -264,6 +276,7 @@ export function CreateEventForm({
                 capacity: numCap,
                 latitude: locationLatLng?.lat ?? undefined,
                 longitude: locationLatLng?.lng ?? undefined,
+                timezone: eventTimezone ?? undefined,
                 qualifyingHeats: qualifyingHeats ?? null,
                 createdByUserId: user?.id ?? undefined,
             });
@@ -425,13 +438,23 @@ export function CreateEventForm({
                             label="Location"
                             placeholder="Search for a place or address"
                             value={watchedLocation ?? ""}
-                            onChange={(result) => {
+                            onChange={async (result) => {
                                 setValue("location", result.address, { shouldValidate: true });
                                 setLocationLatLng({ lat: result.latitude, lng: result.longitude });
+                                try {
+                                    const res = await fetch(
+                                        `/api/timezone?lat=${result.latitude}&lng=${result.longitude}`
+                                    );
+                                    const json = (await res.json()) as { timezone?: string };
+                                    setEventTimezone(json.timezone ?? null);
+                                } catch {
+                                    setEventTimezone(null);
+                                }
                             }}
                             onClear={() => {
                                 setValue("location", "", { shouldValidate: true });
                                 setLocationLatLng(null);
+                                setEventTimezone(null);
                             }}
                             error={errors.location?.message}
                         />

@@ -10,31 +10,35 @@ import type {
     IMatchHistory,
 } from "@/shared/types";
 
-function formatEventDate(startDate: string, endDate: string): string {
+function formatEventDate(startDate: string, endDate: string, timezone?: string | null): string {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
-    const startMonth = start.toLocaleDateString("en-US", { month: "short" });
-    const startDay = start.getDate();
-    const startTime = start.toLocaleTimeString("en-US", { 
-        hour: "numeric", 
+    const tzOpt = timezone ? { timeZone: timezone } : {};
+    const startMonth = start.toLocaleDateString("en-US", { month: "short", ...tzOpt });
+    const startDay = parseInt(start.toLocaleDateString("en-US", { day: "numeric", ...tzOpt }), 10);
+    const startTime = start.toLocaleTimeString("en-US", {
+        hour: "numeric",
         minute: "2-digit",
-        hour12: true 
+        hour12: true,
+        ...tzOpt,
     });
-    
-    const endMonth = end.toLocaleDateString("en-US", { month: "short" });
-    const endDay = end.getDate();
-    const endTime = end.toLocaleTimeString("en-US", { 
-        hour: "numeric", 
+    const endMonth = end.toLocaleDateString("en-US", { month: "short", ...tzOpt });
+    const endDay = parseInt(end.toLocaleDateString("en-US", { day: "numeric", ...tzOpt }), 10);
+    const endTime = end.toLocaleTimeString("en-US", {
+        hour: "numeric",
         minute: "2-digit",
-        hour12: true 
+        hour12: true,
+        ...tzOpt,
     });
-    
+    const dayPart = (month: string, day: number) => `${month} ${day}`;
+    let result: string;
     if (startMonth === endMonth && startDay === endDay) {
-        return `${startMonth} ${startDay}, ${startTime} - ${endTime}`;
+        result = `${dayPart(startMonth, startDay)}, ${startTime} - ${endTime}`;
+    } else {
+        result = `${dayPart(startMonth, startDay)}, ${startTime} - ${dayPart(endMonth, endDay)}, ${endTime}`;
     }
-    
-    return `${startMonth} ${startDay}, ${startTime} - ${endMonth} ${endDay}, ${endTime}`;
+    if (timezone) result += " (local time)";
+    return result;
 }
 
 export async function getEvents(): Promise<IEventCardProps[]> {
@@ -83,6 +87,7 @@ const mapEventRowToCard = (event: {
     structure?: string | null;
     latitude?: number | null;
     longitude?: number | null;
+    timezone?: string | null;
     qualifying_heats?: QualifyingHeatsData | null;
 }): IEventCardProps => {
     const row = event as Record<string, unknown>;
@@ -95,7 +100,7 @@ const mapEventRowToCard = (event: {
     title: event.title,
     price: event.price,
     date: event.start_date && event.end_date
-        ? formatEventDate(event.start_date, event.end_date)
+        ? formatEventDate(event.start_date, event.end_date, event.timezone ?? undefined)
         : "",
     location: event.location,
     format: event.format,
@@ -106,6 +111,7 @@ const mapEventRowToCard = (event: {
     totalParticipants,
     startDate: event.start_date || undefined,
     endDate: event.end_date || undefined,
+    timezone: event.timezone ?? undefined,
     strengthOfField: event.strength_of_field ?? undefined,
     tournamentPointsAvailable: event.tournament_points_available ?? undefined,
     structure: event.structure ?? undefined,
@@ -272,6 +278,7 @@ export interface CreateEventParams {
     capacity: number | null;
     latitude?: number | null;
     longitude?: number | null;
+    timezone?: string | null;
     qualifyingHeats?: QualifyingHeatsData | null;
     createdByUserId?: string | null;
 }
@@ -291,6 +298,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
         capacity,
         latitude,
         longitude,
+        timezone,
         qualifyingHeats,
         createdByUserId,
     } = params;
@@ -310,6 +318,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
             capacity: capacity ?? null,
             latitude: latitude ?? null,
             longitude: longitude ?? null,
+            timezone: timezone ?? null,
             qualifying_heats: qualifyingHeats ?? null,
             image: null,
             winner: null,
@@ -381,6 +390,7 @@ export interface UpdateEventParams {
     capacity?: number | null;
     latitude?: number | null;
     longitude?: number | null;
+    timezone?: string | null;
     qualifyingHeats?: QualifyingHeatsData | null;
     strengthOfField?: number | null;
     tournamentPointsAvailable?: number | null;
@@ -405,6 +415,7 @@ export async function updateEvent(
         capacity,
         latitude,
         longitude,
+        timezone,
         qualifyingHeats,
         strengthOfField,
         tournamentPointsAvailable,
@@ -428,6 +439,7 @@ export async function updateEvent(
         updatePayload.total_participants = capacity ?? null;
     if (latitude !== undefined) updatePayload.latitude = latitude ?? null;
     if (longitude !== undefined) updatePayload.longitude = longitude ?? null;
+    if (timezone !== undefined) updatePayload.timezone = timezone ?? null;
     if (qualifyingHeats !== undefined)
         updatePayload.qualifying_heats = qualifyingHeats ?? null;
     if (strengthOfField !== undefined)

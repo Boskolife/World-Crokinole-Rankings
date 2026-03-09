@@ -27,6 +27,7 @@ export interface IEventCardProps {
     totalParticipants?: number;
     startDate?: string;
     endDate?: string;
+    timezone?: string | null;
     structure?: string;
     strengthOfField?: number;
     tournamentPointsAvailable?: number;

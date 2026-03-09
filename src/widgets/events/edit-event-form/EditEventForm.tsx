@@ -11,6 +11,7 @@ import {
     isSupabaseConfigured,
     supabaseConfigError,
 } from "@/shared/supabase/client";
+import { localInTimezoneToUtc, utcToLocalDateTime } from "@/shared/lib/event-timezone";
 import {
     formatOptions,
     eventTypeOptions,
@@ -35,6 +36,12 @@ function toLocalDateTime(iso: string | undefined): string {
     const h = String(d.getHours()).padStart(2, "0");
     const min = String(d.getMinutes()).padStart(2, "0");
     return `${y}-${m}-${day}T${h}:${min}`;
+}
+
+function toDisplayDateTime(iso: string | undefined, timezone?: string | null): string {
+    if (!iso) return "";
+    if (timezone) return utcToLocalDateTime(iso, timezone);
+    return toLocalDateTime(iso);
 }
 
 function formatToOptionValue(format: string): string {
@@ -69,10 +76,11 @@ function getDefaultValues(event: IEventCardProps): EditEventFormValues {
         event.qualifyingHeats?.heats?.length != null
             ? event.qualifyingHeats.heats.length
             : 0;
+    const tz = event.timezone ?? undefined;
     return {
         title: event.title ?? "",
-        startDateTime: toLocalDateTime(event.startDate),
-        endDateTime: toLocalDateTime(event.endDate),
+        startDateTime: toDisplayDateTime(event.startDate, tz),
+        endDateTime: toDisplayDateTime(event.endDate, tz),
         location: event.location ?? "",
         eventType: event.isRanked ? "ranked" : "unranked",
         format: formatToOptionValue(event.format),
@@ -112,16 +120,17 @@ export function EditEventForm({
     const watchedHeatsCount = watch("qualifyingHeatsCount");
     const heatsCount = Math.max(0, parseInt(watchedHeatsCount ?? "0", 10) || 0);
 
+    const eventTz = event.timezone ?? undefined;
     const [heatDateTimes, setHeatDateTimes] = useState<Record<number, string>>(() => {
         const out: Record<number, string> = {};
         event.qualifyingHeats?.heats?.forEach((slot, i) => {
-            out[i + 1] = toLocalDateTime(slot.start);
+            out[i + 1] = toDisplayDateTime(slot.start, eventTz);
         });
         return out;
     });
     const [finalDateTime, setFinalDateTime] = useState<string>(() =>
         event.qualifyingHeats?.final?.start
-            ? toLocalDateTime(event.qualifyingHeats.final.start)
+            ? toDisplayDateTime(event.qualifyingHeats.final.start, eventTz)
             : ""
     );
     const heatDateInputId = (n: number) => `edit-event-heat-${n}-date`;
@@ -188,8 +197,12 @@ export function EditEventForm({
             setSubmitError(supabaseConfigError ?? "Supabase is not configured");
             return;
         }
-        const startDate = new Date(data.startDateTime).toISOString();
-        const endDate = new Date(data.endDateTime).toISOString();
+        const toUtc = (s: string) =>
+            event.timezone
+                ? localInTimezoneToUtc(s, event.timezone)
+                : new Date(s).toISOString();
+        const startDate = toUtc(data.startDateTime);
+        const endDate = toUtc(data.endDateTime);
         if (endDate <= startDate) {
             setSubmitError("End date & time must be after start date & time");
             return;
@@ -231,19 +244,25 @@ export function EditEventForm({
                 for (let n = 1; n <= heatsCountNum; n++) {
                     const startStr = heatDateTimes[n];
                     if (startStr) {
-                        const start = new Date(startStr).getTime();
+                        const startUtc = event.timezone
+                            ? localInTimezoneToUtc(startStr, event.timezone)
+                            : new Date(startStr).toISOString();
+                        const startMs = new Date(startUtc).getTime();
                         heats.push({
-                            start: new Date(start).toISOString(),
-                            end: new Date(start + twoHoursMs).toISOString(),
+                            start: new Date(startMs).toISOString(),
+                            end: new Date(startMs + twoHoursMs).toISOString(),
                         });
                     }
                 }
                 let finalSlot: { start: string; end: string } | undefined;
                 if (finalDateTime) {
-                    const start = new Date(finalDateTime).getTime();
+                    const finalStartUtc = event.timezone
+                        ? localInTimezoneToUtc(finalDateTime, event.timezone)
+                        : new Date(finalDateTime).toISOString();
+                    const startMs = new Date(finalStartUtc).getTime();
                     finalSlot = {
-                        start: new Date(start).toISOString(),
-                        end: new Date(start + twoHoursMs).toISOString(),
+                        start: new Date(startMs).toISOString(),
+                        end: new Date(startMs + twoHoursMs).toISOString(),
                     };
                 }
                 if (heats.length > 0) {
