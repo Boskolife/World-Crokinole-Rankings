@@ -65,8 +65,6 @@ function getUniqueClubs(rankings: {
     return options;
 }
 
-const worldOptions = [{ value: "", label: "World" }];
-
 interface RankingsProps {
     rankings: {
         laurels: IRankList[];
@@ -158,12 +156,6 @@ export const Rankings: React.FC<RankingsProps> = ({
                         className={css.rankings_filters_switcher}
                     />
                     <div className={css.rankings_filters_dropdowns}>
-                        <CustomRoundedDropdown
-                            className={css.rankings_filters_dropdown}
-                            id="world"
-                            placeholder="World"
-                            options={worldOptions}
-                        />
                         <CustomRoundedDropdown
                             className={css.rankings_filters_dropdown}
                             id="kingdom"

@@ -88,7 +88,7 @@ export function useRankingsList<Category extends string>({
     const handleCategoryChange = (value: Category) => {
         if (value === activeCategory) return;
         setActiveCategory(value);
-        setIsExpanded(false);
+        if (!initialExpanded) setIsExpanded(false);
         setCurrentPage(1);
         scrollToListTop();
     };

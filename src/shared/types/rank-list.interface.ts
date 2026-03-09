@@ -1,6 +1,7 @@
 export interface IRankList {
     rank: number;
     name: string;
+    playerId?: string | null;
     laurels: number;
     trend: string;
     wins: number;

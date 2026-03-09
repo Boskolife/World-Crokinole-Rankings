@@ -1919,6 +1919,7 @@ export async function getRankings(
         data?.map((ranking) => ({
             rank: ranking.rank,
             name: ranking.name,
+            playerId: ranking.player_id ?? null,
             laurels: ranking.laurels,
             trend: ranking.trend,
             trendUp: ranking.trend_up,

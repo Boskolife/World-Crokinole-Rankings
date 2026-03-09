@@ -19,7 +19,7 @@ export function RankingsClient({
     return (
         <Rankings
             rankings={rankings}
-            defaultExpanded={defaultExpanded}
+            defaultExpanded
         />
     );
 }

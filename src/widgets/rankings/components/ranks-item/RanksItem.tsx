@@ -1,13 +1,16 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import css from "./styles.module.scss";
 import { IRankList } from "@/shared/types/rank-list.interface";
 import { Icon } from "@/shared/ui/icons";
+import { clientRoutes } from "@/shared/routes/client";
 import cn from "classnames";
 
 export const RanksItem: React.FC<IRankList> = ({
     rank,
     name,
+    playerId,
     laurels,
     trend,
     wins,
@@ -20,7 +23,15 @@ export const RanksItem: React.FC<IRankList> = ({
     return (
         <tr className={css.ranks_item}>
             <td className={css.ranks_item_value}>{rank}</td>
-            <td className={css.ranks_item_value}>{name}</td>
+            <td className={css.ranks_item_value}>
+                {playerId ? (
+                    <Link href={clientRoutes.playerProfile(playerId)} className={css.ranks_item_link}>
+                        {name}
+                    </Link>
+                ) : (
+                    name
+                )}
+            </td>
             <td className={css.ranks_item_value}>{laurels}</td>
             <td
                 className={cn(css.ranks_item_value, css.ranks_item_value_trend)}
