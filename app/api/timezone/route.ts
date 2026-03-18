@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { find } from "geo-tz";
+import tzLookup from "tz-lookup";
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -26,8 +27,13 @@ export async function GET(request: NextRequest) {
         );
     }
     try {
-        const zones = find(latNum, lngNum);
-        const timezone = zones[0] ?? null;
+        let timezone: string | null = null;
+        try {
+            const zones = find(latNum, lngNum);
+            timezone = zones[0] ?? null;
+        } catch {
+            timezone = tzLookup(latNum, lngNum) ?? null;
+        }
         if (!timezone) {
             return NextResponse.json(
                 { error: "No timezone for this location" },

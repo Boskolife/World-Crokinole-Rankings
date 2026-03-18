@@ -28,6 +28,7 @@
     "recharts": "^3.5.0",
     "sass": "^1.94.0",
     "stripe": "^20.3.1",
+    "tz-lookup": "^6.1.25",
     "vercel": "^50.33.1"
   },
   "devDependencies": {
