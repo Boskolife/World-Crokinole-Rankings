@@ -19,6 +19,10 @@ const getCountryFlagUrl = (countryCode: string) => {
 };
 
 export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
+    const [brokenFlags, setBrokenFlags] = React.useState<Record<string, boolean>>(
+        {}
+    );
+
     const {
         sortColumn,
         sortDirection,
@@ -48,6 +52,39 @@ export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
         }
         return sortDirection === "asc" ? "chevron_up" : "chevron_down";
     };
+
+    const renderFlag = (player: IPlayer) => {
+        const countryCode = player.countryCode?.trim();
+        const shouldShowPlaceholder = !countryCode || brokenFlags[player.id];
+
+        if (shouldShowPlaceholder) {
+            return (
+                <span
+                    className={css.player_table_cell_flag_placeholder}
+                    aria-hidden
+                >
+                    ?
+                </span>
+            );
+        }
+
+        return (
+            <Image
+                src={getCountryFlagUrl(countryCode)}
+                alt={countryCode}
+                className={css.player_table_cell_flag}
+                width={36}
+                height={36}
+                onError={() =>
+                    setBrokenFlags((prev) => ({
+                        ...prev,
+                        [player.id]: true,
+                    }))
+                }
+            />
+        );
+    };
+
     return (
         <div className={css.player_table_wrapper}>
             <table className={css.player_table}>
@@ -145,15 +182,7 @@ export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
                                     href={clientRoutes.playerProfile(player.id)}
                                     className={css.player_table_cell_name}
                                 >
-                                    <Image
-                                        src={getCountryFlagUrl(
-                                            player.countryCode
-                                        )}
-                                        alt={player.countryCode}
-                                        className={css.player_table_cell_flag}
-                                        width={36}
-                                        height={36}
-                                    />
+                                    {renderFlag(player)}
                                     <span>{player.name}</span>
                                 </RootLink>
                             </td>

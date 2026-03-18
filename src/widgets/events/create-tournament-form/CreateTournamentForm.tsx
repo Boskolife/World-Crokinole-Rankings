@@ -305,7 +305,7 @@ export function CreateTournamentForm({
             )}
             <div className={css.container}>
                 <div className={css.header}>
-                    <h1 className={css.title}>{isEditMode ? "Edit Tournament" : "Create Tournament"}</h1>
+                    <h1 className={css.title}>{isEditMode ? "Edit Tournament" : "Create Tournament From"}</h1>
                 </div>
 
                 {currentStep === 1 ? (

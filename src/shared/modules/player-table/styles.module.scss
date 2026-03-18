@@ -92,6 +92,21 @@
             object-fit: cover;
         }
 
+        &_flag_placeholder {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--blue-light);
+            border: 1px solid var(--blue-dark);
+            color: var(--black-30);
+            font-size: 18px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
         &_link {
             text-decoration: underline;
             font-size: 14px;
