@@ -81,20 +81,18 @@ export const HeroEvents: React.FC = () => {
                             </CustomButton>
                         )}
                         {canShowCreateEvent && (
-                            <Button
-                                buttonType="secondary"
-                                icon="plus"
+                            <CustomButton
+                                inverted
+                                href={createEventPath}
                                 className={css.hero_create_club_btn}
-                                onClick={() => router.push(createEventPath)}
                             >
-                                Create new event
-                            </Button>
+                                Create New Event
+                            </CustomButton>
                         )}
                         {isCommunityAdmin && (
                             <Button
-                                buttonType="secondary"
-                                icon="plus"
-                                className={css.hero_create_club_btn}
+                                buttonType="transparent"
+                                className={css.hero_create_tournament_btn}
                                 onClick={() => router.push(createTournamentPath)}
                             >
                                 Create Ranked Tournament
