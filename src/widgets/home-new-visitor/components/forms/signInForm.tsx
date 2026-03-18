@@ -96,7 +96,10 @@ export const SignInForm: React.FC = () => {
                     error={errors.password?.message as string}
                 />
             </div>
-            <RootLink href="#" className={css.auth_form_forgot_password_link}>
+            <RootLink
+                href={clientRoutes.forgotPassword}
+                className={css.auth_form_forgot_password_link}
+            >
                 Forgot your password?
             </RootLink>
             <Button

@@ -6,6 +6,30 @@
     overflow: hidden;
     padding: 40px 0;
 
+    &_back_button {
+        position: absolute;
+        top: 64px;
+        left: 64px;
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: #497aa6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        text-decoration: none;
+        user-select: none;
+
+        &:hover {
+            filter: brightness(1.05);
+        }
+    }
+
+    &_back_button_icon {
+        color: var(--white);
+    }
+
     &_logo {
         position: absolute;
         bottom: -11px;

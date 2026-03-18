@@ -38,6 +38,15 @@ export interface ISignInFormData {
     password: string;
 }
 
+export interface IForgotPasswordFormData {
+    email: string;
+}
+
+export interface IResetPasswordFormData {
+    password: string;
+    confirmPassword: string;
+}
+
 export interface ICheckboxProps<
     TFieldValues extends FieldValues = FieldValues
 > {

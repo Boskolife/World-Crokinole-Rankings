@@ -10,6 +10,8 @@ export const clientRoutes = {
     profileEdit: "/profile/edit",
     signIn: "/auth/sign-in",
     signUp: "/auth/sign-up",
+    forgotPassword: "/auth/forgot-password",
+    resetPassword: "/auth/reset-password",
     admin: "/admin",
     eventsCreate: "/events/create",
     dashboard: "/dashboard",
