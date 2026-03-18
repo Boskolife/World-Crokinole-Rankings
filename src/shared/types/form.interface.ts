@@ -44,7 +44,6 @@ export interface IForgotPasswordFormData {
 
 export interface IResetPasswordFormData {
     password: string;
-    confirmPassword: string;
 }
 
 export interface ICheckboxProps<
