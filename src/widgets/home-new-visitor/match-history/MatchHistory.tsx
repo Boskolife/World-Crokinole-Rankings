@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import cn from "classnames";
 import css from "./styles.module.scss";
 import { SearchInput, CustomRoundedDropdown } from "@/shared/ui";
@@ -6,13 +6,14 @@ import { Button } from "@/shared/ui/buttons";
 import { MatchHistoryItem } from "../components/match-history-item/MatchHistoryItem";
 import { CustomCheckbox } from "@/shared/ui/checkbox";
 import { Pagination } from "@/shared/modules";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
-import { getPlayersWithFilters, getUniqueKingdoms, linkPlayerToAccount } from "@/shared/supabase/data";
+import { getPlayersWithFilters, getUniqueKingdoms } from "@/shared/supabase/data";
 import { useUserProfile } from "@/shared/hooks/use-user-profile";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useDebounce } from "@/shared/hooks";
+import { invalidateProfileCache, notifyProfileUpdated } from "@/shared/hooks/use-user-profile";
 
 interface MatchHistoryProps {
     compact?: boolean;
@@ -24,11 +25,11 @@ function normalizeName(name: string): string {
 
 export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
     const router = useRouter();
-    const pathname = usePathname();
     const locale = useLocale();
     const { profile } = useUserProfile();
     const { user } = useAuth();
     const [isLinking, setIsLinking] = useState(false);
+    const [linkError, setLinkError] = useState<string | null>(null);
     const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
 
     const [playersData, setPlayersData] = useState<Array<{
@@ -133,22 +134,33 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
         ? playersData.find((r) => r.rowId === selectedRowId)
         : playersData.find((r) => r.isMe);
 
-    const getNextStepRoute = useMemo(() => {
-        const match = pathname.match(/\/new-visitor\/step-(\d+)/);
-        if (!match) return null;
-        const currentStep = Number(match[1]);
-        if (!Number.isFinite(currentStep)) return null;
-        return clientRoutes.steps(currentStep + 1);
-    }, [pathname]);
-
     const handleLinkMyData = async () => {
-        if (!user?.id || !linkRow?.rowId) return;
+        if (!user?.id) return;
+        if (!linkRow?.rowId) {
+            setLinkError("Select your row in the table first");
+            return;
+        }
         setIsLinking(true);
+        setLinkError(null);
         try {
-            const { error } = await linkPlayerToAccount(linkRow.rowId, user.id);
-            if (!error) {
-                router.push(`/${locale}${getNextStepRoute ?? clientRoutes.steps(5)}`);
+            const response = await fetch("/api/claim-player", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    playerRowId: linkRow.rowId,
+                    playerName: linkRow.name,
+                }),
+            });
+            const result = await response.json().catch(() => ({} as { error?: string }));
+            if (!response.ok) {
+                setLinkError(result.error || "Failed to link your data");
+                return;
             }
+            invalidateProfileCache(user.id);
+            notifyProfileUpdated(user.id);
+            router.push(`/${locale}${clientRoutes.profile}`);
+        } catch {
+            setLinkError("Failed to link your data");
         } finally {
             setIsLinking(false);
         }
@@ -192,17 +204,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
                     </div>
                     <div className={css.match_history_head_buttons}>
                         <Button
-                            buttonType="primary"
-                            className={css.match_history_head_button}
-                            onClick={() =>
-                                router.push(
-                                    `/${locale}${clientRoutes.steps(5)}`
-                                )
-                            }
-                        >
-                            Skip for now
-                        </Button>
-                        <Button
                             buttonType="secondary"
                             className={css.match_history_head_button}
                             onClick={handleLinkMyData}
@@ -210,6 +211,9 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
                         >
                             {isLinking ? "Linking…" : "Link my data to this account"}
                         </Button>
+                        {linkError && (
+                            <p style={{ color: "#c62828", marginTop: "8px" }}>{linkError}</p>
+                        )}
                     </div>
                 </div>
             </div>

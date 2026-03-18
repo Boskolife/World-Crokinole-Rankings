@@ -786,11 +786,25 @@ export async function ensurePlayerForUser(userId: string): Promise<void> {
 
 export async function linkPlayerToAccount(
     playerRowId: string,
-    userId: string
+    userId: string,
+    playerName?: string
 ): Promise<{ error: Error | null }> {
     const numericId = typeof playerRowId === "string" && /^\d+$/.test(playerRowId)
         ? parseInt(playerRowId, 10)
         : playerRowId;
+
+    const { data: targetRows, error: targetError } = await supabase
+        .from("players")
+        .select("id")
+        .eq("id", numericId)
+        .limit(1);
+    if (targetError) {
+        console.error("Error checking target player before link:", targetError);
+        return { error: targetError };
+    }
+    if (!targetRows || targetRows.length === 0) {
+        return { error: new Error("Target player row was not found") };
+    }
 
     const { error: deleteError } = await supabase
         .from("players")
@@ -801,19 +815,32 @@ export async function linkPlayerToAccount(
         console.error("Error deleting auto-created player before link:", deleteError);
     }
 
-    const { data, error } = await supabase
+    const { data: linkedRows, error } = await supabase
         .from("players")
         .update({ user_id: userId })
         .eq("id", numericId)
-        .select("id")
-        .maybeSingle();
+        .select("id");
 
     if (error) {
         console.error("Error linking player to account:", error);
         return { error };
     }
-    if (!data) {
-        return { error: new Error("No row updated: player id may not exist or RLS blocked update") };
+    if (!linkedRows || linkedRows.length === 0) {
+        return { error: new Error("No player row was linked to account") };
+    }
+    const linkedName = typeof playerName === "string" ? playerName.trim() : "";
+    if (linkedName) {
+        const { error: ensureProfileError } = await supabase.rpc("ensure_profile", { p_id: userId });
+        if (ensureProfileError) {
+            console.error("Error ensuring profile before name sync:", ensureProfileError);
+        }
+        const { error: profileUpdateError } = await supabase
+            .from("profiles")
+            .update({ full_name: linkedName })
+            .eq("id", userId);
+        if (profileUpdateError) {
+            console.error("Error updating profile full_name after link:", profileUpdateError);
+        }
     }
     return { error: null };
 }
