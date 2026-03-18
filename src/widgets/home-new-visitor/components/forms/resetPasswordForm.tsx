@@ -181,20 +181,6 @@ export const ResetPasswordForm: React.FC = () => {
                         <div className={css.auth_form_error}>{formError}</div>
                     )}
 
-                    {hasRecoverySession && (
-                        <RootLink
-                            href={clientRoutes.signIn}
-                            className={stepCss.home_new_visitor_back_button}
-                        >
-                            <Icon
-                                name="chevron_prev"
-                                width={20}
-                                height={20}
-                                className={stepCss.home_new_visitor_back_button_icon}
-                            />
-                        </RootLink>
-                    )}
-
                     {isCheckingSession ? (
                         <div className={css.auth_form_fields}>Loading...</div>
                     ) : hasRecoverySession ? (
@@ -257,9 +243,7 @@ export const ResetPasswordForm: React.FC = () => {
                                     passwordValue?.trim().length < 8
                                 }
                             >
-                                {isSubmitting
-                                    ? "Creating..."
-                                    : "Create Password"}
+                                {isSubmitting ? "Changing..." : "Change Password"}
                             </Button>
                         </div>
                     ) : (
