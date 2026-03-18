@@ -51,7 +51,20 @@ export const ResetPasswordForm: React.FC = () => {
             }
 
             try {
-                const { data, error } = await supabase.auth.getSession();
+                const authAny = supabase.auth as any;
+                const getSessionFromUrlFn =
+                    typeof authAny?.getSessionFromUrl === "function"
+                        ? authAny.getSessionFromUrl.bind(authAny)
+                        : null;
+
+                const result = getSessionFromUrlFn
+                    ? await getSessionFromUrlFn()
+                    : await supabase.auth.getSession();
+
+                const { data, error } = result as {
+                    data: { session: any } | null;
+                    error: { message: string } | null;
+                };
 
                 if (!isActive) return;
 
