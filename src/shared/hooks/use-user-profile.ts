@@ -24,8 +24,7 @@ export function notifyProfileUpdated(userId: string) {
 
 function getFallbackName(email?: string | null) {
     if (!email) return "User";
-    const [name] = email.split("@");
-    return name || "User";
+    return email;
 }
 
 export const useUserProfile = () => {

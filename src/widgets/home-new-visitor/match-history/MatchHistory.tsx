@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/buttons";
 import { MatchHistoryItem } from "../components/match-history-item/MatchHistoryItem";
 import { CustomCheckbox } from "@/shared/ui/checkbox";
 import { Pagination } from "@/shared/modules";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { clientRoutes } from "@/shared/routes/client";
 import { getPlayersWithFilters, getUniqueKingdoms, linkPlayerToAccount } from "@/shared/supabase/data";
@@ -24,6 +24,7 @@ function normalizeName(name: string): string {
 
 export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
     const router = useRouter();
+    const pathname = usePathname();
     const locale = useLocale();
     const { profile } = useUserProfile();
     const { user } = useAuth();
@@ -132,13 +133,21 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({ compact }) => {
         ? playersData.find((r) => r.rowId === selectedRowId)
         : playersData.find((r) => r.isMe);
 
+    const getNextStepRoute = useMemo(() => {
+        const match = pathname.match(/\/new-visitor\/step-(\d+)/);
+        if (!match) return null;
+        const currentStep = Number(match[1]);
+        if (!Number.isFinite(currentStep)) return null;
+        return clientRoutes.steps(currentStep + 1);
+    }, [pathname]);
+
     const handleLinkMyData = async () => {
         if (!user?.id || !linkRow?.rowId) return;
         setIsLinking(true);
         try {
             const { error } = await linkPlayerToAccount(linkRow.rowId, user.id);
             if (!error) {
-                router.push(`/${locale}${clientRoutes.steps(5)}`);
+                router.push(`/${locale}${getNextStepRoute ?? clientRoutes.steps(5)}`);
             }
         } finally {
             setIsLinking(false);

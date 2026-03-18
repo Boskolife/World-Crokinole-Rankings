@@ -9,6 +9,7 @@ import type { DropdownOption } from "@/shared/constants/dropdown-options";
 
 const AVATAR_BUCKET = "avatars";
 const PLACEHOLDER_SRC = "/svg/avatar-placeholder.svg";
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
 function getExtension(filename: string): string {
     const match = filename.match(/\.([a-zA-Z0-9]+)$/);
@@ -54,6 +55,10 @@ export const useProfileInfo = () => {
         const file = e.target.files?.[0];
         e.target.value = "";
         if (!file || !file.type.startsWith("image/")) return;
+        if (file.size > MAX_AVATAR_SIZE_BYTES) {
+            setUploadError("File size must be up to 5 MB");
+            return;
+        }
         if (!isSupabaseConfigured || !userId) {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -75,7 +80,11 @@ export const useProfileInfo = () => {
                 .upload(path, file, { upsert: true });
 
             if (uploadError) {
-                setUploadError(uploadError.message);
+                if (uploadError.message?.toLowerCase().includes("size")) {
+                    setUploadError("File size must be up to 5 MB");
+                } else {
+                    setUploadError(uploadError.message);
+                }
                 return;
             }
 

@@ -19,7 +19,8 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
         isUploading,
         uploadError,
     } = useProfileInfo();
-    const { fullName, profile } = useUserProfile();
+    const { fullName, email, profile } = useUserProfile();
+    const displayIdentity = email ?? fullName;
 
     const displayCountry = countryOverride !== undefined ? countryOverride : (profile?.country ?? "");
 
@@ -62,12 +63,12 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
                         />
                     </button>
                 </div>
-                <h4 className={css.profile_info_head_name}>{fullName}</h4>
                 {uploadError && (
-                    <p className={css.profile_info_upload_error} role="alert">
+                    <p className={css.profile_info_head_upload_error} role="alert">
                         {uploadError}
                     </p>
                 )}
+                <h4 className={css.profile_info_head_name}>{displayIdentity}</h4>
             </div>
             <div className={css.profile_info_body}>
                 <div className={css.profile_info_body_item}>

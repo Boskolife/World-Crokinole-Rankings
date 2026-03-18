@@ -9,7 +9,8 @@
 
     &_head {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
         gap: 16px;
         margin-bottom: 20px;
 
@@ -40,15 +41,21 @@
         }
 
         &_name {
+            max-width: 100%;
             font-size: 24px;
             font-weight: 600;
             color: var(--blue-gray);
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         &_upload_error {
+            max-width: 100%;
             font-size: 14px;
             color: var(--red, #c00);
             margin: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
     }
 
