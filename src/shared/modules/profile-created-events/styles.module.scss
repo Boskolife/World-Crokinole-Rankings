@@ -13,6 +13,19 @@ $text: #0e0e0e;
     }
 }
 
+.account_title {
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 40px;
+    line-height: 1.2;
+    color: $blue-grey;
+    margin: 0 0 16px;
+
+    @include media-down(sm) {
+        font-size: 30px;
+    }
+}
+
 .header_row {
     display: flex;
     align-items: flex-start;

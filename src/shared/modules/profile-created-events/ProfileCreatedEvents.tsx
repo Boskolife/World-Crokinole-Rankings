@@ -188,8 +188,9 @@ export function ProfileCreatedEvents() {
 
     return (
         <section className={css.section}>
+            <h2 className={css.account_title}>My Admin account</h2>
             <div className={css.header_row}>
-                <h2 className={css.section_title}>Tournaments I have created</h2>
+                <h3 className={css.section_title}>Tournaments I have created</h3>
                 <RootLink
                     href={`/${locale}/events/create`}
                     className={css.create_btn}
