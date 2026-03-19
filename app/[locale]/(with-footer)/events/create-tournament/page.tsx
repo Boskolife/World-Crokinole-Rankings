@@ -68,7 +68,7 @@ export default function CreateTournamentPage() {
         const points = (step1.pointsAvailable ?? "").trim() === "" ? null : parseInt(step1.pointsAvailable, 10);
         const tournamentPoints = points !== null && !Number.isNaN(points) ? points : null;
         const normalizeStageFormat = (value: string): StageFormatValue =>
-            value === "double_elimination" ? "double_elimination" : "single_elimination";
+            "single_elimination";
         const normalizedStages = step2.stages?.length
             ? step2.stages.map((stage) => ({
                   ...stage,

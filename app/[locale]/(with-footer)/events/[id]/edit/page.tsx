@@ -23,7 +23,9 @@ import { useState } from "react";
 import type { StageFormatValue } from "@/shared/constants/dropdown-options";
 
 function normalizeStageFormat(value: string): StageFormatValue {
-    return value === "double_elimination" ? "double_elimination" : "single_elimination";
+    // В текущей версии формы поддерживается только single elimination.
+    // Если в сохраненной структуре встречается double_elimination — приведем к single_elimination.
+    return "single_elimination";
 }
 
 function toDisplayDateTime(iso: string | undefined, timezone?: string | null): string {
