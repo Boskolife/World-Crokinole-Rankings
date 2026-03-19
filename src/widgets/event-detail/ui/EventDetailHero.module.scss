@@ -279,8 +279,8 @@ $edit-outline: #d48f1f;
 .tournament_details_grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 20px;
-    row-gap: 12px;
+    column-gap: 0;
+    row-gap: 0;
     width: 100%;
 }
 
@@ -294,6 +294,23 @@ $edit-outline: #d48f1f;
 
 .tournament_details_cell {
     min-width: 0;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+// Визуальный отступ между левым/правым столбцом без разрыва линий
+.tournament_details_cell:nth-child(odd) {
+    padding-right: 20px;
+}
+
+.tournament_details_cell:nth-child(even) {
+    padding-left: 20px;
+}
+
+// Последняя строка отделяется общим divider'ом между секциями
+.tournament_details_cell:nth-child(7),
+.tournament_details_cell:nth-child(8) {
+    border-bottom: none;
 }
 
 .details_top {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { IPlayer } from "@/shared/types";
 import css from "./TournamentBracketGrid.module.scss";
@@ -68,11 +68,13 @@ const getCountryFlagUrl = (countryCode: string) =>
     `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
 function SlotRow({
+    slotRole,
     seed,
     player,
     score,
     isWinner,
 }: {
+    slotRole: "upper" | "lower";
     seed: number;
     player: IPlayer | null;
     score: string | null;
@@ -82,6 +84,7 @@ function SlotRow({
     const showSeed = seed > 0;
     return (
         <div
+            data-slot-role={slotRole}
             className={
                 isWinner
                     ? `${css.slotRow} ${css.slotRowWinner}`
@@ -119,13 +122,15 @@ function SlotRow({
 }
 
 function MatchPair({
-    roundIndex,
+    matchIndex,
     slots,
     playersBySeed,
+    setPairEl,
 }: {
-    roundIndex: number;
+    matchIndex: number;
     slots: [number, number];
     playersBySeed: (IPlayer | null)[];
+    setPairEl: (el: HTMLDivElement | null) => void;
 }) {
     const [seedA, seedB] = slots;
     const isPlaceholder = seedA < 0 || seedB < 0;
@@ -135,14 +140,16 @@ function MatchPair({
     const hasB = playerB != null;
     const winnerTop = hasA && !hasB;
     return (
-        <div className={css.pair}>
+        <div className={css.pair} ref={setPairEl}>
             <SlotRow
+                slotRole="upper"
                 seed={isPlaceholder ? 0 : seedA + 1}
                 player={playerA}
                 score={null}
                 isWinner={winnerTop}
             />
             <SlotRow
+                slotRole="lower"
                 seed={isPlaceholder ? 0 : seedB + 1}
                 player={playerB}
                 score={null}
@@ -158,6 +165,11 @@ export function TournamentBracketGrid({
     totalParticipants,
     winner,
 }: TournamentBracketGridProps) {
+    const bracketRef = useRef<HTMLDivElement | null>(null);
+    const championRef = useRef<HTMLDivElement | null>(null);
+    const pairRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const [connectorPoints, setConnectorPoints] = useState<string[]>([]);
+
     const parsed = useMemo(() => parseStructure(structure), [structure]);
     const { rounds, size } = useMemo(
         () => getRoundsAndSize(parsed, totalParticipants ?? players.length),
@@ -195,26 +207,104 @@ export function TournamentBracketGrid({
         return cols;
     }, [rounds, size, bracketOrder]);
 
+    const setPairEl = (roundIndex: number, matchIndex: number) => (el: HTMLDivElement | null) => {
+        pairRefs.current[`${roundIndex}-${matchIndex}`] = el;
+    };
+
+    useLayoutEffect(() => {
+        const bracketEl = bracketRef.current;
+        if (!bracketEl) return;
+
+        const bracketRect = bracketEl.getBoundingClientRect();
+
+        const lines: string[] = [];
+
+        for (let r = 0; r < Math.max(0, rounds - 1); r++) {
+            const matchCount = size / 2 ** (r + 1);
+            for (let m = 0; m < matchCount; m++) {
+                const childEl = pairRefs.current[`${r}-${m}`];
+                const parentEl = pairRefs.current[`${r + 1}-${Math.floor(m / 2)}`];
+
+                if (!childEl || !parentEl) continue;
+
+                const childRect = childEl.getBoundingClientRect();
+                const parentRect = parentEl.getBoundingClientRect();
+
+                const yChild = (childRect.top + childRect.bottom) / 2 - bracketRect.top;
+                const xStart = childRect.right - bracketRect.left;
+                const xEnd = parentRect.left - bracketRect.left;
+
+                const role = m % 2 === 0 ? "upper" : "lower";
+                const parentSlot = parentEl.querySelector(
+                    `[data-slot-role="${role}"]`
+                ) as HTMLElement | null;
+
+                if (!parentSlot) continue;
+
+                const parentSlotRect = parentSlot.getBoundingClientRect();
+                const yEnd = (parentSlotRect.top + parentSlotRect.bottom) / 2 - bracketRect.top;
+
+                const xMid = xStart + (xEnd - xStart) / 2;
+
+                lines.push(`${xStart},${yChild} ${xMid},${yChild} ${xMid},${yEnd} ${xEnd},${yEnd}`);
+            }
+        }
+
+        if (winner && rounds >= 1 && championRef.current) {
+            const lastPairEl = pairRefs.current[`${rounds - 1}-0`];
+            if (lastPairEl) {
+                const lastRect = lastPairEl.getBoundingClientRect();
+                const champRect = championRef.current.getBoundingClientRect();
+
+                const yLast = (lastRect.top + lastRect.bottom) / 2 - bracketRect.top;
+                const xStart = lastRect.right - bracketRect.left;
+                const xEnd = champRect.left - bracketRect.left;
+                const yEnd = (champRect.top + champRect.bottom) / 2 - bracketRect.top;
+
+                const xMid = xStart + (xEnd - xStart) / 2;
+                lines.push(`${xStart},${yLast} ${xMid},${yLast} ${xMid},${yEnd} ${xEnd},${yEnd}`);
+            }
+        }
+
+        setConnectorPoints(lines);
+    }, [rounds, size, winner]);
+
     if (rounds < 1 || size < 2) return null;
 
     return (
         <section className={css.section}>
             <div className={css.container}>
-                <div className={css.bracketWrap}>
+                <div ref={bracketRef} className={css.bracketWrap}>
+                    <svg className={css.connectorsSvg} aria-hidden>
+                        {connectorPoints.map((pts, i) => (
+                            <polyline
+                                key={i}
+                                points={pts}
+                                fill="none"
+                                stroke="#dee2e6"
+                                strokeWidth="2"
+                                strokeLinecap="square"
+                                strokeLinejoin="miter"
+                            />
+                        ))}
+                    </svg>
+
                     {roundColumns.map((col) => (
                         <div key={col.roundIndex} className={css.roundColumn}>
                             {col.matches.map((slots, mi) => (
                                 <MatchPair
                                     key={`${col.roundIndex}-${mi}`}
-                                    roundIndex={col.roundIndex}
+                                    matchIndex={mi}
                                     slots={slots}
                                     playersBySeed={seededPlayers}
+                                    setPairEl={setPairEl(col.roundIndex, mi)}
                                 />
                             ))}
                         </div>
                     ))}
+
                     {winner && (
-                        <div className={css.championBanner}>
+                        <div ref={championRef} className={css.championBanner}>
                             <div className={css.championIconWrap}>
                                 <Image
                                     src="/images/logo.png"
