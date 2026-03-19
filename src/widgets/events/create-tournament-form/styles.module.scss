@@ -390,12 +390,25 @@
     border-radius: 13px;
     background: var(--blue-grey-light, #ecf5fd);
     width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--black-20, #cccccc);
+        border-radius: 3px;
+    }
 }
 
 .stagePillItem {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .stagePillCircle {

@@ -184,6 +184,7 @@ export function CreateTournamentForm({
     const [eventTimezone, setEventTimezone] = useState<string | null>(initialTimezone ?? null);
     const [timezoneError, setTimezoneError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const stagePillContainerRef = useRef<HTMLDivElement | null>(null);
 
     const fetchTimezone = async (lat: number, lng: number): Promise<string | null> => {
         try {
@@ -213,6 +214,15 @@ export function CreateTournamentForm({
             setCoverPreviewUrl(initialCoverUrl ?? null);
         }
     }, [coverFile, initialCoverUrl]);
+
+    useEffect(() => {
+        if (!stagePillContainerRef.current) return;
+        const el = stagePillContainerRef.current;
+        el.scrollTo({
+            left: el.scrollWidth,
+            behavior: "smooth",
+        });
+    }, [fields.length]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -689,7 +699,7 @@ export function CreateTournamentForm({
                                     Add New Stage
                                 </button>
                             </div>
-                            <div className={css.stageIndicatorPill}>
+                            <div ref={stagePillContainerRef} className={css.stageIndicatorPill}>
                                 {fields.map((_, i) => (
                                     <div key={i} className={css.stagePillItem}>
                                         <div className={css.stagePillCircle}>
