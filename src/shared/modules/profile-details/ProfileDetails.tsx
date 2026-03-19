@@ -14,8 +14,24 @@ export const ProfileDetails: React.FC = () => {
     const club = player?.club || profile?.club || "—";
     const singlesRating = player?.singlesRating ?? player?.rating;
     const doublesRating = player?.doublesRating ?? null;
+    const laurels24Mo = player?.laurels24mo ?? null;
+    const showKingBadge =
+        Boolean(player?.title?.trim() || player?.clubTitle?.trim()) &&
+        kingdom !== "—" &&
+        kingdom.trim() !== "";
     const avatarSrc =
-        profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
+        player?.avatarUrl?.trim() || profile?.avatar_url?.trim() || "/svg/avatar-placeholder.svg";
+
+    const normalizedClub = (() => {
+        const raw = club.trim();
+        return !raw || /^[\s,]*$/.test(raw) ? "—" : raw;
+    })();
+
+    const normalizedKingdom = (() => {
+        const raw = kingdom.trim();
+        return !raw || /^[\s,]*$/.test(raw) ? "—" : raw;
+    })();
+
     return (
         <div className="container">
             <div className={css.profile_details_content}>
@@ -35,8 +51,13 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_left_profile_name
                                 }
                             >
-                                {fullName}
+                                {player?.name || fullName}
                             </h4>
+                            {showKingBadge && (
+                                <span className={css.profile_details_left_profile_role}>
+                                    👑 King of {normalizedKingdom}
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className={css.profile_details_left_buttons}>
@@ -62,6 +83,12 @@ export const ProfileDetails: React.FC = () => {
                             <b>Email:</b>
                             <span>{email || "-"}</span>
                         </p>
+                        <RootLink
+                            href={clientRoutes.profileEdit}
+                            className={css.profile_details_right_header_link}
+                        >
+                            Change email or password
+                        </RootLink>
                     </div>
                     <div className={css.profile_details_right_info}>
                         <div className={css.profile_details_right_info_item}>
@@ -93,7 +120,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                —
+                                {laurels24Mo != null ? String(laurels24Mo) : "—"}
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>
@@ -125,7 +152,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                {club}
+                                {normalizedClub}
                             </p>
                         </div>
                         <div className={css.profile_details_right_info_item}>
@@ -141,7 +168,7 @@ export const ProfileDetails: React.FC = () => {
                                     css.profile_details_right_info_item_value
                                 }
                             >
-                                {kingdom}
+                                {normalizedKingdom}
                             </p>
                         </div>
                     </div>

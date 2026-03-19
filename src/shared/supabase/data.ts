@@ -587,6 +587,9 @@ type PlayerRow = {
     singles_rating?: number | null;
     doubles_rating?: number | null;
     combined_rating?: number | null;
+    laurels_24mo?: number | null;
+    laurels24mo?: number | null;
+    laurels_24_mo?: number | null;
     singles_won?: number | null;
     singles_played?: number | null;
     win_pct_singles?: string | null;
@@ -622,6 +625,7 @@ function mapPlayerRowToIPlayer(data: PlayerRow): IPlayer {
         singlesRating: data.singles_rating ?? null,
         doublesRating: data.doubles_rating ?? null,
         combinedRating: data.combined_rating ?? null,
+        laurels24mo: data.laurels_24mo ?? data.laurels24mo ?? data.laurels_24_mo ?? null,
         singlesWon: data.singles_won ?? null,
         singlesPlayed: data.singles_played ?? null,
         winPctSingles: data.win_pct_singles ?? null,

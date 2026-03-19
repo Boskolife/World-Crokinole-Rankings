@@ -10,6 +10,7 @@ export interface IPlayer {
     singlesRating?: number | null;
     doublesRating?: number | null;
     combinedRating?: number | null;
+    laurels24mo?: number | null;
     singlesWon?: number | null;
     singlesPlayed?: number | null;
     winPctSingles?: string | null;

@@ -2,7 +2,7 @@
 
 import React from "react";
 import css from "./styles.module.scss";
-import { PlayerProfileView } from "@/shared/modules";
+import { ProfileDetails } from "@/shared/modules";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
 import { useCurrentUserPlayer, useUserProfile } from "@/shared/hooks";
@@ -50,7 +50,7 @@ export const Account: React.FC = () => {
                 <h2 className={css.account_title}>My player account</h2>
             </div>
             {player ? (
-                <PlayerProfileView player={player} actions={actions} />
+                <ProfileDetails />
             ) : (
                 <SaveContinueFallback fullName={fullName} profile={profile} actions={actions} />
             )}
