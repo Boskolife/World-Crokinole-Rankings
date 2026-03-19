@@ -434,10 +434,10 @@
 
 .stageCard {
     width: 100%;
-    background: var(--black-5, #f5f5f5);
+    background: var(--white);
     border: 1px solid var(--black-10, #e6e6e6);
-    border-radius: 12px;
-    padding: 24px;
+    border-radius: 16px;
+    padding: 24px 24px 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -448,6 +448,93 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
+}
+
+.stageDescription {
+    margin-top: 16px;
+}
+
+.stageDescriptionTitle {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--black, #0e0e0e);
+}
+
+.stageDescriptionList {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--black-80, #464646);
+}
+
+.matchTypeSection {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.matchTypeLabel {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--black, #0e0e0e);
+}
+
+.matchTypeOptions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.matchTypeOption {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--black-80, #464646);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.matchTypeOptionActive {
+    background: var(--gold-10, #fff4e0);
+    color: var(--black, #0e0e0e);
+}
+
+.matchTypeRadioOuter {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 1px solid var(--gold, #f5a623);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--white);
+}
+
+.matchTypeOptionActive .matchTypeRadioOuter {
+    border-width: 2px;
+}
+
+.matchTypeRadioInner {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: transparent;
+}
+
+.matchTypeOptionActive .matchTypeRadioInner {
+    background: var(--gold, #f5a623);
 }
 
 .stageCardTitle {

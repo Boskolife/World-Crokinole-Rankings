@@ -57,6 +57,7 @@ export type CreateTournamentStageValues = {
     stageFormat: StageFormatValue;
     seedingMethod: string;
     numberOfRounds: string;
+    matchType?: "singles" | "doubles";
 };
 
 export type CreateTournamentStep2Values = {
@@ -69,6 +70,7 @@ const defaultStep2Values: CreateTournamentStep2Values = {
             stageFormat: "single_elimination",
             seedingMethod: "auto_rating",
             numberOfRounds: "",
+            matchType: "doubles",
         },
     ],
 };
@@ -729,8 +731,6 @@ export function CreateTournamentForm({
                                                 }
                                             />
                                         </div>
-                                    </div>
-                                    <div className={css.row}>
                                         <div className={css.rowField}>
                                             <CustomDropdown
                                                 id={`stage-${i}-seeding`}
@@ -744,6 +744,94 @@ export function CreateTournamentForm({
                                                     errorsStep2.stages?.[i]?.seedingMethod?.message
                                                 }
                                             />
+                                        </div>
+                                    </div>
+                                    {watchStep2(`stages.${i}.stageFormat`) ===
+                                        "single_elimination" && (
+                                        <div className={css.stageDescription}>
+                                            <h4 className={css.stageDescriptionTitle}>
+                                                Single Elimination Structure
+                                            </h4>
+                                            <ul className={css.stageDescriptionList}>
+                                                <li>
+                                                    All settings can be edited before the
+                                                    bracket is locked
+                                                </li>
+                                                <li>
+                                                    Bracket will be generated based on
+                                                    number of participants
+                                                </li>
+                                                <li>
+                                                    All matches track games won, 20s, and
+                                                    total points
+                                                </li>
+                                                <li>
+                                                    Score confirmation flow applies to all
+                                                    matches
+                                                </li>
+                                                <li>
+                                                    Single match format. Each match is
+                                                    played until a winner is decided
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
+                                    <div className={css.matchTypeSection}>
+                                        <p className={css.matchTypeLabel}>Match Type</p>
+                                        <div className={css.matchTypeOptions}>
+                                            <button
+                                                type="button"
+                                                className={`${css.matchTypeOption} ${
+                                                    watchStep2(
+                                                        `stages.${i}.matchType`,
+                                                    ) !== "doubles"
+                                                        ? css.matchTypeOptionActive
+                                                        : ""
+                                                }`}
+                                                onClick={() =>
+                                                    registerStep2(
+                                                        `stages.${i}.matchType` as const,
+                                                    ).onChange({
+                                                        target: {
+                                                            value: "singles",
+                                                            name: `stages.${i}.matchType`,
+                                                        },
+                                                    } as unknown as React.ChangeEvent<HTMLInputElement>)
+                                                }
+                                            >
+                                                <span className={css.matchTypeRadioOuter}>
+                                                    <span className={css.matchTypeRadioInner} />
+                                                </span>
+                                                <span>Singles</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`${css.matchTypeOption} ${
+                                                    watchStep2(
+                                                        `stages.${i}.matchType`,
+                                                    ) === "doubles" ||
+                                                    !watchStep2(
+                                                        `stages.${i}.matchType`,
+                                                    )
+                                                        ? css.matchTypeOptionActive
+                                                        : ""
+                                                }`}
+                                                onClick={() =>
+                                                    registerStep2(
+                                                        `stages.${i}.matchType` as const,
+                                                    ).onChange({
+                                                        target: {
+                                                            value: "doubles",
+                                                            name: `stages.${i}.matchType`,
+                                                        },
+                                                    } as unknown as React.ChangeEvent<HTMLInputElement>)
+                                                }
+                                            >
+                                                <span className={css.matchTypeRadioOuter}>
+                                                    <span className={css.matchTypeRadioInner} />
+                                                </span>
+                                                <span>Doubles</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
