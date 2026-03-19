@@ -20,6 +20,11 @@ import type {
 import css from "@/widgets/events/create-event-form/styles.module.scss";
 import type { IEventCardProps } from "@/shared/types";
 import { useState } from "react";
+import type { StageFormatValue } from "@/shared/constants/dropdown-options";
+
+function normalizeStageFormat(value: string): StageFormatValue {
+    return value === "double_elimination" ? "double_elimination" : "single_elimination";
+}
 
 function toDisplayDateTime(iso: string | undefined, timezone?: string | null): string {
     if (!iso) return "";
@@ -46,7 +51,7 @@ function parseTournamentStructure(
             description = (parsed.description ?? "").trim();
             if (Array.isArray(parsed.stages) && parsed.stages.length > 0) {
                 stages = parsed.stages.map((s) => ({
-                    stageFormat: String(s?.stageFormat ?? "single_elimination"),
+                    stageFormat: normalizeStageFormat(String(s?.stageFormat ?? "single_elimination")),
                     seedingMethod: String(s?.seedingMethod ?? "auto_rating"),
                     numberOfRounds: String(s?.numberOfRounds ?? ""),
                 }));
@@ -62,7 +67,7 @@ function parseTournamentStructure(
                 const parsed = JSON.parse(raw.slice(idx)) as { stages?: CreateTournamentStageValues[] };
                 if (Array.isArray(parsed.stages) && parsed.stages.length > 0) {
                     stages = parsed.stages.map((s) => ({
-                        stageFormat: String(s?.stageFormat ?? "single_elimination"),
+                        stageFormat: normalizeStageFormat(String(s?.stageFormat ?? "single_elimination")),
                         seedingMethod: String(s?.seedingMethod ?? "auto_rating"),
                         numberOfRounds: String(s?.numberOfRounds ?? ""),
                     }));
@@ -192,9 +197,15 @@ export default function EditEventPage() {
         const numCapacity = capacity !== null && !Number.isNaN(capacity) ? capacity : null;
         const points = (step1.pointsAvailable ?? "").trim() === "" ? null : parseInt(step1.pointsAvailable, 10);
         const tournamentPoints = points !== null && !Number.isNaN(points) ? points : null;
+        const normalizedStages = step2.stages?.length
+            ? step2.stages.map((stage) => ({
+                  ...stage,
+                  stageFormat: normalizeStageFormat(stage.stageFormat),
+              }))
+            : undefined;
         const structure = JSON.stringify({
             description: (step1.description ?? "").trim() || undefined,
-            stages: step2.stages?.length ? step2.stages : undefined,
+            stages: normalizedStages,
         });
 
         await updateEvent(event.id, {

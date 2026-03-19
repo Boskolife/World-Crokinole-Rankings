@@ -8,13 +8,13 @@ import { PlaceSearchInput } from "@/shared/ui/place-search-input";
 import { Icon } from "@/shared/ui/icons";
 import {
     eventTypeOptions,
-    tournamentPointsOptions,
     tournamentTotalPlayersOptions,
     tournamentOrganizerOptions,
     stageFormatOptions,
     seedingMethodOptions,
     tournamentVisibilityOptions,
 } from "@/shared/constants/dropdown-options";
+import type { StageFormatValue } from "@/shared/constants/dropdown-options";
 import inputCss from "@/shared/ui/input/styles.module.scss";
 import css from "./styles.module.scss";
 
@@ -54,7 +54,7 @@ const defaultValues: CreateTournamentStep1Values = {
 };
 
 export type CreateTournamentStageValues = {
-    stageFormat: string;
+    stageFormat: StageFormatValue;
     seedingMethod: string;
     numberOfRounds: string;
 };
@@ -170,7 +170,6 @@ export function CreateTournamentForm({
     const watchedVisibility = watchStep3("tournamentVisibility");
 
     const watchedType = watch("eventType");
-    const watchedPoints = watch("pointsAvailable");
     const watchedOrganizer = watch("organizer");
     const watchedTotalPlayers = watch("totalPlayers");
     const watchedLocation = watch("location");
@@ -492,20 +491,6 @@ export function CreateTournamentForm({
                                     error={errors.eventType?.message}
                                 />
                             </div>
-                            <div className={css.rowField}>
-                                <CustomDropdown
-                                    id="create-tournament-points"
-                                    name="pointsAvailable"
-                                    label="Points available (per player)"
-                                    placeholder="Select"
-                                    options={tournamentPointsOptions}
-                                    value={watchedPoints ?? ""}
-                                    register={register}
-                                    error={
-                                        errors.pointsAvailable?.message
-                                    }
-                                />
-                            </div>
                         </div>
 
                         <div className={css.row}>
@@ -515,7 +500,7 @@ export function CreateTournamentForm({
                                     name="organizer"
                                     label="Organizer"
                                     placeholder="Select"
-                                    options={tournamentOrganizerOptions}
+                                    options={tournamentOrganizerOptions.filter((o) => o.value === "me")}
                                     value={watchedOrganizer ?? ""}
                                     register={register}
                                     rules={{

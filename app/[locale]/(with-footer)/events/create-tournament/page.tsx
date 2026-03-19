@@ -13,6 +13,7 @@ import {
 } from "@/shared/supabase/client";
 import { localInTimezoneToUtc } from "@/shared/lib/event-timezone";
 import css from "@/widgets/events/create-tournament-form/styles.module.scss";
+import type { StageFormatValue } from "@/shared/constants/dropdown-options";
 
 export default function CreateTournamentPage() {
     const { isAuth, isMounted, user } = useAuth();
@@ -66,9 +67,17 @@ export default function CreateTournamentPage() {
         const numCapacity = capacity !== null && !Number.isNaN(capacity) ? capacity : null;
         const points = (step1.pointsAvailable ?? "").trim() === "" ? null : parseInt(step1.pointsAvailable, 10);
         const tournamentPoints = points !== null && !Number.isNaN(points) ? points : null;
+        const normalizeStageFormat = (value: string): StageFormatValue =>
+            value === "double_elimination" ? "double_elimination" : "single_elimination";
+        const normalizedStages = step2.stages?.length
+            ? step2.stages.map((stage) => ({
+                  ...stage,
+                  stageFormat: normalizeStageFormat(stage.stageFormat),
+              }))
+            : undefined;
         const structure = JSON.stringify({
             description: (step1.description ?? "").trim() || undefined,
-            stages: step2.stages?.length ? step2.stages : undefined,
+            stages: normalizedStages,
         });
 
         const created = await createEvent({
