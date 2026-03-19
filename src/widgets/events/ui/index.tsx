@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/modules";
 import { useEvents, useDebounce } from "@/shared/hooks";
 import { getUniqueEventLocations, getUniqueEventFormats } from "@/shared/supabase/data";
+import { useAuth } from "@/shared/hooks/use-auth";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -53,6 +54,7 @@ export const Events: React.FC<IEventsProps> = ({
     isPastEvents = false,
 }) => {
     const router = useRouter();
+    const { user, isMounted } = useAuth();
     const [searchQuery, setSearchQuery] = useState<string>("");
     const debouncedSearchQuery = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
     const [dateFilter, setDateFilter] = useState<string>("all");
@@ -77,6 +79,17 @@ export const Events: React.FC<IEventsProps> = ({
 
     const filteredEvents = useMemo(() => {
         let filtered = [...events];
+
+        if (isMounted) {
+            const viewerId = user?.id ?? null;
+            filtered = filtered.filter((e) => {
+                const isTournament = (e.format ?? "").toLowerCase() === "tournament";
+                const isDraft = (e.tournamentVisibility ?? "").toLowerCase() === "draft";
+                if (!isTournament || !isDraft) return true;
+                if (!viewerId) return false;
+                return e.createdBy === viewerId;
+            });
+        }
 
         if (debouncedSearchQuery.trim()) {
             const q = debouncedSearchQuery.trim().toLowerCase();
@@ -159,7 +172,7 @@ export const Events: React.FC<IEventsProps> = ({
         }
 
         return filtered;
-    }, [events, debouncedSearchQuery, dateFilter, locationFilter, formatFilter, typeFilter, isPastEvents]);
+    }, [events, debouncedSearchQuery, dateFilter, locationFilter, formatFilter, typeFilter, isPastEvents, user?.id, isMounted]);
 
     const {
         eventsContainerRef,

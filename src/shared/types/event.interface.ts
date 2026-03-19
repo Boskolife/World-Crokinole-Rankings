@@ -17,6 +17,7 @@ export interface IEventCardProps {
     date: string;
     location: string;
     format: string;
+    tournamentVisibility?: string | null;
     latitude?: number | null;
     longitude?: number | null;
     isRanked?: boolean;

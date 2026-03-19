@@ -82,6 +82,7 @@ const mapEventRowToCard = (event: {
     winner: string | null;
     current_rank: number | null;
     total_participants: number | null;
+    tournament_visibility?: string | null;
     capacity?: number | null;
     strength_of_field?: number | null;
     tournament_points_available?: number | null;
@@ -105,6 +106,7 @@ const mapEventRowToCard = (event: {
         : "",
     location: event.location,
     format: event.format,
+    tournamentVisibility: event.tournament_visibility ?? undefined,
     isRanked: event.is_ranked,
     isRegistrationRequired: event.is_registration_required,
     winner: event.winner || undefined,
@@ -309,6 +311,7 @@ export interface CreateEventParams {
     qualifyingHeats?: QualifyingHeatsData | null;
     createdByUserId?: string | null;
     tournamentPointsAvailable?: number | null;
+    tournamentVisibility?: string | null;
 }
 
 export async function createEvent(params: CreateEventParams): Promise<IEventCardProps> {
@@ -330,6 +333,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
         qualifyingHeats,
         createdByUserId,
         tournamentPointsAvailable,
+        tournamentVisibility,
     } = params;
 
     const { data: newEvent, error: insertError } = await supabase
@@ -356,6 +360,7 @@ export async function createEvent(params: CreateEventParams): Promise<IEventCard
             strength_of_field: null,
             tournament_points_available: tournamentPointsAvailable ?? null,
             created_by: createdByUserId ?? null,
+            tournament_visibility: tournamentVisibility ?? null,
         })
         .select("id")
         .single();
@@ -424,6 +429,7 @@ export interface UpdateEventParams {
     strengthOfField?: number | null;
     tournamentPointsAvailable?: number | null;
     winner?: string | null;
+    tournamentVisibility?: string | null;
 }
 
 export async function updateEvent(
@@ -449,6 +455,7 @@ export async function updateEvent(
         strengthOfField,
         tournamentPointsAvailable,
         winner,
+        tournamentVisibility,
     } = params;
 
     const updatePayload: Record<string, unknown> = {};
@@ -476,6 +483,8 @@ export async function updateEvent(
     if (tournamentPointsAvailable !== undefined)
         updatePayload.tournament_points_available = tournamentPointsAvailable ?? null;
     if (winner !== undefined) updatePayload.winner = winner ?? null;
+    if (tournamentVisibility !== undefined)
+        updatePayload.tournament_visibility = tournamentVisibility ?? null;
 
     if (Object.keys(updatePayload).length > 0) {
         const { error: updateError } = await supabase

@@ -106,7 +106,7 @@ function buildTournamentInitialData(event: IEventCardProps): CreateTournamentFor
         step3: {
             track20s: true,
             playerScoreConfirmation: true,
-            tournamentVisibility: "draft",
+            tournamentVisibility: event.tournamentVisibility ?? "draft",
         },
     };
 }
@@ -180,7 +180,7 @@ export default function EditEventPage() {
         if (!isSupabaseConfigured) {
             throw new Error(supabaseConfigError ?? "Supabase is not configured");
         }
-        const { step1, step2, coverFile, locationLatLng, timezone } = data;
+        const { step1, step2, step3, coverFile, locationLatLng, timezone } = data;
         if (!(step1.location ?? "").trim()) {
             throw new Error("Location is required");
         }
@@ -224,6 +224,7 @@ export default function EditEventPage() {
             latitude: locationLatLng?.lat,
             longitude: locationLatLng?.lng,
             timezone: timezone ?? undefined,
+            tournamentVisibility: step3.tournamentVisibility ?? "draft",
         });
         router.push(`/${locale}/events/${event.id}`);
     };

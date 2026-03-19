@@ -7,7 +7,7 @@ export interface DropdownOption {
     label: string;
 }
 
-export type StageFormatValue = "single_elimination" | "double_elimination";
+export type StageFormatValue = "single_elimination";
 
 // Location/World options (used in Rankings and Events)
 export const worldOptions: DropdownOption[] = [
@@ -132,7 +132,6 @@ export const tournamentOrganizerOptions: DropdownOption[] = [
 
 export const stageFormatOptions: DropdownOption[] = [
     { value: "single_elimination", label: "Single Elimination" },
-    { value: "double_elimination", label: "Double Elimination" },
 ];
 
 export const seedingMethodOptions: DropdownOption[] = [
