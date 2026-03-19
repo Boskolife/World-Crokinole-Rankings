@@ -15,10 +15,17 @@ export const ProfileDetails: React.FC = () => {
     const { user } = useAuth();
     const { player } = useCurrentUserPlayer();
     const router = useRouter();
-    const [mode, setMode] = useState<"overview" | "security" | "securityEmail" | "securityEmailSent">("overview");
+    const [mode, setMode] = useState<
+        "overview" | "security" | "securityEmail" | "securityEmailSent" | "securityPassword"
+    >("overview");
     const [emailInput, setEmailInput] = useState("");
     const [emailError, setEmailError] = useState<string | null>(null);
     const [emailLoading, setEmailLoading] = useState(false);
+    const [passwordOld, setPasswordOld] = useState("");
+    const [passwordNew, setPasswordNew] = useState("");
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+    const [passwordLoading, setPasswordLoading] = useState(false);
     const kingdom = player?.kingdom || profile?.country || "—";
     const club = player?.club || profile?.club || "—";
     const singlesRating = player?.singlesRating ?? player?.rating;
@@ -47,6 +54,11 @@ export const ProfileDetails: React.FC = () => {
         setEmailInput("");
         setEmailError(null);
         setEmailLoading(false);
+        setPasswordOld("");
+        setPasswordNew("");
+        setPasswordError(null);
+        setPasswordMessage(null);
+        setPasswordLoading(false);
         if (typeof window !== "undefined") {
             window.localStorage.removeItem("wcr-profile-email-change");
         }
@@ -59,7 +71,11 @@ export const ProfileDetails: React.FC = () => {
     };
 
     const handleChangePassword = () => {
-        router.push(clientRoutes.profileEdit + "?focus=password");
+        setMode("securityPassword");
+        setPasswordOld("");
+        setPasswordNew("");
+        setPasswordError(null);
+        setPasswordMessage(null);
     };
 
     const handleSubmitNewEmail = async () => {
@@ -102,6 +118,55 @@ export const ProfileDetails: React.FC = () => {
         }
     };
 
+    const handleSubmitNewPassword = async () => {
+        const oldPwd = passwordOld.trim();
+        const newPwd = passwordNew.trim();
+        if (!newPwd) {
+            setPasswordError("New password is required");
+            setPasswordMessage(null);
+            return;
+        }
+        if (newPwd.length < 8) {
+            setPasswordError("Password must be at least 8 characters");
+            setPasswordMessage(null);
+            return;
+        }
+        if (!user?.email || !isSupabaseConfigured) {
+            setPasswordError("Password change is not available right now.");
+            return;
+        }
+        setPasswordLoading(true);
+        setPasswordError(null);
+        setPasswordMessage(null);
+        try {
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: oldPwd,
+            });
+            if (signInError) {
+                setPasswordError("Current password is incorrect");
+                return;
+            }
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: newPwd,
+            });
+            if (updateError) {
+                setPasswordError(updateError.message);
+                return;
+            }
+            setPasswordOld("");
+            setPasswordNew("");
+            setPasswordError(null);
+            setPasswordMessage("Password updated successfully.");
+        } catch {
+            setPasswordError(
+                "Could not reach Supabase. Please check NEXT_PUBLIC_SUPABASE_URL and your Internet connection."
+            );
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (typeof window === "undefined") return;
         try {
@@ -117,7 +182,7 @@ export const ProfileDetails: React.FC = () => {
         }
     }, []);
 
-    if (mode === "security" || mode === "securityEmail" || mode === "securityEmailSent") {
+    if (mode === "security" || mode === "securityEmail" || mode === "securityEmailSent" || mode === "securityPassword") {
         return (
             <div className="container">
                 <div className={cn(css.profile_details_content, css.profile_details_content_centered)}>
@@ -132,7 +197,9 @@ export const ProfileDetails: React.FC = () => {
                                 <span className={css.profile_details_security_back_icon} />
                             </button>
                             <h3 className={css.profile_details_security_title}>
-                                {mode === "securityEmail" || mode === "securityEmailSent"
+                                {mode === "securityEmail" ||
+                                mode === "securityEmailSent" ||
+                                mode === "securityPassword"
                                     ? "Back"
                                     : "Change email or password"}
                             </h3>
@@ -239,6 +306,87 @@ export const ProfileDetails: React.FC = () => {
                                         .
                                     </p>
                                 </div>
+                            </div>
+                        )}
+                        {mode === "securityPassword" && (
+                            <div className={css.profile_details_security_change_password}>
+                                <h4 className={css.profile_details_security_change_password_title}>
+                                    Change password
+                                </h4>
+                                <p className={css.profile_details_security_change_password_subtitle}>
+                                    Create a new password
+                                </p>
+                                <div className={css.profile_details_security_change_password_field}>
+                                    <label
+                                        className={
+                                            css.profile_details_security_change_password_field_label
+                                        }
+                                    >
+                                        Old Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        className={
+                                            css.profile_details_security_change_password_field_input
+                                        }
+                                        placeholder="Enter your old password"
+                                        value={passwordOld}
+                                        onChange={(e) => {
+                                            setPasswordOld(e.target.value);
+                                            if (passwordError) setPasswordError(null);
+                                            if (passwordMessage) setPasswordMessage(null);
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className={
+                                            css.profile_details_security_change_password_forgot
+                                        }
+                                        onClick={() => router.push(clientRoutes.forgotPassword)}
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
+                                <div className={css.profile_details_security_change_password_field}>
+                                    <label
+                                        className={
+                                            css.profile_details_security_change_password_field_label
+                                        }
+                                    >
+                                        New Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        className={
+                                            css.profile_details_security_change_password_field_input
+                                        }
+                                        placeholder="Enter your new password"
+                                        value={passwordNew}
+                                        onChange={(e) => {
+                                            setPasswordNew(e.target.value);
+                                            if (passwordError) setPasswordError(null);
+                                            if (passwordMessage) setPasswordMessage(null);
+                                        }}
+                                    />
+                                </div>
+                                {passwordError && (
+                                    <p className={css.profile_details_security_change_password_error}>
+                                        {passwordError}
+                                    </p>
+                                )}
+                                {passwordMessage && (
+                                    <p className={css.profile_details_security_change_password_success}>
+                                        {passwordMessage}
+                                    </p>
+                                )}
+                                <button
+                                    type="button"
+                                    className={css.profile_details_security_change_password_button}
+                                    onClick={handleSubmitNewPassword}
+                                    disabled={passwordLoading}
+                                >
+                                    {passwordLoading ? "Saving..." : "Save password"}
+                                </button>
                             </div>
                         )}
                     </div>
