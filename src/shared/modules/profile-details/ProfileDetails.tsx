@@ -1,18 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import css from "./styles.module.scss";
 import Image from "next/image";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
 import cn from "classnames";
-import { useUserProfile, useCurrentUserPlayer } from "@/shared/hooks";
+import { useUserProfile, useCurrentUserPlayer, useAuth } from "@/shared/hooks";
+import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
+import { invalidateProfileCache, notifyProfileUpdated } from "@/shared/hooks/use-user-profile";
 import { useRouter } from "next/navigation";
 
 export const ProfileDetails: React.FC = () => {
     const { fullName, email, profile } = useUserProfile();
+    const { user } = useAuth();
     const { player } = useCurrentUserPlayer();
     const router = useRouter();
-    const [mode, setMode] = useState<"overview" | "security">("overview");
+    const [mode, setMode] = useState<"overview" | "security" | "securityEmail" | "securityEmailSent">("overview");
+    const [emailInput, setEmailInput] = useState("");
+    const [emailError, setEmailError] = useState<string | null>(null);
+    const [emailLoading, setEmailLoading] = useState(false);
     const kingdom = player?.kingdom || profile?.country || "—";
     const club = player?.club || profile?.club || "—";
     const singlesRating = player?.singlesRating ?? player?.rating;
@@ -36,17 +42,82 @@ export const ProfileDetails: React.FC = () => {
     })();
 
     const handleOpenSecurity = () => setMode("security");
-    const handleBackToOverview = () => setMode("overview");
+    const handleBackToOverview = () => {
+        setMode("overview");
+        setEmailInput("");
+        setEmailError(null);
+        setEmailLoading(false);
+        if (typeof window !== "undefined") {
+            window.localStorage.removeItem("wcr-profile-email-change");
+        }
+    };
 
     const handleChangeEmail = () => {
-        router.push(clientRoutes.profileEdit + "?focus=email");
+        setMode("securityEmail");
+        setEmailInput("");
+        setEmailError(null);
     };
 
     const handleChangePassword = () => {
         router.push(clientRoutes.profileEdit + "?focus=password");
     };
 
-    if (mode === "security") {
+    const handleSubmitNewEmail = async () => {
+        const nextEmail = emailInput.trim();
+        if (!nextEmail) {
+            setEmailError("Email is required");
+            return;
+        }
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(nextEmail)) {
+            setEmailError("Please enter a valid email address");
+            return;
+        }
+        if (!user?.id || !isSupabaseConfigured) {
+            setEmailError("Email change is not available right now.");
+            return;
+        }
+        setEmailLoading(true);
+        setEmailError(null);
+        try {
+            const { error } = await supabase.auth.updateUser({ email: nextEmail });
+            if (error) {
+                setEmailError(error.message);
+                return;
+            }
+            invalidateProfileCache(user.id);
+            notifyProfileUpdated(user.id);
+            setMode("securityEmailSent");
+            if (typeof window !== "undefined") {
+                window.localStorage.setItem(
+                    "wcr-profile-email-change",
+                    JSON.stringify({ mode: "securityEmailSent", email: nextEmail })
+                );
+            }
+        } catch {
+            setEmailError(
+                "Could not reach Supabase. Please check NEXT_PUBLIC_SUPABASE_URL and your Internet connection."
+            );
+        } finally {
+            setEmailLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        try {
+            const raw = window.localStorage.getItem("wcr-profile-email-change");
+            if (!raw) return;
+            const parsed = JSON.parse(raw) as { mode?: string; email?: string };
+            if (parsed.mode === "securityEmailSent" && parsed.email) {
+                setEmailInput(parsed.email);
+                setMode("securityEmailSent");
+            }
+        } catch {
+            // ignore
+        }
+    }, []);
+
+    if (mode === "security" || mode === "securityEmail" || mode === "securityEmailSent") {
         return (
             <div className="container">
                 <div className={cn(css.profile_details_content, css.profile_details_content_centered)}>
@@ -61,41 +132,115 @@ export const ProfileDetails: React.FC = () => {
                                 <span className={css.profile_details_security_back_icon} />
                             </button>
                             <h3 className={css.profile_details_security_title}>
-                                Change email or password
+                                {mode === "securityEmail" || mode === "securityEmailSent"
+                                    ? "Back"
+                                    : "Change email or password"}
                             </h3>
                         </div>
-                        <div className={css.profile_details_security_body}>
-                            <div className={css.profile_details_security_section}>
-                                <h4 className={css.profile_details_security_section_title}>
-                                    Current email
-                                </h4>
-                                <p className={css.profile_details_security_text}>
-                                    <span>You are logged in as&nbsp;</span>
-                                    <span className={css.profile_details_security_text_email}>
-                                        {email || "-"}
-                                    </span>
-                                </p>
-                                <button
-                                    type="button"
-                                    className={css.profile_details_security_button}
-                                    onClick={handleChangeEmail}
-                                >
+                        {mode === "security" && (
+                            <div className={css.profile_details_security_body}>
+                                <div className={css.profile_details_security_section}>
+                                    <h4 className={css.profile_details_security_section_title}>
+                                        Current email
+                                    </h4>
+                                    <p className={css.profile_details_security_text}>
+                                        <span>You are logged in as&nbsp;</span>
+                                        <span className={css.profile_details_security_text_email}>
+                                            {email || "-"}
+                                        </span>
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className={css.profile_details_security_button}
+                                        onClick={handleChangeEmail}
+                                    >
+                                        Change my email
+                                    </button>
+                                </div>
+                                <div className={css.profile_details_security_section}>
+                                    <h4 className={css.profile_details_security_section_title}>
+                                        Password
+                                    </h4>
+                                    <button
+                                        type="button"
+                                        className={css.profile_details_security_button}
+                                        onClick={handleChangePassword}
+                                    >
+                                        Change my password
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {mode === "securityEmail" && (
+                            <div className={css.profile_details_security_change_email}>
+                                <h4 className={css.profile_details_security_change_email_title}>
                                     Change my email
-                                </button>
-                            </div>
-                            <div className={css.profile_details_security_section}>
-                                <h4 className={css.profile_details_security_section_title}>
-                                    Password
                                 </h4>
+                                <div className={css.profile_details_security_change_email_text}>
+                                    <p>
+                                        <span>Your current email is&nbsp;</span>
+                                        <span className={css.profile_details_security_text_email}>
+                                            {email || "-"}
+                                        </span>
+                                    </p>
+                                    <p>
+                                        Please enter a new email and we will send you a confirmation
+                                        link to verify it.
+                                    </p>
+                                </div>
+                                <div className={css.profile_details_security_change_email_field}>
+                                    <label
+                                        className={
+                                            css.profile_details_security_change_email_field_label
+                                        }
+                                    >
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        className={
+                                            css.profile_details_security_change_email_field_input
+                                        }
+                                        placeholder="Enter your new email"
+                                        value={emailInput}
+                                        onChange={(e) => {
+                                            setEmailInput(e.target.value);
+                                            if (emailError) setEmailError(null);
+                                        }}
+                                    />
+                                </div>
+                                {emailError && (
+                                    <p className={css.profile_details_security_change_email_error}>
+                                        {emailError}
+                                    </p>
+                                )}
                                 <button
                                     type="button"
-                                    className={css.profile_details_security_button}
-                                    onClick={handleChangePassword}
+                                    className={css.profile_details_security_change_email_button}
+                                    onClick={handleSubmitNewEmail}
+                                    disabled={emailLoading}
                                 >
-                                    Change my password
+                                    {emailLoading ? "Sending..." : "Change my email"}
                                 </button>
                             </div>
-                        </div>
+                        )}
+                        {mode === "securityEmailSent" && (
+                            <div className={css.profile_details_security_change_email}>
+                                <h4 className={css.profile_details_security_change_email_title}>
+                                    Check your email
+                                </h4>
+                                <div className={css.profile_details_security_change_email_text}>
+                                    <p>We just sent you a temporary login link.</p>
+                                    <p>
+                                        <span>Please check your inbox at&nbsp;</span>
+                                        <span className={css.profile_details_security_text_email}>
+                                            {emailInput || email || "-"}
+                                        </span>
+                                        .
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

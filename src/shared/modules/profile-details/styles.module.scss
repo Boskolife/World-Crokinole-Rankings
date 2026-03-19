@@ -300,3 +300,68 @@
         }
     }
 }
+
+.profile_details_security_change_email {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    max-width: 420px;
+    text-align: center;
+    align-self: center;
+
+    &_title {
+        font-family: var(--font-aleo, inherit);
+        font-size: 24px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: var(--black);
+    }
+
+    &_text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 16px;
+        color: #323232;
+    }
+
+    &_field {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        width: 320px;
+
+        &_label {
+            font-size: 16px;
+            color: #8c8c8c;
+        }
+
+        &_input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 8px;
+            border: 1px solid #aac7e1;
+            font-size: 16px;
+            color: var(--black);
+
+            &::placeholder {
+                color: #8c8c8c;
+            }
+        }
+    }
+
+    &_button {
+        @extend .profile_details_security_button;
+        border-color: #fed99d;
+        background-color: #fed99d;
+        color: #d48f1f;
+    }
+
+    &_error {
+        margin-top: 4px;
+        font-size: 14px;
+        color: var(--red, #d9534f);
+    }
+}
