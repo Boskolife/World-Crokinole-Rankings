@@ -60,15 +60,7 @@ function getRoundsAndSize(
     if (totalParticipants != null && totalParticipants > 0) {
         size = Math.max(4, Math.min(32, 2 ** Math.ceil(Math.log2(totalParticipants))));
     }
-    let rounds = Math.max(1, Math.ceil(Math.log2(size)));
-    if (parsed?.stages?.length) {
-        const first = parsed.stages[0];
-        const nr = (first.numberOfRounds ?? "").trim();
-        if (nr) {
-            const r = parseInt(nr, 10);
-            if (!Number.isNaN(r) && r >= 1) rounds = r;
-        }
-    }
+    const rounds = Math.max(1, Math.ceil(Math.log2(size)));
     return { rounds, size };
 }
 

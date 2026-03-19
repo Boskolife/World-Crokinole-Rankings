@@ -729,6 +729,8 @@ export function CreateTournamentForm({
                                                 }
                                             />
                                         </div>
+                                    </div>
+                                    <div className={css.row}>
                                         <div className={css.rowField}>
                                             <CustomDropdown
                                                 id={`stage-${i}-seeding`}
@@ -744,17 +746,6 @@ export function CreateTournamentForm({
                                             />
                                         </div>
                                     </div>
-                                    <FormField
-                                        id={`stage-${i}-rounds`}
-                                        name={`stages.${i}.numberOfRounds` as const}
-                                        label="Number of rounds"
-                                        placeholder="e.g. 6"
-                                        register={registerStep2}
-                                        error={
-                                            errorsStep2.stages?.[i]?.numberOfRounds?.message
-                                        }
-                                        hideClearButton
-                                    />
                                 </div>
                             ))}
                         </div>
