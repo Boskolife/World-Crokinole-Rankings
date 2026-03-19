@@ -52,11 +52,18 @@ function parseTournamentStructure(
             const parsed = JSON.parse(raw) as { description?: string; stages?: CreateTournamentStageValues[] };
             description = (parsed.description ?? "").trim();
             if (Array.isArray(parsed.stages) && parsed.stages.length > 0) {
-                stages = parsed.stages.map((s) => ({
+                    stages = parsed.stages.map((s) => {
+                        const mt = typeof s?.matchType === "string" ? s.matchType.trim().toLowerCase() : "";
+                        return {
                     stageFormat: normalizeStageFormat(String(s?.stageFormat ?? "single_elimination")),
                     seedingMethod: String(s?.seedingMethod ?? "auto_rating"),
                     numberOfRounds: String(s?.numberOfRounds ?? ""),
-                }));
+                    matchType:
+                        mt === "singles" || mt === "doubles"
+                            ? (mt as "singles" | "doubles")
+                            : undefined,
+                        };
+                    });
             }
         } catch {
             description = raw;
@@ -68,11 +75,18 @@ function parseTournamentStructure(
             try {
                 const parsed = JSON.parse(raw.slice(idx)) as { stages?: CreateTournamentStageValues[] };
                 if (Array.isArray(parsed.stages) && parsed.stages.length > 0) {
-                    stages = parsed.stages.map((s) => ({
+                    stages = parsed.stages.map((s) => {
+                        const mt = typeof s?.matchType === "string" ? s.matchType.trim().toLowerCase() : "";
+                        return {
                         stageFormat: normalizeStageFormat(String(s?.stageFormat ?? "single_elimination")),
                         seedingMethod: String(s?.seedingMethod ?? "auto_rating"),
                         numberOfRounds: String(s?.numberOfRounds ?? ""),
-                    }));
+                        matchType:
+                            mt === "singles" || mt === "doubles"
+                                ? (mt as "singles" | "doubles")
+                                : undefined,
+                        };
+                    });
                 }
             } catch {
                 //
@@ -96,7 +110,7 @@ function buildTournamentInitialData(event: IEventCardProps): CreateTournamentFor
             title: event.title ?? "",
             description,
             eventType: event.isRanked ? "ranked" : "unranked",
-            pointsAvailable: String(event.tournamentPointsAvailable ?? 220),
+            pointsAvailable: String(event.tournamentPointsAvailable ?? 600),
             organizer: "me",
             totalPlayers: String(event.totalParticipants ?? 8),
             location: event.location ?? "",
@@ -197,8 +211,7 @@ export default function EditEventPage() {
         const price = (step1.fee ?? "").trim() === "" ? "0" : step1.fee.trim();
         const capacity = (step1.totalPlayers ?? "").trim() === "" ? null : parseInt(step1.totalPlayers, 10);
         const numCapacity = capacity !== null && !Number.isNaN(capacity) ? capacity : null;
-        const points = (step1.pointsAvailable ?? "").trim() === "" ? null : parseInt(step1.pointsAvailable, 10);
-        const tournamentPoints = points !== null && !Number.isNaN(points) ? points : null;
+        const tournamentPoints = 600;
         const normalizedStages = step2.stages?.length
             ? step2.stages.map((stage) => ({
                   ...stage,

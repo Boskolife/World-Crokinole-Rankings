@@ -44,7 +44,7 @@ const defaultValues: CreateTournamentStep1Values = {
     title: "",
     description: "",
     eventType: "ranked",
-    pointsAvailable: "220",
+    pointsAvailable: "600",
     organizer: "me",
     totalPlayers: "8",
     location: "",

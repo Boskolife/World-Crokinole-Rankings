@@ -65,8 +65,7 @@ export default function CreateTournamentPage() {
         const price = (step1.fee ?? "").trim() === "" ? "0" : step1.fee.trim();
         const capacity = (step1.totalPlayers ?? "").trim() === "" ? null : parseInt(step1.totalPlayers, 10);
         const numCapacity = capacity !== null && !Number.isNaN(capacity) ? capacity : null;
-        const points = (step1.pointsAvailable ?? "").trim() === "" ? null : parseInt(step1.pointsAvailable, 10);
-        const tournamentPoints = points !== null && !Number.isNaN(points) ? points : null;
+        const tournamentPoints = 600;
         const normalizeStageFormat = (value: string): StageFormatValue =>
             "single_elimination";
         const normalizedStages = step2.stages?.length
