@@ -64,6 +64,26 @@ function getRoundsAndSize(
     return { rounds, size };
 }
 
+function getRoundLabel(roundIndex: number, roundCount: number, bracketSize: number): string {
+    if (roundIndex === roundCount - 1) {
+        return "Final";
+    }
+    const playersAtStart = bracketSize / 2 ** roundIndex;
+    if (playersAtStart >= 32) {
+        return `Round of ${playersAtStart}`;
+    }
+    if (playersAtStart === 16) {
+        return "Round of 16";
+    }
+    if (playersAtStart === 8) {
+        return roundIndex === 0 && bracketSize === 8 ? "Round of 8" : "Quarterfinals";
+    }
+    if (playersAtStart === 4) {
+        return "Semifinals";
+    }
+    return `Round of ${playersAtStart}`;
+}
+
 const getCountryFlagUrl = (countryCode: string) =>
     `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
@@ -207,6 +227,19 @@ export function TournamentBracketGrid({
         return cols;
     }, [rounds, size, bracketOrder]);
 
+    const roundLabels = useMemo(
+        () => Array.from({ length: rounds }, (_, i) => getRoundLabel(i, rounds, size)),
+        [rounds, size]
+    );
+
+    const bracketGridTemplateColumns = useMemo(() => {
+        const roundCols = `repeat(${rounds}, minmax(0, 1fr))`;
+        if (winner) {
+            return `${roundCols} minmax(200px, auto)`;
+        }
+        return roundCols;
+    }, [rounds, winner]);
+
     const setPairEl = (roundIndex: number, matchIndex: number) => (el: HTMLDivElement | null) => {
         pairRefs.current[`${roundIndex}-${matchIndex}`] = el;
     };
@@ -274,50 +307,73 @@ export function TournamentBracketGrid({
     return (
         <section className={css.section}>
             <div className={css.container}>
-                <div ref={bracketRef} className={css.bracketWrap}>
-                    <svg className={css.connectorsSvg} aria-hidden>
-                        {connectorPoints.map((pts, i) => (
-                            <polyline
-                                key={i}
-                                points={pts}
-                                fill="none"
-                                stroke="#dee2e6"
-                                strokeWidth="2"
-                                strokeLinecap="square"
-                                strokeLinejoin="miter"
-                            />
+                <div className={css.bracketStack}>
+                    <div
+                        className={css.roundHeaderRow}
+                        style={{ gridTemplateColumns: bracketGridTemplateColumns }}
+                    >
+                        {roundLabels.map((label, i) => (
+                            <div key={i} className={css.roundHeaderCell}>
+                                {label}
+                            </div>
                         ))}
-                    </svg>
+                        {winner && (
+                            <div
+                                className={css.roundHeaderCellChampion}
+                                aria-hidden
+                            />
+                        )}
+                    </div>
 
-                    {roundColumns.map((col) => (
-                        <div key={col.roundIndex} className={css.roundColumn}>
-                            {col.matches.map((slots, mi) => (
-                                <MatchPair
-                                    key={`${col.roundIndex}-${mi}`}
-                                    matchIndex={mi}
-                                    slots={slots}
-                                    playersBySeed={seededPlayers}
-                                    setPairEl={setPairEl(col.roundIndex, mi)}
+                    <div
+                        ref={bracketRef}
+                        className={css.bracketWrap}
+                        style={{ gridTemplateColumns: bracketGridTemplateColumns }}
+                    >
+                        <svg className={css.connectorsSvg} aria-hidden>
+                            {connectorPoints.map((pts, i) => (
+                                <polyline
+                                    key={i}
+                                    points={pts}
+                                    fill="none"
+                                    stroke="#dee2e6"
+                                    strokeWidth="2"
+                                    strokeLinecap="square"
+                                    strokeLinejoin="miter"
                                 />
                             ))}
-                        </div>
-                    ))}
+                        </svg>
 
-                    {winner && (
-                        <div ref={championRef} className={css.championBanner}>
-                            <div className={css.championIconWrap}>
-                                <Image
-                                    src="/images/logo.png"
-                                    alt=""
-                                    width={44}
-                                    height={44}
-                                    className={css.championIcon}
-                                />
+                        {roundColumns.map((col) => (
+                            <div key={col.roundIndex} className={css.roundColumn}>
+                                {col.matches.map((slots, mi) => (
+                                    <MatchPair
+                                        key={`${col.roundIndex}-${mi}`}
+                                        matchIndex={mi}
+                                        slots={slots}
+                                        playersBySeed={seededPlayers}
+                                        setPairEl={setPairEl(col.roundIndex, mi)}
+                                    />
+                                ))}
                             </div>
-                            <span className={css.championLabel}>Champion</span>
-                            <span className={css.championName}>{winner}</span>
-                        </div>
-                    )}
+                        ))}
+
+                        {winner && (
+                            <div ref={championRef} className={css.championBanner}>
+                                <div className={css.championIconWrap}>
+                                    <Image
+                                        src="/images/logo.png"
+                                        alt=""
+                                        width={44}
+                                        height={44}
+                                        className={css.championIcon}
+                                    />
+                                </div>
+                                <span className={css.championLabel}>Champion</span>
+                                <span className={css.championName}>{winner}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </section>

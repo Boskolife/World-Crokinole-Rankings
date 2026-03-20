@@ -23,34 +23,81 @@ $avatar-bg: #737373;
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 24px;
-    overflow-x: auto;
 
     @include media-down(sm) {
         padding: 0 16px;
     }
 }
 
-.bracketWrap {
+$border-round: rgba(0, 40, 75, 0.2);
+
+.bracketStack {
+    --bracket-col-gap: 64px;
+    width: 100%;
     display: flex;
-    align-items: center;
-    gap: 64px;
-    min-width: min-content;
-    position: relative;
+    flex-direction: column;
+    gap: 16px;
 
     @include media-down(lg) {
-        gap: 40px;
+        --bracket-col-gap: 40px;
     }
 
     @include media-down(md) {
-        gap: 24px;
+        --bracket-col-gap: 24px;
     }
+}
+
+.roundHeaderRow {
+    display: grid;
+    align-items: stretch;
+    width: 100%;
+    column-gap: var(--bracket-col-gap);
+    border-top: 1px solid $border-round;
+    border-bottom: 1px solid $border-round;
+    background: #ffffff;
+}
+
+.roundHeaderCell {
+    border-left: 1px solid $border-round;
+    border-right: 1px solid $border-round;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: "Inter", sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #0e0e0e;
+    min-width: 0;
+
+    @include media-down(md) {
+        font-size: 16px;
+        padding: 6px 8px;
+    }
+}
+
+.roundHeaderCellChampion {
+    border-left: 1px solid $border-round;
+    border-right: 1px solid $border-round;
+    min-width: 0;
+}
+
+.bracketWrap {
+    display: grid;
+    align-items: center;
+    width: 100%;
+    column-gap: var(--bracket-col-gap);
+    position: relative;
+    min-height: 0;
 }
 
 .roundColumn {
     display: flex;
     flex-direction: column;
     gap: 30px;
-    flex-shrink: 0;
+    min-width: 0;
     position: relative;
     z-index: 1;
 }
@@ -60,13 +107,9 @@ $avatar-bg: #737373;
     flex-direction: column;
     gap: 8px;
     width: 100%;
-    min-width: 320px;
+    min-width: 0;
     position: relative;
     z-index: 1;
-
-    @include media-down(md) {
-        min-width: 280px;
-    }
 }
 
 .connectorsSvg {
