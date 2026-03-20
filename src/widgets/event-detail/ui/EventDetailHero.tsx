@@ -192,6 +192,9 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
             registerForEvent(eventId, user.id, undefined, totalParticipants ?? undefined).then((ok) => {
                 if (ok) {
                     refetchRegStatus();
+                    window.dispatchEvent(
+                        new CustomEvent("event-registration-updated", { detail: { eventId } })
+                    );
                     router.refresh();
                 } else resetState();
             });

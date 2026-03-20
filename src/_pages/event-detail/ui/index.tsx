@@ -132,6 +132,50 @@ export function EventDetailPage({ id }: EventDetailPageProps) {
         };
     }, [id, isMounted, user?.id]);
 
+    useEffect(() => {
+        const eventId = parseInt(id, 10);
+        if (Number.isNaN(eventId)) return;
+
+        const handler = (ev: CustomEvent<{ eventId: number }>) => {
+            if (ev.detail?.eventId !== eventId) return;
+            void (async () => {
+                try {
+                    const e = await getEventById(eventId);
+                    if (!e) return;
+                    const regs = await getEventRegisteredPlayers(eventId);
+                    const refEnded = (() => {
+                        const ref = e.endDate || e.startDate;
+                        if (!ref) return false;
+                        return new Date(ref) < new Date();
+                    })();
+                    const hasQ =
+                        e.qualifyingHeats?.heats?.length != null && e.qualifyingHeats.heats.length > 0;
+                    let nextPlayersByHeat: IPlayer[][] = [];
+                    let nextHeatResults: EventHeatResultsData | null = null;
+                    if (hasQ && e.qualifyingHeats) {
+                        nextPlayersByHeat = await Promise.all(
+                            e.qualifyingHeats.heats.map((_, i) =>
+                                getEventRegisteredPlayersByHeat(eventId, i + 1)
+                            )
+                        );
+                        if (refEnded) {
+                            nextHeatResults = await getEventHeatResults(eventId);
+                        }
+                    }
+                    setEvent(e);
+                    setRegisteredPlayers(regs);
+                    setPlayersByHeat(nextPlayersByHeat);
+                    setHeatResults(nextHeatResults);
+                } catch {
+                    /* ignore */
+                }
+            })();
+        };
+
+        window.addEventListener("event-registration-updated", handler as EventListener);
+        return () => window.removeEventListener("event-registration-updated", handler as EventListener);
+    }, [id]);
+
     const isEventEnded = useMemo(() => {
         if (!event) return false;
         const ref = event.endDate || event.startDate;
