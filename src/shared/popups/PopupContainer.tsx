@@ -27,6 +27,7 @@ import { RemoveEventParticipantConfirmPopup } from "./remove-event-participant-c
 import { LeaveEventConfirmPopup } from "./leave-event-confirm-popup";
 import { CancelSubscriptionConfirmPopup } from "./cancel-subscription-confirm-popup";
 import { PayEventFeePopup } from "./pay-event-fee-popup";
+import { EditTournamentMatchPopup } from "./edit-tournament-match-popup";
 
 export const PopupContainer: React.FC = () => {
     const { isPopupOpen, openPopups, closeAllPopups } = usePopup();
@@ -77,6 +78,7 @@ export const PopupContainer: React.FC = () => {
                         cn(css.popup_container_no_scroll, css.popup_container_fixed_height),
                     isPopupOpen("view-heat-participants") &&
                         cn(css.popup_container_wide_view_heat, css.popup_container_no_scroll, css.popup_container_fixed_height),
+                    isPopupOpen("edit-tournament-match") && css.popup_container_wide,
                 )}
             >
                 {isPopupOpen("verify") && <VerifyPopup />}
@@ -126,6 +128,9 @@ export const PopupContainer: React.FC = () => {
                     <CancelSubscriptionConfirmPopup />
                 )}
                 {isPopupOpen("pay-event-fee") && <PayEventFeePopup />}
+                {isPopupOpen("edit-tournament-match") && (
+                    <EditTournamentMatchPopup />
+                )}
             </div>
         </div>
     );

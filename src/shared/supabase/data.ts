@@ -9,6 +9,7 @@ import type {
     IRankList,
     IMatchHistory,
     INewsItem,
+    TournamentBracketResultsMap,
 } from "@/shared/types";
 
 function formatEventDate(startDate: string, endDate: string, timezone?: string | null): string {
@@ -121,6 +122,18 @@ const mapEventRowToCard = (event: {
     latitude: event.latitude ?? undefined,
     longitude: event.longitude ?? undefined,
     qualifyingHeats: event.qualifying_heats ?? undefined,
+    tournamentBracketResults: (() => {
+        const raw = (row as Record<string, unknown>).tournament_bracket_results;
+        if (raw == null) return null;
+        if (typeof raw === "string") {
+            try {
+                return JSON.parse(raw) as TournamentBracketResultsMap;
+            } catch {
+                return null;
+            }
+        }
+        return raw as TournamentBracketResultsMap;
+    })(),
 };
 };
 
@@ -172,6 +185,31 @@ export async function getEventById(id: number): Promise<IEventCardProps | null> 
         ...data,
         current_rank: currentRank ?? null,
     });
+}
+
+export async function getTournamentBracketResultsFromSingles(
+    eventId: number
+): Promise<TournamentBracketResultsMap> {
+    const base =
+        typeof window !== "undefined"
+            ? ""
+            : (process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
+                  "http://127.0.0.1:3000");
+    try {
+        const res = await fetch(
+            `${base}/api/tournament-bracket-singles?eventId=${encodeURIComponent(String(eventId))}`,
+            { cache: "no-store" }
+        );
+        if (!res.ok) return {};
+        const json = (await res.json()) as unknown;
+        if (json && typeof json === "object" && !Array.isArray(json)) {
+            return json as TournamentBracketResultsMap;
+        }
+        return {};
+    } catch {
+        return {};
+    }
 }
 
 export async function getFutureEvents(): Promise<IEventCardProps[]> {

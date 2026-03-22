@@ -1,0 +1,402 @@
+@use "@/app/styles/scss-utils/compat-legacy" as *;
+
+$grey-blue: #00284b;
+$gold: #f4b44b;
+$gold-dark: #d48f1f;
+$text: #0e0e0e;
+$muted: #5a5a5a;
+$border-field: #497aa6;
+$border-score: #464646;
+$muted-text: #a5a5a5;
+$border-light: #e6e6e6;
+
+.root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.closeIcon {
+    width: 20px;
+    height: 20px;
+    color: $grey-blue;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    color: $grey-blue;
+
+    &:hover {
+        opacity: 0.85;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $grey-blue;
+        outline-offset: 2px;
+    }
+}
+
+.title {
+    margin: 0;
+    padding-right: 48px;
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.25;
+    color: $grey-blue;
+}
+
+.row2 {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+
+    @include media-down(sm) {
+        flex-direction: column;
+    }
+}
+
+.fieldCol {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fieldLabel {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $text;
+}
+
+.dropdownWrap {
+    width: 100%;
+}
+
+.ddBtn {
+    padding: 16px 20px !important;
+    border-radius: 8px !important;
+    border-color: $border-field !important;
+}
+
+.dateCenter {
+    text-align: center;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $muted;
+}
+
+.heroScores {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.heroRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.heroSide {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.heroSideLeft {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-left: 3px solid $gold;
+    padding-left: 12px;
+    justify-content: flex-end;
+}
+
+.heroSideRight {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-right: 3px solid $border-light;
+    padding-right: 12px;
+    justify-content: flex-start;
+}
+
+.heroNameCol {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 0;
+}
+
+.heroNameColRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.heroName {
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.35;
+    color: $text;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.heroNameMuted {
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.35;
+    color: $muted-text;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.seedBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    min-width: 38px;
+    padding: 4px 8px;
+    border: 1px solid $gold;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    line-height: 1.25;
+    color: $text;
+}
+
+.seedBadgeMuted {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    min-width: 38px;
+    padding: 4px 8px;
+    border: 1px solid $border-light;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    line-height: 1.25;
+    color: $muted-text;
+}
+
+.flagWrap {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.flagWrapMuted {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 0.3;
+}
+
+.flagImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.scoreBoxLg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 73px;
+    height: 58px;
+    padding: 8px 6px 8px 8px;
+    border: 1px solid $border-score;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.scoreInputLg {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: $text;
+    text-align: center;
+    appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
+    }
+}
+
+.detailRows {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.detailRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+
+.detailLabel {
+    flex: 1;
+    text-align: center;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $text;
+}
+
+.scoreBoxSm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 65px;
+    height: 32px;
+    padding: 4px 4px 4px 6px;
+    border: 1px solid $border-score;
+    border-radius: 4px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.scoreInputSm {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.35;
+    color: $text;
+    text-align: center;
+    appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
+    }
+}
+
+.actions {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+
+    @include media-down(sm) {
+        flex-direction: column;
+    }
+}
+
+.btnCancel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 20px;
+    border-radius: 120px;
+    border: 1px solid $gold-dark;
+    background: var(--white);
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $gold-dark;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba($gold-dark, 0.06);
+    }
+}
+
+.btnSave {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 20px;
+    border-radius: 120px;
+    border: 1px solid $gold;
+    background: $gold;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: #ffffff;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        filter: brightness(1.03);
+    }
+
+    &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+}
+
+.error {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: #c62828;
+}

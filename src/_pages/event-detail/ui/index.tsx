@@ -16,8 +16,9 @@ import {
     getEventRegisteredPlayersByHeat,
     getEventHeatResults,
     getUpcomingEventsAtLocation,
+    getTournamentBracketResultsFromSingles,
 } from "@/shared/supabase/data";
-import type { IEventCardProps, IPlayer } from "@/shared/types";
+import type { IEventCardProps, IPlayer, TournamentBracketResultsMap } from "@/shared/types";
 import type { EventHeatResultsData } from "@/shared/supabase/data";
 import { useAuth } from "@/shared/hooks/use-auth";
 
@@ -47,6 +48,7 @@ export function EventDetailPage({ id }: EventDetailPageProps) {
     const [upcomingAtLocation, setUpcomingAtLocation] = useState<IEventCardProps[]>([]);
     const [playersByHeat, setPlayersByHeat] = useState<IPlayer[][]>([]);
     const [heatResults, setHeatResults] = useState<EventHeatResultsData | null>(null);
+    const [singlesBracketMap, setSinglesBracketMap] = useState<TournamentBracketResultsMap>({});
 
     useEffect(() => {
         let alive = true;
@@ -117,6 +119,11 @@ export function EventDetailPage({ id }: EventDetailPageProps) {
                 setUpcomingAtLocation(upcoming);
                 setPlayersByHeat(nextPlayersByHeat);
                 setHeatResults(nextHeatResults);
+                if (isTournament) {
+                    setSinglesBracketMap(await getTournamentBracketResultsFromSingles(eventId));
+                } else {
+                    setSinglesBracketMap({});
+                }
                 setLoading(false);
             } catch {
                 if (!alive) return;
@@ -166,6 +173,11 @@ export function EventDetailPage({ id }: EventDetailPageProps) {
                     setRegisteredPlayers(regs);
                     setPlayersByHeat(nextPlayersByHeat);
                     setHeatResults(nextHeatResults);
+                    if ((e.format ?? "").toLowerCase() === "tournament") {
+                        setSinglesBracketMap(await getTournamentBracketResultsFromSingles(eventId));
+                    } else {
+                        setSinglesBracketMap({});
+                    }
                 } catch {
                     /* ignore */
                 }
@@ -203,6 +215,13 @@ export function EventDetailPage({ id }: EventDetailPageProps) {
             registeredPlayers.reduce((sum, p) => sum + (p.rating ?? 0), 0) / registeredPlayers.length
         );
     }, [event, registeredPlayers]);
+
+    const mergedTournamentBracket = useMemo(() => {
+        return {
+            ...(event?.tournamentBracketResults ?? {}),
+            ...singlesBracketMap,
+        };
+    }, [event?.tournamentBracketResults, singlesBracketMap]);
 
     if (!isMounted || loading) {
         return <div>Loading...</div>;
@@ -250,6 +269,13 @@ export function EventDetailPage({ id }: EventDetailPageProps) {
                     players={registeredPlayers}
                     totalParticipants={event.totalParticipants}
                     winner={event.winner}
+                    eventId={event.id}
+                    isRanked={event.isRanked}
+                    tournamentBracketResults={mergedTournamentBracket}
+                    eventStartDate={event.startDate ?? null}
+                    canEditMatches={Boolean(
+                        user?.id && event.createdBy === user.id
+                    )}
                 />
             )}
             <EventRegisteredPlayers

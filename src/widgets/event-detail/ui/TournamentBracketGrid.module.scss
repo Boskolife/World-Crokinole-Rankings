@@ -196,6 +196,10 @@ $border-round: rgba(0, 40, 75, 0.2);
     padding: 0;
 }
 
+.bracketWrapFiltered {
+    align-items: flex-start;
+}
+
 .roundColumnWithChampion {
     position: relative;
     min-width: 0;
@@ -298,6 +302,44 @@ $border-round: rgba(0, 40, 75, 0.2);
     min-width: 0;
     position: relative;
     z-index: 1;
+}
+
+.matchup {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.editResultsLink {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: $grey-blue;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+        color: $gold-dark;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $grey-blue;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
 }
 
 .pair {

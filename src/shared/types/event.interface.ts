@@ -1,3 +1,5 @@
+import type { TournamentBracketResultsMap } from "./tournament.interface";
+
 export interface QualifyingHeatSlot {
     start: string;
     end: string;
@@ -33,4 +35,5 @@ export interface IEventCardProps {
     strengthOfField?: number;
     tournamentPointsAvailable?: number;
     qualifyingHeats?: QualifyingHeatsData | null;
+    tournamentBracketResults?: TournamentBracketResultsMap | null;
 }
