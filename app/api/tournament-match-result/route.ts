@@ -58,17 +58,11 @@ function roundStoredRating(n: number): number {
     return Number.isFinite(x) ? x : 1500;
 }
 
-async function refreshRankingsOrError(admin: SupabaseClient): Promise<NextResponse | null> {
-    const { error } = await admin.rpc("refresh_rankings");
+async function refreshRankingsBestEffort(admin: SupabaseClient): Promise<string | null> {
+    const { error } = await admin.rpc("refresh_rankings", {});
     if (error) {
-        console.error("refresh_rankings:", error.message);
-        return NextResponse.json(
-            {
-                error: "Match saved, but rebuilding the public rankings table failed.",
-                details: error.message,
-            },
-            { status: 500 }
-        );
+        console.error("refresh_rankings RPC failed:", error.message, error);
+        return error.message ?? "refresh_rankings failed";
     }
     return null;
 }
@@ -457,9 +451,14 @@ export async function POST(request: Request) {
                 );
             }
 
-            const rankErr = await refreshRankingsOrError(admin);
-            if (rankErr) return rankErr;
-            return NextResponse.json({ ok: true, payload });
+            const rankingsWarn = await refreshRankingsBestEffort(admin);
+            return NextResponse.json({
+                ok: true,
+                payload,
+                ...(rankingsWarn
+                    ? { rankingsRefreshFailed: true as const, rankingsError: rankingsWarn }
+                    : {}),
+            });
         }
 
         const { data: existingSingles } = await admin
@@ -603,9 +602,14 @@ export async function POST(request: Request) {
             );
         }
 
-        const rankErrSingles = await refreshRankingsOrError(admin);
-        if (rankErrSingles) return rankErrSingles;
-        return NextResponse.json({ ok: true, payload });
+        const rankingsWarnS = await refreshRankingsBestEffort(admin);
+        return NextResponse.json({
+            ok: true,
+            payload,
+            ...(rankingsWarnS
+                ? { rankingsRefreshFailed: true as const, rankingsError: rankingsWarnS }
+                : {}),
+        });
     }
 
     const prevRaw = (eventRow as { tournament_bracket_results?: unknown }).tournament_bracket_results;

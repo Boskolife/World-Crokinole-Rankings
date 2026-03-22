@@ -400,11 +400,18 @@ function MatchForm({
                     totalP2: totP2,
                 }),
             });
-            const json = (await res.json().catch(() => ({}))) as { error?: string };
+            const json = (await res.json().catch(() => ({}))) as {
+                error?: string;
+                rankingsRefreshFailed?: boolean;
+                rankingsError?: string;
+            };
             if (!res.ok) {
                 setError(json.error ?? "Save failed");
                 setSaving(false);
                 return;
+            }
+            if (json.rankingsRefreshFailed && json.rankingsError) {
+                console.warn("Rankings table was not rebuilt:", json.rankingsError);
             }
             setSaving(false);
             onClose();
