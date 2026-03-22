@@ -565,6 +565,65 @@ export const ProfileDetails: React.FC = () => {
                                         {normalizedKingdom}
                                     </p>
                                 </div>
+                                {player &&
+                                    (player.singlesPlayed != null || player.doublesPlayed != null) && (
+                                    <>
+                                        <div className={css.profile_details_right_info_item}>
+                                            <span className={css.profile_details_right_info_item_label}>
+                                                Singles (W–L)
+                                            </span>
+                                            <p className={css.profile_details_right_info_item_value}>
+                                                {player.singlesWon != null && player.singlesPlayed != null
+                                                    ? `${player.singlesWon}–${player.singlesPlayed - player.singlesWon}`
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                        <div className={css.profile_details_right_info_item}>
+                                            <span className={css.profile_details_right_info_item_label}>
+                                                Singles Win %
+                                            </span>
+                                            <p className={css.profile_details_right_info_item_value}>
+                                                {player.winPctSingles ?? "—"}
+                                            </p>
+                                        </div>
+                                        <div className={css.profile_details_right_info_item}>
+                                            <span className={css.profile_details_right_info_item_label}>
+                                                Doubles (W–L)
+                                            </span>
+                                            <p className={css.profile_details_right_info_item_value}>
+                                                {player.doublesWon != null && player.doublesPlayed != null
+                                                    ? `${player.doublesWon}–${player.doublesPlayed - player.doublesWon}`
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                        <div className={css.profile_details_right_info_item}>
+                                            <span className={css.profile_details_right_info_item_label}>
+                                                Doubles Win %
+                                            </span>
+                                            <p className={css.profile_details_right_info_item_value}>
+                                                {player.winPctDoubles ?? "—"}
+                                            </p>
+                                        </div>
+                                        <div className={css.profile_details_right_info_item}>
+                                            <span className={css.profile_details_right_info_item_label}>
+                                                Total (W–L)
+                                            </span>
+                                            <p className={css.profile_details_right_info_item_value}>
+                                                {player.totalWon != null && player.totalPlayed != null
+                                                    ? `${player.totalWon}–${player.totalPlayed - player.totalWon}`
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                        <div className={css.profile_details_right_info_item}>
+                                            <span className={css.profile_details_right_info_item_label}>
+                                                Total Win %
+                                            </span>
+                                            <p className={css.profile_details_right_info_item_value}>
+                                                {player.winPctTotal ?? "—"}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </>
                 </div>

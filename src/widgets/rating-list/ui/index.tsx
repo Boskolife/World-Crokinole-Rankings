@@ -10,14 +10,30 @@ import type { IRatingHistoryFromSinglesDoubles } from "@/shared/supabase/data";
 
 interface RatingListProps {
     ratingData?: IRatingHistoryFromSinglesDoubles | null;
+    isLoading?: boolean;
 }
 
-export const RatingList: React.FC<RatingListProps> = ({ ratingData }) => {
+export const RatingList: React.FC<RatingListProps> = ({ ratingData, isLoading = false }) => {
     const [selectedType, setSelectedType] = useState<string>("Singles");
     const [selectedPeriod, setSelectedPeriod] = useState<string>("both");
 
     const periodOptions = useMemo(() => getRatingListPeriodOptions(), []);
     const periodPlaceholder = periodOptions[0]?.label ?? "Last 24 months";
+
+    if (isLoading) {
+        return (
+            <div className={css.rating_list}>
+                <div className="container">
+                    <div className={css.rating_list_head}>
+                        <h3 className={css.rating_list_title}>My rating list (24 months)</h3>
+                    </div>
+                    <p className={css.rating_list_description} style={{ opacity: 0.7 }}>
+                        Loading chart…
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     const source: IRatingHistoryFromSinglesDoubles = ratingData ?? (ratingChartData as unknown as IRatingHistoryFromSinglesDoubles);
     const currentData =

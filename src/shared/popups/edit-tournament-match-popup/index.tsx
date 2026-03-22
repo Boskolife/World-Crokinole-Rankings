@@ -7,6 +7,8 @@ import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import { CustomRoundedDropdown } from "@/shared/ui";
 import { usePopup } from "@/shared/contexts/popup-context";
+import { supabase } from "@/shared/supabase/client";
+import { notifyProfileUpdated } from "@/shared/hooks/use-user-profile";
 import type { IPlayer, TournamentMatchResultPayload } from "@/shared/types";
 import css from "./EditTournamentMatchPopup.module.scss";
 import popupBase from "../styles.module.scss";
@@ -406,6 +408,8 @@ function MatchForm({
             }
             setSaving(false);
             onClose();
+            const { data: auth } = await supabase.auth.getUser();
+            if (auth?.user?.id) notifyProfileUpdated(auth.user.id);
             window.dispatchEvent(
                 new CustomEvent("event-registration-updated", {
                     detail: { eventId: data.eventId },

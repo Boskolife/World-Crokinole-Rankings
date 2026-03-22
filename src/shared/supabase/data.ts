@@ -2405,6 +2405,15 @@ const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 
 type MatchRatingPoint = { date: string; rating: number };
 
+function calendarYearMonthKey(dateStr: string): string | null {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr.trim());
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || mo < 1 || mo > 12) return null;
+    return `${y}-${mo - 1}`;
+}
+
 function buildRatingSeriesFromMatches(
     periodStartDate: string,
     initialRating: number,
@@ -2418,14 +2427,13 @@ function buildRatingSeriesFromMatches(
         points.push({ date: m.date, rating: runningRating });
     }
 
-    const periodStart = new Date(periodStartDate + "T12:00:00");
+    const periodKey = calendarYearMonthKey(periodStartDate);
     const byYearMonth = new Map<string, number>();
     let lastRating = initialRating;
     for (const { date, rating } of points) {
-        const d = new Date(date + "T12:00:00");
         lastRating = rating;
-        const key = `${d.getFullYear()}-${d.getMonth()}`;
-        byYearMonth.set(key, rating);
+        const key = calendarYearMonthKey(date);
+        if (key) byYearMonth.set(key, rating);
     }
 
     const currentValue = Math.round(lastRating);
@@ -2452,12 +2460,20 @@ function buildRatingSeriesFromMatches(
         lastYear: lastYearRatings[i] ?? 0,
     }));
 
-    const firstMonthInWindow = byYearMonth.get(`${periodStart.getFullYear()}-${periodStart.getMonth()}`);
+    const firstMonthInWindow = periodKey ? byYearMonth.get(periodKey) : undefined;
     const firstMonthRating = firstMonthInWindow ?? initialRating;
     const diff = Math.round(currentValue - firstMonthRating);
     const change = diff >= 0 ? `+${diff}` : String(diff);
 
     return { ratingData, currentValue, change };
+}
+
+export function createEmptyRatingHistory(): IRatingHistoryFromSinglesDoubles {
+    const line = buildRatingSeriesFromMatches(`${new Date().getFullYear()}-01-01`, 1500, []);
+    return {
+        singles: { ...line, matchCount: 0 },
+        doubles: { ...line, matchCount: 0 },
+    };
 }
 
 export async function getRatingHistoryFromSinglesAndDoubles(playerId: string): Promise<IRatingHistoryFromSinglesDoubles> {
@@ -2471,7 +2487,7 @@ export async function getRatingHistoryFromSinglesAndDoubles(playerId: string): P
 
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - 24);
-    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, "0")}-${String(cutoff.getDate()).padStart(2, "0")}`;
 
     const { data: playerRow } = await supabase
         .from("players")

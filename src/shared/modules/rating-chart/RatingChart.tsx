@@ -60,7 +60,9 @@ export const RatingChart: React.FC<IRatingChartProps> = ({
     className,
     periodFilter = "both",
 }) => {
-    const isPositive = Number(change) >= 0;
+    const changeParsed = /^([+-]?\d+(?:\.\d+)?)/.exec(String(change).trim());
+    const changeNum = changeParsed ? Number(changeParsed[1]) : 0;
+    const isPositive = !Number.isNaN(changeNum) && changeNum >= 0;
     const { domain, ticks } = getYDomainAndTicks(data, periodFilter);
     const showThisYear = periodFilter === "both" || periodFilter === "thisYear";
     const showLastYear = periodFilter === "both" || periodFilter === "lastYear";

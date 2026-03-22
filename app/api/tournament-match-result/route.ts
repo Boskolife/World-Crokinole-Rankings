@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/shared/supabase/server";
 import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js";
+import { recomputePlayerAggregatesFromMatches } from "@/shared/lib/recompute-player-aggregates-from-matches";
 import type {
     TournamentBracketResultsMap,
     TournamentMatchResultPayload,
@@ -52,83 +53,24 @@ type PlayerRatingRow = {
     total_played?: number | null;
 };
 
-type SinglesStatDelta = { sp: number; sw: number; tp: number; tw: number };
-
-function singlesMatchStatContribution(
-    winner: "P1" | "P2" | "TIE",
-    slot: "p1" | "p2"
-): SinglesStatDelta {
-    const out: SinglesStatDelta = { sp: 1, sw: 0, tp: 1, tw: 0 };
-    if (winner === "P1" && slot === "p1") {
-        out.sw = 1;
-        out.tw = 1;
-    } else if (winner === "P2" && slot === "p2") {
-        out.sw = 1;
-        out.tw = 1;
-    }
-    return out;
-}
-
-function negateStatDelta(d: SinglesStatDelta): SinglesStatDelta {
-    return { sp: -d.sp, sw: -d.sw, tp: -d.tp, tw: -d.tw };
-}
-
-function addStatDeltaToMap(map: Map<string, SinglesStatDelta>, playerRowId: string, d: SinglesStatDelta) {
-    if (!playerRowId) return;
-    const cur = map.get(playerRowId) ?? { sp: 0, sw: 0, tp: 0, tw: 0 };
-    cur.sp += d.sp;
-    cur.sw += d.sw;
-    cur.tp += d.tp;
-    cur.tw += d.tw;
-    map.set(playerRowId, cur);
-}
-
-type DoublesStatDelta = { dp: number; dw: number; tp: number; tw: number };
-
-function doublesMatchStatContribution(
-    winner: "T1" | "T2" | "TIE",
-    slot: "t1a" | "t1b" | "t2a" | "t2b"
-): DoublesStatDelta {
-    const out: DoublesStatDelta = { dp: 1, dw: 0, tp: 1, tw: 0 };
-    if (winner === "T1" && (slot === "t1a" || slot === "t1b")) {
-        out.dw = 1;
-        out.tw = 1;
-    } else if (winner === "T2" && (slot === "t2a" || slot === "t2b")) {
-        out.dw = 1;
-        out.tw = 1;
-    }
-    return out;
-}
-
-function negateDoublesStatDelta(d: DoublesStatDelta): DoublesStatDelta {
-    return { dp: -d.dp, dw: -d.dw, tp: -d.tp, tw: -d.tw };
-}
-
-function addDoublesStatDeltaToMap(
-    map: Map<string, DoublesStatDelta>,
-    playerRowId: string,
-    d: DoublesStatDelta
-) {
-    if (!playerRowId) return;
-    const cur = map.get(playerRowId) ?? { dp: 0, dw: 0, tp: 0, tw: 0 };
-    cur.dp += d.dp;
-    cur.dw += d.dw;
-    cur.tp += d.tp;
-    cur.tw += d.tw;
-    map.set(playerRowId, cur);
-}
-
-function formatWinPct(won: number, played: number): string {
-    if (played <= 0) return "0%";
-    const pct = (won / played) * 100;
-    const rounded = Math.round(pct * 10) / 10;
-    const s = rounded % 1 === 0 ? String(rounded) : rounded.toFixed(1);
-    return `${s}%`;
-}
-
 function roundStoredRating(n: number): number {
     const x = Math.round(Number(n));
     return Number.isFinite(x) ? x : 1500;
+}
+
+async function refreshRankingsOrError(admin: SupabaseClient): Promise<NextResponse | null> {
+    const { error } = await admin.rpc("refresh_rankings");
+    if (error) {
+        console.error("refresh_rankings:", error.message);
+        return NextResponse.json(
+            {
+                error: "Match saved, but rebuilding the public rankings table failed.",
+                details: error.message,
+            },
+            { status: 500 }
+        );
+    }
+    return null;
 }
 
 async function updatePlayerBracketRatings(
@@ -156,110 +98,6 @@ async function updatePlayerBracketRatings(
     return { error };
 }
 
-async function patchPlayerRowAfterBracketMatch(
-    admin: SupabaseClient,
-    playerRowId: string,
-    patch: {
-        rating: number;
-        singles_won: number;
-        singles_played: number;
-        total_won: number;
-        total_played: number;
-        win_pct_singles: string;
-        win_pct_total: string;
-    }
-): Promise<{ error: { message: string; code?: string } | null }> {
-    const r = roundStoredRating(patch.rating);
-    const full = {
-        rating: r,
-        singles_rating: r,
-        singles_won: patch.singles_won,
-        singles_played: patch.singles_played,
-        total_won: patch.total_won,
-        total_played: patch.total_played,
-        win_pct_singles: patch.win_pct_singles,
-        win_pct_total: patch.win_pct_total,
-    };
-    let { error } = await admin.from("players").update(full).eq("id", playerRowId);
-    if (error) {
-        const msg = (error.message ?? "").toLowerCase();
-        if (msg.includes("win_pct")) {
-            const noPct = {
-                rating: r,
-                singles_rating: r,
-                singles_won: patch.singles_won,
-                singles_played: patch.singles_played,
-                total_won: patch.total_won,
-                total_played: patch.total_played,
-            };
-            ({ error } = await admin.from("players").update(noPct).eq("id", playerRowId));
-        }
-    }
-    if (error) {
-        const msg = (error.message ?? "").toLowerCase();
-        const code = (error as { code?: string }).code;
-        const statsMissing =
-            code === "42703" ||
-            code === "PGRST204" ||
-            msg.includes("singles_won") ||
-            msg.includes("singles_played") ||
-            msg.includes("total_won") ||
-            msg.includes("total_played");
-        if (statsMissing) {
-            return updatePlayerBracketRatings(admin, playerRowId, patch.rating);
-        }
-    }
-    return { error };
-}
-
-async function patchPlayerStatsOnlyAfterBracket(
-    admin: SupabaseClient,
-    playerRowId: string,
-    patch: {
-        singles_won: number;
-        singles_played: number;
-        total_won: number;
-        total_played: number;
-        win_pct_singles: string;
-        win_pct_total: string;
-    }
-): Promise<{ error: { message: string; code?: string } | null }> {
-    const full = {
-        singles_won: patch.singles_won,
-        singles_played: patch.singles_played,
-        total_won: patch.total_won,
-        total_played: patch.total_played,
-        win_pct_singles: patch.win_pct_singles,
-        win_pct_total: patch.win_pct_total,
-    };
-    let { error } = await admin.from("players").update(full).eq("id", playerRowId);
-    if (error) {
-        const msg = (error.message ?? "").toLowerCase();
-        if (msg.includes("win_pct")) {
-            const noPct = {
-                singles_won: patch.singles_won,
-                singles_played: patch.singles_played,
-                total_won: patch.total_won,
-                total_played: patch.total_played,
-            };
-            ({ error } = await admin.from("players").update(noPct).eq("id", playerRowId));
-        }
-    }
-    if (error) {
-        const msg = (error.message ?? "").toLowerCase();
-        const code = (error as { code?: string }).code;
-        if (
-            code === "42703" ||
-            code === "PGRST204" ||
-            msg.includes("singles_won") ||
-            msg.includes("singles_played")
-        ) {
-            return { error: null };
-        }
-    }
-    return { error };
-}
-
 async function updatePlayerDoublesBracketRatings(
     admin: SupabaseClient,
     playerRowId: string,
@@ -280,60 +118,6 @@ async function updatePlayerDoublesBracketRatings(
             (msg.includes("column") && (msg.includes("does not exist") || msg.includes("unknown")));
         if (noDoublesCol) {
             ({ error } = await admin.from("players").update({ rating: r }).eq("id", playerRowId));
-        }
-    }
-    return { error };
-}
-
-async function patchPlayerRowAfterBracketDoublesMatch(
-    admin: SupabaseClient,
-    playerRowId: string,
-    patch: {
-        doubles_rating: number;
-        doubles_won: number;
-        doubles_played: number;
-        total_won: number;
-        total_played: number;
-        win_pct_doubles: string;
-        win_pct_total: string;
-    }
-): Promise<{ error: { message: string; code?: string } | null }> {
-    const r = roundStoredRating(patch.doubles_rating);
-    const full = {
-        doubles_rating: r,
-        doubles_won: patch.doubles_won,
-        doubles_played: patch.doubles_played,
-        total_won: patch.total_won,
-        total_played: patch.total_played,
-        win_pct_doubles: patch.win_pct_doubles,
-        win_pct_total: patch.win_pct_total,
-    };
-    let { error } = await admin.from("players").update(full).eq("id", playerRowId);
-    if (error) {
-        const msg = (error.message ?? "").toLowerCase();
-        if (msg.includes("win_pct")) {
-            const noPct = {
-                doubles_rating: r,
-                doubles_won: patch.doubles_won,
-                doubles_played: patch.doubles_played,
-                total_won: patch.total_won,
-                total_played: patch.total_played,
-            };
-            ({ error } = await admin.from("players").update(noPct).eq("id", playerRowId));
-        }
-    }
-    if (error) {
-        const msg = (error.message ?? "").toLowerCase();
-        const code = (error as { code?: string }).code;
-        const statsMissing =
-            code === "42703" ||
-            code === "PGRST204" ||
-            msg.includes("doubles_won") ||
-            msg.includes("doubles_played") ||
-            msg.includes("total_won") ||
-            msg.includes("total_played");
-        if (statsMissing) {
-            return updatePlayerDoublesBracketRatings(admin, playerRowId, patch.doubles_rating);
         }
     }
     return { error };
@@ -652,115 +436,29 @@ export async function POST(request: Request) {
                 }
             }
 
-            const statAdjustmentsD = new Map<string, DoublesStatDelta>();
+            const affectedDoubles = new Set<string>([id1, id2, id3, id4]);
             if (existingDblId != null && Number.isFinite(existingDblId)) {
-                const prevRow = existingDoubles as {
+                const prD = existingDoubles as {
                     player1_id?: string | null;
                     player2_id?: string | null;
                     player3_id?: string | null;
                     player4_id?: string | null;
-                    winner?: string | null;
                 };
-                const ow = prevRow.winner;
-                if (ow === "T1" || ow === "T2" || ow === "TIE") {
-                    addDoublesStatDeltaToMap(
-                        statAdjustmentsD,
-                        String(prevRow.player1_id ?? ""),
-                        negateDoublesStatDelta(doublesMatchStatContribution(ow, "t1a"))
-                    );
-                    addDoublesStatDeltaToMap(
-                        statAdjustmentsD,
-                        String(prevRow.player2_id ?? ""),
-                        negateDoublesStatDelta(doublesMatchStatContribution(ow, "t1b"))
-                    );
-                    addDoublesStatDeltaToMap(
-                        statAdjustmentsD,
-                        String(prevRow.player3_id ?? ""),
-                        negateDoublesStatDelta(doublesMatchStatContribution(ow, "t2a"))
-                    );
-                    addDoublesStatDeltaToMap(
-                        statAdjustmentsD,
-                        String(prevRow.player4_id ?? ""),
-                        negateDoublesStatDelta(doublesMatchStatContribution(ow, "t2b"))
-                    );
+                for (const x of [prD.player1_id, prD.player2_id, prD.player3_id, prD.player4_id]) {
+                    if (x) affectedDoubles.add(String(x));
                 }
             }
-            addDoublesStatDeltaToMap(
-                statAdjustmentsD,
-                id1,
-                doublesMatchStatContribution(winnerD, "t1a")
-            );
-            addDoublesStatDeltaToMap(
-                statAdjustmentsD,
-                id2,
-                doublesMatchStatContribution(winnerD, "t1b")
-            );
-            addDoublesStatDeltaToMap(
-                statAdjustmentsD,
-                id3,
-                doublesMatchStatContribution(winnerD, "t2a")
-            );
-            addDoublesStatDeltaToMap(
-                statAdjustmentsD,
-                id4,
-                doublesMatchStatContribution(winnerD, "t2b")
-            );
-
-            const newRatingByPid = new Map<string, number>([
-                [id1, newRT1],
-                [id2, newRT2],
-                [id3, newRT3],
-                [id4, newRT4],
-            ]);
-
-            for (const [pid, delta] of statAdjustmentsD) {
-                if (!pid) continue;
-                const { data: prow } = await admin
-                    .from("players")
-                    .select(
-                        "rating, doubles_rating, doubles_won, doubles_played, total_won, total_played"
-                    )
-                    .eq("id", pid)
-                    .maybeSingle();
-                if (!prow) continue;
-                const pr = prow as {
-                    rating?: number | null;
-                    doubles_rating?: number | null;
-                    doubles_won?: number | null;
-                    doubles_played?: number | null;
-                    total_won?: number | null;
-                    total_played?: number | null;
-                };
-                const curDw = Number(pr.doubles_won ?? 0);
-                const curDp = Number(pr.doubles_played ?? 0);
-                const curTw = Number(pr.total_won ?? 0);
-                const curTp = Number(pr.total_played ?? 0);
-                const newDw = Math.max(0, curDw + delta.dw);
-                const newDp = Math.max(0, curDp + delta.dp);
-                const newTw = Math.max(0, curTw + delta.tw);
-                const newTp = Math.max(0, curTp + delta.tp);
-                const wpd = formatWinPct(newDw, newDp);
-                const wpt = formatWinPct(newTw, newTp);
-                const nr = newRatingByPid.get(pid);
-                if (nr == null) continue;
-                const r = await patchPlayerRowAfterBracketDoublesMatch(admin, pid, {
-                    doubles_rating: nr,
-                    doubles_won: newDw,
-                    doubles_played: newDp,
-                    total_won: newTw,
-                    total_played: newTp,
-                    win_pct_doubles: wpd,
-                    win_pct_total: wpt,
-                });
-                if (r.error) {
-                    console.error("players doubles patch", pid, r.error.message);
-                    return NextResponse.json(
-                        { error: "Failed to update ratings" },
-                        { status: 500 }
-                    );
-                }
+            const recD = await recomputePlayerAggregatesFromMatches(admin, [...affectedDoubles]);
+            if (recD) {
+                console.error("recomputePlayerAggregatesFromMatches", recD.error);
+                return NextResponse.json(
+                    { error: "Failed to sync player statistics after the match." },
+                    { status: 500 }
+                );
             }
 
+            const rankErr = await refreshRankingsOrError(admin);
+            if (rankErr) return rankErr;
             return NextResponse.json({ ok: true, payload });
         }
 
@@ -887,100 +585,26 @@ export async function POST(request: Request) {
             }
         }
 
-        const statAdjustments = new Map<string, SinglesStatDelta>();
+        const affectedSingles = new Set<string>([player1RowId, player2RowId]);
         if (existingId != null && Number.isFinite(existingId)) {
-            const prevRow = existingSingles as {
+            const prS = existingSingles as {
                 player1_id?: string | null;
                 player2_id?: string | null;
-                winner?: string | null;
             };
-            const ow = prevRow.winner;
-            if (ow === "P1" || ow === "P2" || ow === "TIE") {
-                addStatDeltaToMap(
-                    statAdjustments,
-                    String(prevRow.player1_id ?? ""),
-                    negateStatDelta(singlesMatchStatContribution(ow, "p1"))
-                );
-                addStatDeltaToMap(
-                    statAdjustments,
-                    String(prevRow.player2_id ?? ""),
-                    negateStatDelta(singlesMatchStatContribution(ow, "p2"))
-                );
-            }
+            if (prS.player1_id) affectedSingles.add(String(prS.player1_id));
+            if (prS.player2_id) affectedSingles.add(String(prS.player2_id));
         }
-        addStatDeltaToMap(
-            statAdjustments,
-            player1RowId,
-            singlesMatchStatContribution(winner, "p1")
-        );
-        addStatDeltaToMap(
-            statAdjustments,
-            player2RowId,
-            singlesMatchStatContribution(winner, "p2")
-        );
-
-        for (const [pid, delta] of statAdjustments) {
-            if (!pid) continue;
-            const { data: prow } = await admin
-                .from("players")
-                .select("rating, singles_rating, singles_won, singles_played, total_won, total_played")
-                .eq("id", pid)
-                .maybeSingle();
-            if (!prow) continue;
-            const pr = prow as PlayerRatingRow;
-            const curSw = Number(pr.singles_won ?? 0);
-            const curSp = Number(pr.singles_played ?? 0);
-            const curTw = Number(pr.total_won ?? 0);
-            const curTp = Number(pr.total_played ?? 0);
-            const newSw = Math.max(0, curSw + delta.sw);
-            const newSp = Math.max(0, curSp + delta.sp);
-            const newTw = Math.max(0, curTw + delta.tw);
-            const newTp = Math.max(0, curTp + delta.tp);
-            const wps = formatWinPct(newSw, newSp);
-            const wpt = formatWinPct(newTw, newTp);
-
-            const isFinalist1 = pid === player1RowId;
-            const isFinalist2 = pid === player2RowId;
-            let patchErr: { message: string; code?: string } | null = null;
-            if (isFinalist1) {
-                const r = await patchPlayerRowAfterBracketMatch(admin, pid, {
-                    rating: newR1,
-                    singles_won: newSw,
-                    singles_played: newSp,
-                    total_won: newTw,
-                    total_played: newTp,
-                    win_pct_singles: wps,
-                    win_pct_total: wpt,
-                });
-                patchErr = r.error;
-            } else if (isFinalist2) {
-                const r = await patchPlayerRowAfterBracketMatch(admin, pid, {
-                    rating: newR2,
-                    singles_won: newSw,
-                    singles_played: newSp,
-                    total_won: newTw,
-                    total_played: newTp,
-                    win_pct_singles: wps,
-                    win_pct_total: wpt,
-                });
-                patchErr = r.error;
-            } else {
-                const r = await patchPlayerStatsOnlyAfterBracket(admin, pid, {
-                    singles_won: newSw,
-                    singles_played: newSp,
-                    total_won: newTw,
-                    total_played: newTp,
-                    win_pct_singles: wps,
-                    win_pct_total: wpt,
-                });
-                patchErr = r.error;
-            }
-            if (patchErr) {
-                console.error("players patch", pid, patchErr.message);
-                return NextResponse.json({ error: "Failed to update ratings" }, { status: 500 });
-            }
+        const recS = await recomputePlayerAggregatesFromMatches(admin, [...affectedSingles]);
+        if (recS) {
+            console.error("recomputePlayerAggregatesFromMatches", recS.error);
+            return NextResponse.json(
+                { error: "Failed to sync player statistics after the match." },
+                { status: 500 }
+            );
         }
 
+        const rankErrSingles = await refreshRankingsOrError(admin);
+        if (rankErrSingles) return rankErrSingles;
         return NextResponse.json({ ok: true, payload });
     }
 
