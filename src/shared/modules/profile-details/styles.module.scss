@@ -359,6 +359,12 @@
         color: #d48f1f;
     }
 
+    &_button#{&}_button_active {
+        border-color: var(--gold);
+        background-color: var(--gold);
+        color: var(--white);
+    }
+
     &_error {
         margin-top: 4px;
         font-size: 14px;
@@ -432,6 +438,12 @@
         border-color: #fed99d;
         background-color: #fed99d;
         color: #d48f1f;
+    }
+
+    &_button#{&}_button_active {
+        border-color: var(--gold);
+        background-color: var(--gold);
+        color: var(--white);
     }
 
     &_error {

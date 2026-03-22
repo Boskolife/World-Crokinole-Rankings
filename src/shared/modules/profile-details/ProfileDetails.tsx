@@ -283,7 +283,11 @@ export const ProfileDetails: React.FC = () => {
                                 )}
                                 <button
                                     type="button"
-                                    className={css.profile_details_security_change_email_button}
+                                    className={cn(
+                                        css.profile_details_security_change_email_button,
+                                        emailInput.trim() &&
+                                            css.profile_details_security_change_email_button_active
+                                    )}
                                     onClick={handleSubmitNewEmail}
                                     disabled={emailLoading}
                                 >
@@ -381,7 +385,12 @@ export const ProfileDetails: React.FC = () => {
                                 )}
                                 <button
                                     type="button"
-                                    className={css.profile_details_security_change_password_button}
+                                    className={cn(
+                                        css.profile_details_security_change_password_button,
+                                        passwordOld.trim() &&
+                                            passwordNew.trim() &&
+                                            css.profile_details_security_change_password_button_active
+                                    )}
                                     onClick={handleSubmitNewPassword}
                                     disabled={passwordLoading}
                                 >
