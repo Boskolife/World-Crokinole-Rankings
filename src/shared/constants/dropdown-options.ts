@@ -141,6 +141,7 @@ export const seedingMethodOptions: DropdownOption[] = [
 ];
 
 export const tournamentVisibilityOptions: DropdownOption[] = [
-    { value: "draft", label: "Draft (not public)" },
+    { value: "draft", label: "Draft" },
     { value: "public", label: "Public" },
+    { value: "live", label: "Live" },
 ];

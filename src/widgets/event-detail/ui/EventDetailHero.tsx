@@ -14,9 +14,15 @@ import type { IEventCardProps } from "@/shared/types";
 import { localeConfig } from "@/app/localization/config";
 import { useParams } from "next/navigation";
 import { RootLink } from "@/shared/ui/links/root-link";
+import { CustomRoundedDropdown } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
-import { stageFormatOptions, seedingMethodOptions } from "@/shared/constants/dropdown-options";
+import {
+    stageFormatOptions,
+    seedingMethodOptions,
+    tournamentVisibilityOptions,
+} from "@/shared/constants/dropdown-options";
 import { supabase, isSupabaseConfigured } from "@/shared/supabase/client";
+import { updateEvent } from "@/shared/supabase/data";
 import css from "./EventDetailHero.module.scss";
 
 const stageFormatLabel = (value: string) =>
@@ -60,6 +66,14 @@ function parseStructureDisplay(structure: string | undefined): StructureParsed |
     }
 
     return parsed;
+}
+
+function normalizeTournamentVisibility(
+    raw: string | null | undefined
+): string {
+    const t = (raw ?? "draft").toLowerCase().trim();
+    if (t === "live" || t === "public" || t === "draft") return t;
+    return "draft";
 }
 
 function formatStructureDisplay(structure: string | undefined): string {
@@ -135,6 +149,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         startDate,
         winner,
         tournamentPointsAvailable,
+        tournamentVisibility,
     } = event;
 
     const isEventEnded = (() => {
@@ -262,6 +277,40 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         totalParticipants != null ? `${totalParticipants} players` : "—";
 
     const [organizerName, setOrganizerName] = useState<string>(createdBy ?? "—");
+    const [visibilityValue, setVisibilityValue] = useState(() =>
+        normalizeTournamentVisibility(tournamentVisibility)
+    );
+    const [visibilitySaving, setVisibilitySaving] = useState(false);
+    const [visibilityError, setVisibilityError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setVisibilityValue(normalizeTournamentVisibility(tournamentVisibility));
+    }, [tournamentVisibility]);
+
+    const handleTournamentVisibilityChange = async (next: string) => {
+        if (!eventId) return;
+        const prev = visibilityValue;
+        setVisibilityError(null);
+        setVisibilityValue(next);
+        setVisibilitySaving(true);
+        try {
+            await updateEvent(eventId, { tournamentVisibility: next });
+            window.dispatchEvent(
+                new CustomEvent("event-registration-updated", {
+                    detail: { eventId },
+                })
+            );
+        } catch (err) {
+            setVisibilityValue(prev);
+            setVisibilityError(
+                err instanceof Error
+                    ? err.message
+                    : "Could not update tournament status."
+            );
+        } finally {
+            setVisibilitySaving(false);
+        }
+    };
 
     useEffect(() => {
         if (!isTournament) return;
@@ -347,6 +396,27 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
                                     priority
                                 />
                             </div>
+
+                            {isCreator && isTournament && (
+                                <div className={css.tournament_status_owner}>
+                                    <span className={css.tournament_status_label}>
+                                        Change Tournament Status:
+                                    </span>
+                                    <CustomRoundedDropdown
+                                        id={`event-${eventId}-tournament-visibility`}
+                                        options={tournamentVisibilityOptions}
+                                        value={visibilityValue}
+                                        onChange={handleTournamentVisibilityChange}
+                                        disabled={visibilitySaving}
+                                        className={css.tournament_status_dropdown}
+                                    />
+                                    {visibilityError ? (
+                                        <span className={css.tournament_status_error}>
+                                            {visibilityError}
+                                        </span>
+                                    ) : null}
+                                </div>
+                            )}
 
                             <div className={css.tournament_emblem_bottom}>
                                 <div className={css.tournament_emblem_bottom_left}>

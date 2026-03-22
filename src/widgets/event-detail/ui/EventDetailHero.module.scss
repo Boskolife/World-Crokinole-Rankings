@@ -197,6 +197,43 @@ $edit-outline: #d48f1f;
     height: 120px;
 }
 
+.tournament_status_owner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    width: 100%;
+}
+
+.tournament_status_label {
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.35;
+    color: #0e0e0e;
+}
+
+.tournament_status_dropdown {
+    flex: 0 1 auto;
+    min-width: 140px;
+    max-width: 240px;
+
+    @include media-down(sm) {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+}
+
+.tournament_status_error {
+    flex: 0 0 100%;
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    line-height: 1.35;
+    color: #c62828;
+}
+
 .tournament_emblem_bottom {
     background: linear-gradient(90deg, #00284b 0%, #2a5298 100%);
     border-radius: 8px;
