@@ -42,7 +42,7 @@ export const RankingList: React.FC<IProps> = ({ rankedList, className }) => {
                             )}
                         >
                             Trend
-                            <Tooltip content="Change in rating over the past 90 days">
+                            <Tooltip content="Change vs your rating after the last match on or before 90 days ago; if all matches are newer, vs rating before your earliest match.">
                                 <Image
                                     src="/svg/info.svg"
                                     alt="info"
