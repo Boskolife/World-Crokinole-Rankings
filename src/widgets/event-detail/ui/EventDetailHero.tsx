@@ -361,7 +361,7 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
             <div className="container">
                 <div className={css.title_row}>
                     <h1 className={css.page_title}>{title}</h1>
-                    {isCreator && (
+                    {isCreator && !isTournament && (
                         <div className={css.title_actions}>
                             <Link
                                 href={`/${locale}/events/${eventId}/edit`}
@@ -399,22 +399,34 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
 
                             {isCreator && isTournament && (
                                 <div className={css.tournament_status_owner}>
-                                    <span className={css.tournament_status_label}>
-                                        Change Tournament Status:
-                                    </span>
-                                    <CustomRoundedDropdown
-                                        id={`event-${eventId}-tournament-visibility`}
-                                        options={tournamentVisibilityOptions}
-                                        value={visibilityValue}
-                                        onChange={handleTournamentVisibilityChange}
-                                        disabled={visibilitySaving}
-                                        className={css.tournament_status_dropdown}
-                                    />
+                                    <div className={css.tournament_status_row}>
+                                        <span className={css.tournament_status_label}>
+                                            Change Tournament Status:
+                                        </span>
+                                        <CustomRoundedDropdown
+                                            id={`event-${eventId}-tournament-visibility`}
+                                            options={tournamentVisibilityOptions}
+                                            value={visibilityValue}
+                                            onChange={handleTournamentVisibilityChange}
+                                            disabled={visibilitySaving}
+                                            className={css.tournament_status_dropdown}
+                                            buttonClassName={
+                                                css.tournament_status_dropdown_btn
+                                            }
+                                        />
+                                    </div>
                                     {visibilityError ? (
                                         <span className={css.tournament_status_error}>
                                             {visibilityError}
                                         </span>
                                     ) : null}
+                                    <Link
+                                        href={`/${locale}/events/${eventId}/edit`}
+                                        className={css.tournament_edit_button}
+                                    >
+                                        <Icon name="edit" className={css.edit_button_icon} />
+                                        Edit tournament
+                                    </Link>
                                 </div>
                             )}
 

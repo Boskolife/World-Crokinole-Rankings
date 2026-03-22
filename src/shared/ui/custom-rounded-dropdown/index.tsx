@@ -11,6 +11,7 @@ interface ICustomRoundedDropdownProps {
     value?: string;
     onChange?: (value: string) => void;
     className?: string;
+    buttonClassName?: string;
     disabled?: boolean;
 }
 
@@ -22,6 +23,7 @@ export function CustomRoundedDropdown(props: ICustomRoundedDropdownProps) {
         value,
         onChange,
         className,
+        buttonClassName,
         disabled = false,
     } = props;
 
@@ -116,12 +118,16 @@ export function CustomRoundedDropdown(props: ICustomRoundedDropdownProps) {
                 <button
                     id={id}
                     type="button"
-                    className={cn(css.custom_rounded_dropdown_button, {
-                        [css.filled]: isFilled,
-                        [css.disabled]: disabled,
-                        [css.with_icon]: isFilled,
-                        [css.open]: isOpen,
-                    })}
+                    className={cn(
+                        css.custom_rounded_dropdown_button,
+                        buttonClassName,
+                        {
+                            [css.filled]: isFilled,
+                            [css.disabled]: disabled,
+                            [css.with_icon]: isFilled,
+                            [css.open]: isOpen,
+                        }
+                    )}
                     onClick={handleToggle}
                     disabled={disabled}
                     aria-haspopup="listbox"

@@ -82,15 +82,22 @@ export const EventCard: React.FC<IEventCardProps> = ({
                 )}
             </div>
             <div className={css.event_card_content}>
-                <div className={css.event_card_title_wrap}>
+                <div className={css.event_card_header}>
                     <h3 className={css.event_card_title}>{title}</h3>
-                    <span
-                        className={cn(css.event_card_price, {
-                            [css._free]: free,
-                        })}
-                    >
-                        {free ? "Free" : `$${price}`}
-                    </span>
+                    <div className={css.event_card_header_right}>
+                        <span
+                            className={cn(css.event_card_price, {
+                                [css._free]: free,
+                            })}
+                        >
+                            {free ? "Free" : `$${price}`}
+                        </span>
+                        {tournamentPointsAvailable != null && tournamentPointsAvailable > 0 && (
+                            <span className={css.event_card_points}>
+                                {tournamentPointsAvailable} pts
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div className={css.event_card_content_info}>
                     <span className={css.event_card_date}>{date}</span>
@@ -101,11 +108,6 @@ export const EventCard: React.FC<IEventCardProps> = ({
                         />
                         {location}
                     </span>
-                    {tournamentPointsAvailable != null && tournamentPointsAvailable > 0 && (
-                        <span className={css.event_card_points}>
-                            {tournamentPointsAvailable} pts
-                        </span>
-                    )}
                     {isPastEvent && (
                         <div className={css.event_card_status}>
                             <b>Winner:</b>

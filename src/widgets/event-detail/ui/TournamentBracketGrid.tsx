@@ -429,7 +429,7 @@ function TournamentBracketCore({
 
             <div
                 ref={bracketRef}
-                className={`${css.bracketWrap}${showChampionBanner ? ` ${css.bracketWrapPadChampion}` : ""}`}
+                className={css.bracketWrap}
                 style={{ gridTemplateColumns: bracketGridTemplateColumns }}
             >
                 <svg className={css.connectorsSvg} aria-hidden>

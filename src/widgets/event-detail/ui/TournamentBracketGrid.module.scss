@@ -193,14 +193,7 @@ $border-round: rgba(0, 40, 75, 0.2);
     column-gap: var(--bracket-col-gap);
     position: relative;
     min-height: 0;
-}
-
-.bracketWrapPadChampion {
-    padding-top: 152px;
-
-    @include media-down(md) {
-        padding-top: 132px;
-    }
+    padding: 0;
 }
 
 .roundColumnWithChampion {
@@ -216,7 +209,7 @@ $border-round: rgba(0, 40, 75, 0.2);
     right: 0;
     bottom: 100%;
     z-index: 2;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;

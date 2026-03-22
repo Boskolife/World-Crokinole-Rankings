@@ -66,6 +66,31 @@ $edit-outline: #d48f1f;
     flex-shrink: 0;
 }
 
+.tournament_edit_button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 4px;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    border: 1px solid $edit-outline;
+    background: transparent;
+    color: $edit-outline;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        background: rgba($edit-outline, 0.08);
+        color: $edit-outline;
+    }
+}
+
 .card {
     display: flex;
     gap: 64px;
@@ -199,29 +224,56 @@ $edit-outline: #d48f1f;
 
 .tournament_status_owner {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+}
+
+.tournament_status_row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px 16px;
+    gap: 8px 10px;
     width: 100%;
+    min-width: 0;
 }
 
 .tournament_status_label {
+    flex: 0 1 auto;
+    min-width: 0;
     font-family: "Inter", sans-serif;
     font-weight: 500;
-    font-size: 18px;
+    font-size: 14px;
     line-height: 1.35;
     color: #0e0e0e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @include media-up(sm) {
+        font-size: 15px;
+    }
 }
 
 .tournament_status_dropdown {
-    flex: 0 1 auto;
-    min-width: 140px;
-    max-width: 240px;
+    flex: 0 0 auto;
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+}
 
-    @include media-down(sm) {
-        max-width: 100%;
-        flex: 1 1 100%;
+.tournament_status_dropdown_btn {
+    padding: 5px 6px 5px 10px;
+    font-size: 13px;
+    line-height: 1.25;
+    border-radius: 999px;
+
+    svg {
+        width: 16px;
+        height: 16px;
     }
 }
 
@@ -274,13 +326,17 @@ $edit-outline: #d48f1f;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
 }
 
-.tournament_details_top {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
+.tournament_details_top,
+.tournament_details_grid,
+.tournament_details_bottom_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+    align-items: start;
+    justify-items: stretch;
     width: 100%;
 }
 
@@ -288,7 +344,6 @@ $edit-outline: #d48f1f;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    flex: 1;
     min-width: 0;
 }
 
@@ -311,43 +366,20 @@ $edit-outline: #d48f1f;
     height: 1px;
     background: #dee2e6;
     width: 100%;
+    flex-shrink: 0;
 }
 
 .tournament_details_grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 0;
-    row-gap: 0;
-    width: 100%;
+    row-gap: 14px;
 }
 
 .tournament_details_bottom_grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 20px;
     row-gap: 12px;
-    width: 100%;
 }
 
 .tournament_details_cell {
     min-width: 0;
-    padding: 10px 0;
-    border-bottom: 1px solid #dee2e6;
-}
-
-// Визуальный отступ между левым/правым столбцом без разрыва линий
-.tournament_details_cell:nth-child(odd) {
-    padding-right: 20px;
-}
-
-.tournament_details_cell:nth-child(even) {
-    padding-left: 20px;
-}
-
-// Последняя строка отделяется общим divider'ом между секциями
-.tournament_details_cell:nth-child(7),
-.tournament_details_cell:nth-child(8) {
-    border-bottom: none;
+    padding: 0;
 }
 
 .details_top {
