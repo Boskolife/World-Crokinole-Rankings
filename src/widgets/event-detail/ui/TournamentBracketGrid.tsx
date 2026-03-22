@@ -3,7 +3,10 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { IPlayer } from "@/shared/types";
-import type { TournamentBracketResultsMap } from "@/shared/types";
+import type {
+    TournamentBracketResultsMap,
+    TournamentMatchResultPayload,
+} from "@/shared/types";
 import { buildTournamentMatchKey } from "@/shared/types";
 import { Icon } from "@/shared/ui/icons";
 import { CustomRoundedDropdown } from "@/shared/ui";
@@ -240,6 +243,14 @@ function findPlayerByNameExact(players: IPlayer[], name: string): IPlayer | null
     return players.find((p) => p.name.trim().toLowerCase() === n) ?? null;
 }
 
+function findPlayerByBracketId(players: IPlayer[], rawId: string | undefined): IPlayer | null {
+    const id = (rawId ?? "").trim();
+    if (!id) return null;
+    return (
+        players.find((p) => p.id === id || (p.rowId != null && p.rowId === id)) ?? null
+    );
+}
+
 function TeamSlotRow({
     slotRole,
     seed,
@@ -317,6 +328,8 @@ function MatchPair({
     onViewDetailsClick,
     savedUpperScore,
     savedLowerScore,
+    saved,
+    allPlayers,
 }: {
     slots: [number, number];
     teamsBySeed: (IPlayer | null)[][];
@@ -326,11 +339,28 @@ function MatchPair({
     onViewDetailsClick?: () => void;
     savedUpperScore?: string | null;
     savedLowerScore?: string | null;
+    saved?: TournamentMatchResultPayload | null;
+    allPlayers: IPlayer[];
 }) {
     const [seedA, seedB] = slots;
     const isPlaceholder = seedA < 0 || seedB < 0;
-    const teamUpper = !isPlaceholder ? (teamsBySeed[seedA] ?? []) : [];
-    const teamLower = !isPlaceholder ? (teamsBySeed[seedB] ?? []) : [];
+    let teamUpper: (IPlayer | null)[] = !isPlaceholder ? (teamsBySeed[seedA] ?? []) : [];
+    let teamLower: (IPlayer | null)[] = !isPlaceholder ? (teamsBySeed[seedB] ?? []) : [];
+    if (isPlaceholder && saved) {
+        if (isDoubles) {
+            teamUpper = [
+                findPlayerByBracketId(allPlayers, saved.player1Id),
+                findPlayerByBracketId(allPlayers, saved.player2Id),
+            ];
+            teamLower = [
+                findPlayerByBracketId(allPlayers, saved.player3Id),
+                findPlayerByBracketId(allPlayers, saved.player4Id),
+            ];
+        } else {
+            teamUpper = [findPlayerByBracketId(allPlayers, saved.player1Id)];
+            teamLower = [findPlayerByBracketId(allPlayers, saved.player2Id)];
+        }
+    }
     const upperSets = parseBracketSetsScore(savedUpperScore);
     const lowerSets = parseBracketSetsScore(savedLowerScore);
     const setsDecisive =
@@ -696,16 +726,31 @@ function TournamentBracketCore({
                     const matchPairs = col.matches.map((slots, mi) => {
                         const [sa, sb] = slots;
                         const isPh = sa < 0 || sb < 0;
-                        const teamA = !isPh ? (seededTeams[sa] ?? []) : [];
-                        const teamB = !isPh ? (seededTeams[sb] ?? []) : [];
-                        const pa = teamA[0] ?? null;
-                        const pb = teamB[0] ?? null;
                         const mk = buildTournamentMatchKey(
                             stageIndex,
                             col.roundIndex,
                             mi
                         );
                         const saved = tournamentBracketResults?.[mk];
+                        let teamA = !isPh ? (seededTeams[sa] ?? []) : [];
+                        let teamB = !isPh ? (seededTeams[sb] ?? []) : [];
+                        if (isPh && saved) {
+                            if (isDoubles) {
+                                teamA = [
+                                    findPlayerByBracketId(players, saved.player1Id),
+                                    findPlayerByBracketId(players, saved.player2Id),
+                                ];
+                                teamB = [
+                                    findPlayerByBracketId(players, saved.player3Id),
+                                    findPlayerByBracketId(players, saved.player4Id),
+                                ];
+                            } else {
+                                teamA = [findPlayerByBracketId(players, saved.player1Id)];
+                                teamB = [findPlayerByBracketId(players, saved.player2Id)];
+                            }
+                        }
+                        const pa = teamA[0] ?? null;
+                        const pb = teamB[0] ?? null;
                         const matchCtx: MatchSideContext = {
                             roundIndex: col.roundIndex,
                             matchIndex: mi,
@@ -741,6 +786,8 @@ function TournamentBracketCore({
                                 savedLowerScore={
                                     saved ? String(saved.setsP2) : null
                                 }
+                                saved={saved ?? null}
+                                allPlayers={players}
                             />
                         );
                     });
