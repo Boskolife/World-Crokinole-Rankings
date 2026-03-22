@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/shared/supabase/server";
 import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js";
 import { recomputePlayerAggregatesFromMatches } from "@/shared/lib/recompute-player-aggregates-from-matches";
+import {
+    applyWinnerAdvancementToBracketMap,
+    getBracketRoundsAndSize,
+} from "@/shared/lib/tournament-bracket-winner-advance";
 import type {
     TournamentBracketResultsMap,
     TournamentMatchResultPayload,
@@ -143,6 +147,43 @@ async function fetchPlayerByIdOrUserId(
     return rowByUser?.id ? rowByUser : null;
 }
 
+async function persistBracketAdvance(
+    admin: SupabaseClient,
+    eventId: number,
+    eventRow: {
+        tournament_bracket_results?: unknown;
+        total_participants?: number | null;
+        capacity?: number | null;
+    },
+    matchKey: string,
+    payload: TournamentMatchResultPayload,
+    isDoubles: boolean
+): Promise<{ error: string | null }> {
+    const { count, error: cErr } = await admin
+        .from("event_registrations")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", eventId);
+    if (cErr) {
+        console.error("event_registrations count", cErr.message);
+    }
+    const regCount = count ?? 0;
+    const tp = eventRow.total_participants ?? eventRow.capacity;
+    const displayCount = tp != null && tp > 0 ? tp : regCount > 0 ? regCount : 8;
+    const { rounds } = getBracketRoundsAndSize(isDoubles, tp, displayCount);
+
+    let prevMap: TournamentBracketResultsMap = {};
+    const raw = eventRow.tournament_bracket_results;
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+        prevMap = raw as TournamentBracketResultsMap;
+    }
+    const nextMap = applyWinnerAdvancementToBracketMap(prevMap, matchKey, payload, rounds, isDoubles);
+    const { error } = await admin
+        .from("events")
+        .update({ tournament_bracket_results: nextMap })
+        .eq("id", eventId);
+    return { error: error?.message ?? null };
+}
+
 function buildPayload(
     p1: string,
     p2: string,
@@ -236,7 +277,9 @@ export async function POST(request: Request) {
 
     const { data: eventRow, error: evErr } = await admin
         .from("events")
-        .select("id, created_by, is_ranked, start_date, tournament_bracket_results")
+        .select(
+            "id, created_by, is_ranked, start_date, tournament_bracket_results, total_participants, capacity"
+        )
         .eq("id", eventId)
         .maybeSingle();
 
@@ -452,6 +495,25 @@ export async function POST(request: Request) {
             }
 
             const rankingsWarn = await refreshRankingsBestEffort(admin);
+            const brEv = await persistBracketAdvance(
+                admin,
+                eventId,
+                eventRow as {
+                    tournament_bracket_results?: unknown;
+                    total_participants?: number | null;
+                    capacity?: number | null;
+                },
+                body.matchKey,
+                payload,
+                true
+            );
+            if (brEv.error) {
+                console.error("tournament_bracket_results update", brEv.error);
+                return NextResponse.json(
+                    { error: "Match saved, but updating the bracket display failed." },
+                    { status: 500 }
+                );
+            }
             return NextResponse.json({
                 ok: true,
                 payload,
@@ -603,6 +665,25 @@ export async function POST(request: Request) {
         }
 
         const rankingsWarnS = await refreshRankingsBestEffort(admin);
+        const brEvS = await persistBracketAdvance(
+            admin,
+            eventId,
+            eventRow as {
+                tournament_bracket_results?: unknown;
+                total_participants?: number | null;
+                capacity?: number | null;
+            },
+            body.matchKey,
+            payload,
+            false
+        );
+        if (brEvS.error) {
+            console.error("tournament_bracket_results update", brEvS.error);
+            return NextResponse.json(
+                { error: "Match saved, but updating the bracket display failed." },
+                { status: 500 }
+            );
+        }
         return NextResponse.json({
             ok: true,
             payload,
@@ -612,24 +693,20 @@ export async function POST(request: Request) {
         });
     }
 
-    const prevRaw = (eventRow as { tournament_bracket_results?: unknown }).tournament_bracket_results;
-    let prevMap: TournamentBracketResultsMap = {};
-    if (prevRaw && typeof prevRaw === "object" && !Array.isArray(prevRaw)) {
-        prevMap = prevRaw as TournamentBracketResultsMap;
-    }
-
-    const nextMap: TournamentBracketResultsMap = {
-        ...prevMap,
-        [body.matchKey]: payload,
-    };
-
-    const { error: upEv } = await admin
-        .from("events")
-        .update({ tournament_bracket_results: nextMap })
-        .eq("id", eventId);
-
-    if (upEv) {
-        console.error("events bracket update", upEv.message);
+    const brPlain = await persistBracketAdvance(
+        admin,
+        eventId,
+        eventRow as {
+            tournament_bracket_results?: unknown;
+            total_participants?: number | null;
+            capacity?: number | null;
+        },
+        body.matchKey,
+        payload,
+        isDoubles
+    );
+    if (brPlain.error) {
+        console.error("tournament_bracket_results update", brPlain.error);
         return NextResponse.json({ error: "Failed to save bracket data" }, { status: 500 });
     }
 
