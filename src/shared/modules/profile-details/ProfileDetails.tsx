@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 
 export const ProfileDetails: React.FC = () => {
     const { fullName, email, profile } = useUserProfile();
-    const { user } = useAuth();
+    const { user, isAuth, isMounted } = useAuth();
     const { player } = useCurrentUserPlayer();
     const router = useRouter();
     const [mode, setMode] = useState<
@@ -168,19 +168,37 @@ export const ProfileDetails: React.FC = () => {
     };
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
+        if (typeof window === "undefined" || !isMounted || !isSupabaseConfigured) return;
+        if (!isAuth || !user?.id || !email) return;
         try {
             const raw = window.localStorage.getItem("wcr-profile-email-change");
             if (!raw) return;
             const parsed = JSON.parse(raw) as { mode?: string; email?: string };
-            if (parsed.mode === "securityEmailSent" && parsed.email) {
-                setEmailInput(parsed.email);
-                setMode("securityEmailSent");
+            if (parsed.mode !== "securityEmailSent" || !parsed.email) return;
+
+            const pending = parsed.email.trim().toLowerCase();
+            const current = email.trim().toLowerCase();
+
+            if (current === pending) {
+                window.localStorage.removeItem("wcr-profile-email-change");
+                invalidateProfileCache(user.id);
+                notifyProfileUpdated(user.id);
+                setMode((m) => (m === "securityEmailSent" ? "overview" : m));
+                setEmailInput("");
+                return;
             }
+
+            setEmailInput(parsed.email);
+            setMode((m) => {
+                if (m === "security" || m === "securityEmail" || m === "securityPassword") {
+                    return m;
+                }
+                return "securityEmailSent";
+            });
         } catch {
             // ignore
         }
-    }, []);
+    }, [isMounted, isAuth, user?.id, email]);
 
     if (mode === "security" || mode === "securityEmail" || mode === "securityEmailSent" || mode === "securityPassword") {
         return (

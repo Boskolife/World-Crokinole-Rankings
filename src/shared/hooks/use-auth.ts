@@ -10,6 +10,13 @@ const isSessionValid = (session: Session | null): boolean => {
     return expiresAt > now;
 };
 
+async function resolveUserForSession(session: Session | null): Promise<User | null> {
+    if (!session?.user) return null;
+    const { data, error } = await supabase.auth.getUser();
+    if (error) return session.user;
+    return data.user ?? session.user;
+}
+
 export const useAuth = () => {
     const [isMounted, setIsMounted] = useState(false);
     const [session, setSession] = useState<Session | null>(null);
@@ -25,24 +32,28 @@ export const useAuth = () => {
 
         let isActive = true;
 
-        supabase.auth.getSession().then(({ data }) => {
-            if (!isActive) return;
-            const currentSession = data.session;
-            if (!currentSession || !isSessionValid(currentSession)) {
+        void (async () => {
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (!isActive) return;
+                const currentSession = data.session;
+                if (!currentSession || !isSessionValid(currentSession)) {
+                    setSession(null);
+                    setUser(null);
+                    return;
+                }
+                const resolvedUser = await resolveUserForSession(currentSession);
+                if (!isActive) return;
+                setSession(currentSession);
+                setUser(resolvedUser);
+            } catch {
+                if (!isActive) return;
                 setSession(null);
                 setUser(null);
-                setIsMounted(true);
-                return;
+            } finally {
+                if (isActive) setIsMounted(true);
             }
-            setSession(currentSession);
-            setUser(currentSession.user ?? null);
-            setIsMounted(true);
-        }).catch(() => {
-            if (!isActive) return;
-            setSession(null);
-            setUser(null);
-            setIsMounted(true);
-        });
+        })();
 
         const { data: listener } = supabase.auth.onAuthStateChange(
             (_event, nextSession) => {
@@ -60,6 +71,14 @@ export const useAuth = () => {
                 }
                 setSession(nextSession);
                 setUser(nextSession.user ?? null);
+                setTimeout(() => {
+                    void (async () => {
+                        if (!isActive) return;
+                        const resolvedUser = await resolveUserForSession(nextSession);
+                        if (!isActive) return;
+                        setUser(resolvedUser);
+                    })();
+                }, 0);
             }
         );
 
