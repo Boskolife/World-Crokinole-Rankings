@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/shared/supabase/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js";
 import type {
     TournamentBracketResultsMap,
     TournamentMatchResultPayload,
@@ -34,6 +34,34 @@ function eloDelta(r1: number, r2: number, setsA: number, setsB: number): { d1: n
     const e1 = 1 / (1 + Math.pow(10, (r2 - r1) / 400));
     const d1 = Math.round(K * (actual1 - e1) * 100) / 100;
     return { d1, d2: Math.round(-d1 * 100) / 100 };
+}
+
+type PlayerRatingRow = {
+    id: string;
+    rating?: number | null;
+    singles_rating?: number | null;
+};
+
+async function fetchPlayerByIdOrUserId(
+    admin: SupabaseClient,
+    incoming: string
+): Promise<PlayerRatingRow | null> {
+    const { data: byPk } = await admin
+        .from("players")
+        .select("id, rating, singles_rating")
+        .eq("id", incoming)
+        .maybeSingle();
+    const rowByPk = byPk as PlayerRatingRow | null;
+    if (rowByPk?.id) {
+        return rowByPk;
+    }
+    const { data: byUser } = await admin
+        .from("players")
+        .select("id, rating, singles_rating")
+        .eq("user_id", incoming)
+        .maybeSingle();
+    const rowByUser = byUser as PlayerRatingRow | null;
+    return rowByUser?.id ? rowByUser : null;
 }
 
 function buildPayload(
@@ -190,23 +218,18 @@ export async function POST(request: Request) {
             }
         }
 
-        const { data: rowP1 } = await admin
-            .from("players")
-            .select("id, rating, singles_rating")
-            .eq("id", p1)
-            .maybeSingle();
-        const { data: rowP2 } = await admin
-            .from("players")
-            .select("id, rating, singles_rating")
-            .eq("id", p2)
-            .maybeSingle();
+        const rowP1 = await fetchPlayerByIdOrUserId(admin, p1);
+        const rowP2 = await fetchPlayerByIdOrUserId(admin, p2);
 
         if (!rowP1?.id || !rowP2?.id) {
             return NextResponse.json({ error: "Player not found" }, { status: 400 });
         }
 
-        const rP1 = rowP1 as { rating?: number | null; singles_rating?: number | null };
-        const rP2 = rowP2 as { rating?: number | null; singles_rating?: number | null };
+        const player1RowId = String(rowP1.id);
+        const player2RowId = String(rowP2.id);
+
+        const rP1 = rowP1;
+        const rP2 = rowP2;
         let rating1 = Number(rP1.singles_rating ?? rP1.rating ?? 1500);
         let rating2 = Number(rP2.singles_rating ?? rP2.rating ?? 1500);
         if (Number.isNaN(rating1)) rating1 = 1500;
@@ -239,8 +262,8 @@ export async function POST(request: Request) {
         const singlesPayload = {
             match_number: matchNumber,
             match_date: matchDate,
-            player1_id: p1,
-            player2_id: p2,
+            player1_id: player1RowId,
+            player2_id: player2RowId,
             points_won_p1: totalP1,
             points_won_p2: totalP2,
             rounds: 4,
@@ -278,11 +301,11 @@ export async function POST(request: Request) {
         const { error: e1 } = await admin
             .from("players")
             .update({ rating: newR1, singles_rating: newR1 })
-            .eq("id", p1);
+            .eq("id", player1RowId);
         const { error: e2 } = await admin
             .from("players")
             .update({ rating: newR2, singles_rating: newR2 })
-            .eq("id", p2);
+            .eq("id", player2RowId);
         if (e1 || e2) {
             console.error("players update", e1?.message, e2?.message);
             return NextResponse.json({ error: "Failed to update ratings" }, { status: 500 });

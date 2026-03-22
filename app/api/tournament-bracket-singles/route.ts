@@ -28,7 +28,29 @@ export async function GET(request: Request) {
         return NextResponse.json({});
     }
 
-    return NextResponse.json(
-        buildTournamentBracketMapFromSinglesRows((data ?? []) as SinglesBracketRow[])
-    );
+    const rows = (data ?? []) as SinglesBracketRow[];
+    const rowIds = new Set<string>();
+    for (const r of rows) {
+        if (r.player1_id) rowIds.add(String(r.player1_id));
+        if (r.player2_id) rowIds.add(String(r.player2_id));
+    }
+    const idList = [...rowIds];
+    const clientIdByRowId: Record<string, string> = {};
+    if (idList.length > 0) {
+        const { data: plRows } = await admin.from("players").select("id, user_id").in("id", idList);
+        for (const p of plRows ?? []) {
+            const row = p as { id: string; user_id?: string | null };
+            const pk = String(row.id);
+            const uid = row.user_id?.trim();
+            clientIdByRowId[pk] = uid ? String(uid) : pk;
+        }
+    }
+
+    const mappedRows: SinglesBracketRow[] = rows.map((r) => ({
+        ...r,
+        player1_id: clientIdByRowId[String(r.player1_id)] ?? r.player1_id,
+        player2_id: clientIdByRowId[String(r.player2_id)] ?? r.player2_id,
+    }));
+
+    return NextResponse.json(buildTournamentBracketMapFromSinglesRows(mappedRows));
 }
