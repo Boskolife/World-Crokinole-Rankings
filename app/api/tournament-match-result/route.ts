@@ -40,7 +40,184 @@ type PlayerRatingRow = {
     id: string;
     rating?: number | null;
     singles_rating?: number | null;
+    singles_won?: number | null;
+    singles_played?: number | null;
+    total_won?: number | null;
+    total_played?: number | null;
 };
+
+type SinglesStatDelta = { sp: number; sw: number; tp: number; tw: number };
+
+function singlesMatchStatContribution(
+    winner: "P1" | "P2" | "TIE",
+    slot: "p1" | "p2"
+): SinglesStatDelta {
+    const out: SinglesStatDelta = { sp: 1, sw: 0, tp: 1, tw: 0 };
+    if (winner === "P1" && slot === "p1") {
+        out.sw = 1;
+        out.tw = 1;
+    } else if (winner === "P2" && slot === "p2") {
+        out.sw = 1;
+        out.tw = 1;
+    }
+    return out;
+}
+
+function negateStatDelta(d: SinglesStatDelta): SinglesStatDelta {
+    return { sp: -d.sp, sw: -d.sw, tp: -d.tp, tw: -d.tw };
+}
+
+function addStatDeltaToMap(map: Map<string, SinglesStatDelta>, playerRowId: string, d: SinglesStatDelta) {
+    if (!playerRowId) return;
+    const cur = map.get(playerRowId) ?? { sp: 0, sw: 0, tp: 0, tw: 0 };
+    cur.sp += d.sp;
+    cur.sw += d.sw;
+    cur.tp += d.tp;
+    cur.tw += d.tw;
+    map.set(playerRowId, cur);
+}
+
+function formatWinPct(won: number, played: number): string {
+    if (played <= 0) return "0%";
+    const pct = (won / played) * 100;
+    const rounded = Math.round(pct * 10) / 10;
+    const s = rounded % 1 === 0 ? String(rounded) : rounded.toFixed(1);
+    return `${s}%`;
+}
+
+function roundStoredRating(n: number): number {
+    const x = Math.round(Number(n));
+    return Number.isFinite(x) ? x : 1500;
+}
+
+async function updatePlayerBracketRatings(
+    admin: SupabaseClient,
+    playerRowId: string,
+    newRating: number
+): Promise<{ error: { message: string; code?: string } | null }> {
+    const r = roundStoredRating(newRating);
+    let { error } = await admin
+        .from("players")
+        .update({ rating: r, singles_rating: r })
+        .eq("id", playerRowId);
+    if (error) {
+        const msg = (error.message ?? "").toLowerCase();
+        const code = (error as { code?: string }).code;
+        const noSinglesCol =
+            code === "42703" ||
+            code === "PGRST204" ||
+            msg.includes("singles_rating") ||
+            (msg.includes("column") && (msg.includes("does not exist") || msg.includes("unknown")));
+        if (noSinglesCol) {
+            ({ error } = await admin.from("players").update({ rating: r }).eq("id", playerRowId));
+        }
+    }
+    return { error };
+}
+
+async function patchPlayerRowAfterBracketMatch(
+    admin: SupabaseClient,
+    playerRowId: string,
+    patch: {
+        rating: number;
+        singles_won: number;
+        singles_played: number;
+        total_won: number;
+        total_played: number;
+        win_pct_singles: string;
+        win_pct_total: string;
+    }
+): Promise<{ error: { message: string; code?: string } | null }> {
+    const r = roundStoredRating(patch.rating);
+    const full = {
+        rating: r,
+        singles_rating: r,
+        singles_won: patch.singles_won,
+        singles_played: patch.singles_played,
+        total_won: patch.total_won,
+        total_played: patch.total_played,
+        win_pct_singles: patch.win_pct_singles,
+        win_pct_total: patch.win_pct_total,
+    };
+    let { error } = await admin.from("players").update(full).eq("id", playerRowId);
+    if (error) {
+        const msg = (error.message ?? "").toLowerCase();
+        if (msg.includes("win_pct")) {
+            const noPct = {
+                rating: r,
+                singles_rating: r,
+                singles_won: patch.singles_won,
+                singles_played: patch.singles_played,
+                total_won: patch.total_won,
+                total_played: patch.total_played,
+            };
+            ({ error } = await admin.from("players").update(noPct).eq("id", playerRowId));
+        }
+    }
+    if (error) {
+        const msg = (error.message ?? "").toLowerCase();
+        const code = (error as { code?: string }).code;
+        const statsMissing =
+            code === "42703" ||
+            code === "PGRST204" ||
+            msg.includes("singles_won") ||
+            msg.includes("singles_played") ||
+            msg.includes("total_won") ||
+            msg.includes("total_played");
+        if (statsMissing) {
+            return updatePlayerBracketRatings(admin, playerRowId, patch.rating);
+        }
+    }
+    return { error };
+}
+
+async function patchPlayerStatsOnlyAfterBracket(
+    admin: SupabaseClient,
+    playerRowId: string,
+    patch: {
+        singles_won: number;
+        singles_played: number;
+        total_won: number;
+        total_played: number;
+        win_pct_singles: string;
+        win_pct_total: string;
+    }
+): Promise<{ error: { message: string; code?: string } | null }> {
+    const full = {
+        singles_won: patch.singles_won,
+        singles_played: patch.singles_played,
+        total_won: patch.total_won,
+        total_played: patch.total_played,
+        win_pct_singles: patch.win_pct_singles,
+        win_pct_total: patch.win_pct_total,
+    };
+    let { error } = await admin.from("players").update(full).eq("id", playerRowId);
+    if (error) {
+        const msg = (error.message ?? "").toLowerCase();
+        if (msg.includes("win_pct")) {
+            const noPct = {
+                singles_won: patch.singles_won,
+                singles_played: patch.singles_played,
+                total_won: patch.total_won,
+                total_played: patch.total_played,
+            };
+            ({ error } = await admin.from("players").update(noPct).eq("id", playerRowId));
+        }
+    }
+    if (error) {
+        const msg = (error.message ?? "").toLowerCase();
+        const code = (error as { code?: string }).code;
+        if (
+            code === "42703" ||
+            code === "PGRST204" ||
+            msg.includes("singles_won") ||
+            msg.includes("singles_played")
+        ) {
+            return { error: null };
+        }
+    }
+    return { error };
+}
 
 async function fetchPlayerByIdOrUserId(
     admin: SupabaseClient,
@@ -48,7 +225,9 @@ async function fetchPlayerByIdOrUserId(
 ): Promise<PlayerRatingRow | null> {
     const { data: byPk } = await admin
         .from("players")
-        .select("id, rating, singles_rating")
+        .select(
+            "id, rating, singles_rating, singles_won, singles_played, total_won, total_played"
+        )
         .eq("id", incoming)
         .maybeSingle();
     const rowByPk = byPk as PlayerRatingRow | null;
@@ -57,7 +236,9 @@ async function fetchPlayerByIdOrUserId(
     }
     const { data: byUser } = await admin
         .from("players")
-        .select("id, rating, singles_rating")
+        .select(
+            "id, rating, singles_rating, singles_won, singles_played, total_won, total_played"
+        )
         .eq("user_id", incoming)
         .maybeSingle();
     const rowByUser = byUser as PlayerRatingRow | null;
@@ -177,7 +358,9 @@ export async function POST(request: Request) {
     if (isRanked) {
         const { data: existingSingles } = await admin
             .from("singles")
-            .select("id, player1_id, player2_id, p1_rating_change, p2_rating_change")
+            .select(
+                "id, player1_id, player2_id, p1_rating_change, p2_rating_change, winner"
+            )
             .eq("event_id", eventId)
             .eq("bracket_match_key", body.matchKey)
             .maybeSingle();
@@ -190,6 +373,7 @@ export async function POST(request: Request) {
                 player2_id?: string | null;
                 p1_rating_change?: number | null;
                 p2_rating_change?: number | null;
+                winner?: string | null;
             };
             const revertPairs: [string, number][] = [
                 [String(prev.player1_id ?? ""), Number(prev.p1_rating_change ?? 0)],
@@ -206,11 +390,8 @@ export async function POST(request: Request) {
                 const pr = prow as { rating?: number | null; singles_rating?: number | null };
                 let r = Number(pr.singles_rating ?? pr.rating ?? 1500);
                 if (Number.isNaN(r)) r = 1500;
-                const nextR = r - delta;
-                const { error: revErr } = await admin
-                    .from("players")
-                    .update({ rating: nextR, singles_rating: nextR })
-                    .eq("id", pid);
+                const nextR = roundStoredRating(r - delta);
+                const { error: revErr } = await updatePlayerBracketRatings(admin, pid, nextR);
                 if (revErr) {
                     console.error("revert rating", revErr.message);
                     return NextResponse.json({ error: "Failed to adjust ratings" }, { status: 500 });
@@ -298,17 +479,98 @@ export async function POST(request: Request) {
             }
         }
 
-        const { error: e1 } = await admin
-            .from("players")
-            .update({ rating: newR1, singles_rating: newR1 })
-            .eq("id", player1RowId);
-        const { error: e2 } = await admin
-            .from("players")
-            .update({ rating: newR2, singles_rating: newR2 })
-            .eq("id", player2RowId);
-        if (e1 || e2) {
-            console.error("players update", e1?.message, e2?.message);
-            return NextResponse.json({ error: "Failed to update ratings" }, { status: 500 });
+        const statAdjustments = new Map<string, SinglesStatDelta>();
+        if (existingId != null && Number.isFinite(existingId)) {
+            const prevRow = existingSingles as {
+                player1_id?: string | null;
+                player2_id?: string | null;
+                winner?: string | null;
+            };
+            const ow = prevRow.winner;
+            if (ow === "P1" || ow === "P2" || ow === "TIE") {
+                addStatDeltaToMap(
+                    statAdjustments,
+                    String(prevRow.player1_id ?? ""),
+                    negateStatDelta(singlesMatchStatContribution(ow, "p1"))
+                );
+                addStatDeltaToMap(
+                    statAdjustments,
+                    String(prevRow.player2_id ?? ""),
+                    negateStatDelta(singlesMatchStatContribution(ow, "p2"))
+                );
+            }
+        }
+        addStatDeltaToMap(
+            statAdjustments,
+            player1RowId,
+            singlesMatchStatContribution(winner, "p1")
+        );
+        addStatDeltaToMap(
+            statAdjustments,
+            player2RowId,
+            singlesMatchStatContribution(winner, "p2")
+        );
+
+        for (const [pid, delta] of statAdjustments) {
+            if (!pid) continue;
+            const { data: prow } = await admin
+                .from("players")
+                .select("rating, singles_rating, singles_won, singles_played, total_won, total_played")
+                .eq("id", pid)
+                .maybeSingle();
+            if (!prow) continue;
+            const pr = prow as PlayerRatingRow;
+            const curSw = Number(pr.singles_won ?? 0);
+            const curSp = Number(pr.singles_played ?? 0);
+            const curTw = Number(pr.total_won ?? 0);
+            const curTp = Number(pr.total_played ?? 0);
+            const newSw = Math.max(0, curSw + delta.sw);
+            const newSp = Math.max(0, curSp + delta.sp);
+            const newTw = Math.max(0, curTw + delta.tw);
+            const newTp = Math.max(0, curTp + delta.tp);
+            const wps = formatWinPct(newSw, newSp);
+            const wpt = formatWinPct(newTw, newTp);
+
+            const isFinalist1 = pid === player1RowId;
+            const isFinalist2 = pid === player2RowId;
+            let patchErr: { message: string; code?: string } | null = null;
+            if (isFinalist1) {
+                const r = await patchPlayerRowAfterBracketMatch(admin, pid, {
+                    rating: newR1,
+                    singles_won: newSw,
+                    singles_played: newSp,
+                    total_won: newTw,
+                    total_played: newTp,
+                    win_pct_singles: wps,
+                    win_pct_total: wpt,
+                });
+                patchErr = r.error;
+            } else if (isFinalist2) {
+                const r = await patchPlayerRowAfterBracketMatch(admin, pid, {
+                    rating: newR2,
+                    singles_won: newSw,
+                    singles_played: newSp,
+                    total_won: newTw,
+                    total_played: newTp,
+                    win_pct_singles: wps,
+                    win_pct_total: wpt,
+                });
+                patchErr = r.error;
+            } else {
+                const r = await patchPlayerStatsOnlyAfterBracket(admin, pid, {
+                    singles_won: newSw,
+                    singles_played: newSp,
+                    total_won: newTw,
+                    total_played: newTp,
+                    win_pct_singles: wps,
+                    win_pct_total: wpt,
+                });
+                patchErr = r.error;
+            }
+            if (patchErr) {
+                console.error("players patch", pid, patchErr.message);
+                return NextResponse.json({ error: "Failed to update ratings" }, { status: 500 });
+            }
         }
 
         return NextResponse.json({ ok: true, payload });
