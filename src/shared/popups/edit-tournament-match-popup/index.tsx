@@ -26,6 +26,7 @@ export type EditTournamentMatchPopupData = {
     eventStartDate?: string | null;
     seedLabel1?: number;
     seedLabel2?: number;
+    readOnly?: boolean;
 };
 
 function formatOrdinalDate(iso?: string | null): string {
@@ -51,6 +52,179 @@ function defaultRounds(): [number, number][] {
         [0, 0],
         [0, 0],
     ];
+}
+
+function MatchDetailsView({
+    data,
+    onClose,
+}: {
+    data: EditTournamentMatchPopupData;
+    onClose: () => void;
+}) {
+    const s = data.saved;
+    const p1 = s?.player1Id ?? data.defaultPlayer1Id ?? "";
+    const p2 = s?.player2Id ?? data.defaultPlayer2Id ?? "";
+    const pl1 = data.allPlayers.find((x) => x.id === p1) ?? null;
+    const pl2 = data.allPlayers.find((x) => x.id === p2) ?? null;
+    const seed1 = data.seedLabel1 ?? 1;
+    const seed2 = data.seedLabel2 ?? 2;
+    const setsP1 = s?.setsP1 ?? 0;
+    const setsP2 = s?.setsP2 ?? 0;
+    const roundScores =
+        s?.roundScores?.length === 4 ? s.roundScores : defaultRounds();
+    const twP1 = s?.twentiesP1 ?? 0;
+    const twP2 = s?.twentiesP2 ?? 0;
+    const totP1 = s?.totalP1 ?? 0;
+    const totP2 = s?.totalP2 ?? 0;
+    const p1Ahead = setsP1 > setsP2;
+    const p2Ahead = setsP2 > setsP1;
+
+    const roundLabels = ["Round 1", "Round 2", "Round 3", "Round 4"];
+
+    return (
+        <div className={cn(popupBase.popup, css.root)}>
+            <button
+                type="button"
+                className={css.closeBtn}
+                onClick={onClose}
+                aria-label="Close"
+            >
+                <Icon name="x" className={css.closeIcon} />
+            </button>
+            <h2 className={css.title}>Match Details - {data.roundTitle}</h2>
+
+            <div className={css.viewSummary}>
+                <div className={css.dateCenter}>
+                    {formatOrdinalDate(data.eventStartDate)}
+                </div>
+                <div className={css.viewHeroRow}>
+                    <div className={css.heroSideLeft}>
+                        <div className={css.heroNameCol}>
+                            <span className={p1Ahead ? css.heroName : css.heroNameMuted}>
+                                {pl1?.name ?? "—"}
+                            </span>
+                            <span className={p1Ahead ? css.seedBadge : css.seedBadgeMuted}>
+                                #{seed1}
+                            </span>
+                        </div>
+                        <div className={p1Ahead ? css.flagWrap : css.flagWrapMuted}>
+                            {pl1?.countryCode ? (
+                                <Image
+                                    src={getCountryFlagUrl(pl1.countryCode)}
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className={css.flagImg}
+                                />
+                            ) : null}
+                        </div>
+                    </div>
+                    <div className={css.viewScoreLg}>
+                        <span
+                            className={
+                                p1Ahead ? css.viewScoreLgText : css.viewScoreLgTextMuted
+                            }
+                        >
+                            {setsP1}
+                        </span>
+                    </div>
+                    <span className={css.viewColon}>:</span>
+                    <div className={css.viewScoreLg}>
+                        <span
+                            className={
+                                p2Ahead ? css.viewScoreLgText : css.viewScoreLgTextMuted
+                            }
+                        >
+                            {setsP2}
+                        </span>
+                    </div>
+                    <div className={css.heroSideRight}>
+                        <div className={p2Ahead ? css.flagWrap : css.flagWrapMuted}>
+                            {pl2?.countryCode ? (
+                                <Image
+                                    src={getCountryFlagUrl(pl2.countryCode)}
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className={css.flagImg}
+                                />
+                            ) : null}
+                        </div>
+                        <div className={css.heroNameColRight}>
+                            <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
+                                {pl2?.name ?? "—"}
+                            </span>
+                            <span className={p2Ahead ? css.seedBadge : css.seedBadgeMuted}>
+                                #{seed2}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className={css.viewDetailRows}>
+                {roundLabels.map((label, idx) => (
+                    <div key={label} className={css.viewDetailRow}>
+                        <span
+                            className={cn(
+                                css.viewDetailNum,
+                                p1Ahead ? css.viewDetailNumEmph : css.viewDetailNumMuted
+                            )}
+                        >
+                            {roundScores[idx]?.[0] ?? 0}
+                        </span>
+                        <span className={css.viewDetailLabel}>{label}</span>
+                        <span
+                            className={cn(
+                                css.viewDetailNum,
+                                p2Ahead ? css.viewDetailNumEmph : css.viewDetailNumMuted
+                            )}
+                        >
+                            {roundScores[idx]?.[1] ?? 0}
+                        </span>
+                    </div>
+                ))}
+                <div className={css.viewDetailRow}>
+                    <span
+                        className={cn(
+                            css.viewDetailNum,
+                            p1Ahead ? css.viewDetailNumEmph : css.viewDetailNumMuted
+                        )}
+                    >
+                        {twP1}
+                    </span>
+                    <span className={css.viewDetailLabel}>20s Scores</span>
+                    <span
+                        className={cn(
+                            css.viewDetailNum,
+                            p2Ahead ? css.viewDetailNumEmph : css.viewDetailNumMuted
+                        )}
+                    >
+                        {twP2}
+                    </span>
+                </div>
+                <div className={cn(css.viewDetailRow, css.viewDetailRowLast)}>
+                    <span
+                        className={cn(
+                            css.viewDetailNum,
+                            p1Ahead ? css.viewDetailNumEmph : css.viewDetailNumMuted
+                        )}
+                    >
+                        {totP1}
+                    </span>
+                    <span className={css.viewDetailLabel}>Score</span>
+                    <span
+                        className={cn(
+                            css.viewDetailNum,
+                            p2Ahead ? css.viewDetailNumEmph : css.viewDetailNumMuted
+                        )}
+                    >
+                        {totP2}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 function MatchForm({
@@ -370,6 +544,16 @@ export const EditTournamentMatchPopup: React.FC = () => {
 
     if (!data?.eventId || !data.matchKey) {
         return null;
+    }
+
+    if (data.readOnly) {
+        return (
+            <MatchDetailsView
+                key={data.matchKey}
+                data={data}
+                onClose={() => closePopup("edit-tournament-match")}
+            />
+        );
     }
 
     return (

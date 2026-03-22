@@ -377,8 +377,8 @@ $border-round: rgba(0, 40, 75, 0.2);
 }
 
 .slotRowWinner {
-    background: $beige;
-    border-left: 3px solid $gold;
+    border-left: 3px solid var(--Gold, #F4B44B);
+    background: var(--Biege, #FFF9EE);
 }
 
 .slotRowDefault {

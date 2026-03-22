@@ -158,6 +158,12 @@ function buildStageSubtitle(stage: ParsedStage, playerCount: number): string {
 const getCountryFlagUrl = (countryCode: string) =>
     `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
+function parseBracketSetsScore(raw: string | null | undefined): number | null {
+    if (raw == null || raw === "") return null;
+    const n = parseInt(String(raw), 10);
+    return Number.isFinite(n) ? n : null;
+}
+
 function SlotRow({
     slotRole,
     seed,
@@ -216,16 +222,16 @@ function MatchPair({
     slots,
     playersBySeed,
     setPairEl,
-    canEditMatches,
     onEditClick,
+    onViewDetailsClick,
     savedUpperScore,
     savedLowerScore,
 }: {
     slots: [number, number];
     playersBySeed: (IPlayer | null)[];
     setPairEl: (el: HTMLDivElement | null) => void;
-    canEditMatches?: boolean;
     onEditClick?: () => void;
+    onViewDetailsClick?: () => void;
     savedUpperScore?: string | null;
     savedLowerScore?: string | null;
 }) {
@@ -235,12 +241,33 @@ function MatchPair({
     const playerB = !isPlaceholder ? (playersBySeed[seedB] ?? null) : null;
     const hasA = playerA != null;
     const hasB = playerB != null;
-    const winnerTop = hasA && !hasB;
+    const byeUpperWins = hasA && !hasB;
+    const byeLowerWins = hasB && !hasA;
+    const upperSets = parseBracketSetsScore(savedUpperScore);
+    const lowerSets = parseBracketSetsScore(savedLowerScore);
+    const bothPresent = hasA && hasB;
+    const hasDecidedSets =
+        bothPresent &&
+        upperSets !== null &&
+        lowerSets !== null &&
+        upperSets !== lowerSets;
+
+    let upperWins = byeUpperWins;
+    let lowerWins = byeLowerWins;
+    if (hasDecidedSets && upperSets !== null && lowerSets !== null) {
+        upperWins = upperSets > lowerSets;
+        lowerWins = lowerSets > upperSets;
+    }
+
     return (
         <div className={css.matchup}>
-            {canEditMatches && onEditClick ? (
+            {onEditClick ? (
                 <button type="button" className={css.editResultsLink} onClick={onEditClick}>
                     Edit Results
+                </button>
+            ) : onViewDetailsClick ? (
+                <button type="button" className={css.editResultsLink} onClick={onViewDetailsClick}>
+                    See details
                 </button>
             ) : null}
             <div className={css.pair} ref={setPairEl}>
@@ -249,14 +276,14 @@ function MatchPair({
                     seed={isPlaceholder ? 0 : seedA + 1}
                     player={playerA}
                     score={savedUpperScore ?? null}
-                    isWinner={winnerTop}
+                    isWinner={upperWins}
                 />
                 <SlotRow
                     slotRole="lower"
                     seed={isPlaceholder ? 0 : seedB + 1}
                     player={playerB}
                     score={savedLowerScore ?? null}
-                    isWinner={hasB && !hasA}
+                    isWinner={lowerWins}
                 />
             </div>
         </div>
@@ -271,8 +298,16 @@ type TournamentBracketCoreProps = {
     roundFilter: string;
     stageIndex: number;
     tournamentBracketResults?: TournamentBracketResultsMap | null;
-    canEditMatches?: boolean;
     onOpenEditMatch?: (ctx: {
+        roundIndex: number;
+        matchIndex: number;
+        roundTitle: string;
+        playerA: IPlayer | null;
+        playerB: IPlayer | null;
+        seedA1Based: number;
+        seedB1Based: number;
+    }) => void;
+    onViewMatchDetails?: (ctx: {
         roundIndex: number;
         matchIndex: number;
         roundTitle: string;
@@ -291,8 +326,8 @@ function TournamentBracketCore({
     roundFilter,
     stageIndex,
     tournamentBracketResults,
-    canEditMatches,
     onOpenEditMatch,
+    onViewMatchDetails,
 }: TournamentBracketCoreProps) {
     const bracketRef = useRef<HTMLDivElement | null>(null);
     const championRef = useRef<HTMLDivElement | null>(null);
@@ -524,11 +559,24 @@ function TournamentBracketCore({
                                 slots={slots}
                                 playersBySeed={seededPlayers}
                                 setPairEl={setPairEl(col.roundIndex, mi)}
-                                canEditMatches={canEditMatches}
                                 onEditClick={
                                     onOpenEditMatch
                                         ? () =>
                                               onOpenEditMatch({
+                                                  roundIndex: col.roundIndex,
+                                                  matchIndex: mi,
+                                                  roundTitle,
+                                                  playerA: pa,
+                                                  playerB: pb,
+                                                  seedA1Based: isPh ? 0 : sa + 1,
+                                                  seedB1Based: isPh ? 0 : sb + 1,
+                                              })
+                                        : undefined
+                                }
+                                onViewDetailsClick={
+                                    onViewMatchDetails
+                                        ? () =>
+                                              onViewMatchDetails({
                                                   roundIndex: col.roundIndex,
                                                   matchIndex: mi,
                                                   roundTitle,
@@ -726,7 +774,6 @@ export function TournamentBracketGrid({
                                             tournamentBracketResults={
                                                 tournamentBracketResults ?? null
                                             }
-                                            canEditMatches={canEditMatches}
                                             onOpenEditMatch={
                                                 canEditMatches && eventId != null
                                                     ? (ctx) => {
@@ -766,6 +813,51 @@ export function TournamentBracketGrid({
                                                                       ctx.seedA1Based,
                                                                   seedLabel2:
                                                                       ctx.seedB1Based,
+                                                              }
+                                                          );
+                                                      }
+                                                    : undefined
+                                            }
+                                            onViewMatchDetails={
+                                                !canEditMatches && eventId != null
+                                                    ? (ctx) => {
+                                                          const mk =
+                                                              buildTournamentMatchKey(
+                                                                  index,
+                                                                  ctx.roundIndex,
+                                                                  ctx.matchIndex
+                                                              );
+                                                          openPopup(
+                                                              "edit-tournament-match",
+                                                              {
+                                                                  eventId,
+                                                                  isRanked:
+                                                                      !!isRanked,
+                                                                  matchKey: mk,
+                                                                  roundTitle:
+                                                                      ctx.roundTitle,
+                                                                  allPlayers:
+                                                                      players,
+                                                                  defaultPlayer1Id:
+                                                                      ctx.playerA
+                                                                          ?.id ??
+                                                                      null,
+                                                                  defaultPlayer2Id:
+                                                                      ctx.playerB
+                                                                          ?.id ??
+                                                                      null,
+                                                                  saved:
+                                                                      tournamentBracketResults?.[
+                                                                          mk
+                                                                      ] ?? null,
+                                                                  eventStartDate:
+                                                                      eventStartDate ??
+                                                                      null,
+                                                                  seedLabel1:
+                                                                      ctx.seedA1Based,
+                                                                  seedLabel2:
+                                                                      ctx.seedB1Based,
+                                                                  readOnly: true,
                                                               }
                                                           );
                                                       }
