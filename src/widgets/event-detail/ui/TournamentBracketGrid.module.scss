@@ -29,6 +29,114 @@ $avatar-bg: #737373;
     }
 }
 
+$grey-blue: #00284b;
+$light-blue: #ecf5fd;
+
+.stagesStack {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    width: 100%;
+
+    @include media-down(md) {
+        gap: 32px;
+    }
+}
+
+.stageBlock {
+    width: 100%;
+}
+
+.stageHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+
+    &:focus-visible {
+        outline: 2px solid $grey-blue;
+        outline-offset: 4px;
+    }
+}
+
+.stageHeaderMain {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.stageTitle {
+    margin: 0;
+    font-family: "Aleo", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    color: $grey-blue;
+
+    @include media-down(md) {
+        font-size: 24px;
+    }
+}
+
+.stageSubtitle {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.35;
+    color: $text;
+    white-space: normal;
+
+    @include media-down(md) {
+        font-size: 16px;
+    }
+}
+
+.stageChevronBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: $light-blue;
+    color: $grey-blue;
+}
+
+.stageChevronIcon {
+    width: 20px;
+    height: 20px;
+}
+
+.stageBracketBody {
+    margin-top: 24px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.roundFilterRow {
+    width: 100%;
+    max-width: 420px;
+}
+
+.roundFilterDropdown {
+    width: 100%;
+}
+
 $border-round: rgba(0, 40, 75, 0.2);
 
 .bracketStack {
@@ -78,12 +186,6 @@ $border-round: rgba(0, 40, 75, 0.2);
     }
 }
 
-.roundHeaderCellChampion {
-    border-left: 1px solid $border-round;
-    border-right: 1px solid $border-round;
-    min-width: 0;
-}
-
 .bracketWrap {
     display: grid;
     align-items: center;
@@ -91,6 +193,109 @@ $border-round: rgba(0, 40, 75, 0.2);
     column-gap: var(--bracket-col-gap);
     position: relative;
     min-height: 0;
+}
+
+.bracketWrapPadChampion {
+    padding-top: 152px;
+
+    @include media-down(md) {
+        padding-top: 132px;
+    }
+}
+
+.roundColumnWithChampion {
+    position: relative;
+    min-width: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.championBannerCard {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    z-index: 2;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: $beige;
+    border: 1px solid $gold-dark;
+    border-radius: 4px;
+
+    @include media-down(md) {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+}
+
+.championPlayerRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+
+.championPlayerFlag {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.championFlagImg {
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.championFlagPlaceholder {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $avatar-bg;
+    opacity: 0.5;
+}
+
+.championPlayerName {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: $text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.championPlayerNameEmpty {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: $text-muted;
+}
+
+.championTrophy {
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .roundColumn {
@@ -266,27 +471,6 @@ $border-round: rgba(0, 40, 75, 0.2);
     color: $text-muted;
 }
 
-.championBanner {
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 16px;
-    min-width: 280px;
-    background: $beige;
-    border: 1px solid $gold-dark;
-    border-radius: 4px;
-
-    @include media-down(md) {
-        min-width: 240px;
-        padding: 12px;
-    }
-}
-
 .championIconWrap {
     position: relative;
     width: 44px;
@@ -313,10 +497,3 @@ $border-round: rgba(0, 40, 75, 0.2);
     }
 }
 
-.championName {
-    font-family: "Inter", sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.35;
-    color: $text;
-}

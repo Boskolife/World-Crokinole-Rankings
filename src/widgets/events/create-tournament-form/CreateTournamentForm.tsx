@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type Path } from "react-hook-form";
 import { FormField, TextareaField, CustomDropdown } from "@/shared/ui";
 import { PlaceSearchInput } from "@/shared/ui/place-search-input";
 import { Icon } from "@/shared/ui/icons";
@@ -150,6 +150,7 @@ export function CreateTournamentForm({
         control,
         handleSubmit: formHandleSubmitStep2,
         watch: watchStep2,
+        setValue: setValueStep2,
         formState: { errors: errorsStep2 },
     } = formStep2;
     const { fields, append, remove } = useFieldArray({
@@ -304,6 +305,7 @@ export function CreateTournamentForm({
             stageFormat: "single_elimination",
             seedingMethod: "auto_rating",
             numberOfRounds: "",
+            matchType: "doubles",
         });
     };
 
@@ -701,7 +703,16 @@ export function CreateTournamentForm({
                         </div>
 
                         <div className={css.step2Fields}>
-                            {fields.map((field, i) => (
+                            {fields.map((field, i) => {
+                                const stageMatchType = watchStep2(
+                                    `stages.${i}.matchType`,
+                                );
+                                const matchTypePath =
+                                    `stages.${i}.matchType` as Path<CreateTournamentStep2Values>;
+                                const doublesMatchTypeSelected =
+                                    stageMatchType === "doubles" ||
+                                    stageMatchType === undefined;
+                                return (
                                 <div key={field.id} className={css.stageCard}>
                                     <div className={css.stageCardHeader}>
                                         <h3 className={css.stageCardTitle}>
@@ -782,21 +793,16 @@ export function CreateTournamentForm({
                                             <button
                                                 type="button"
                                                 className={`${css.matchTypeOption} ${
-                                                    watchStep2(
-                                                        `stages.${i}.matchType`,
-                                                    ) !== "doubles"
+                                                    stageMatchType === "singles"
                                                         ? css.matchTypeOptionActive
                                                         : ""
                                                 }`}
                                                 onClick={() =>
-                                                    registerStep2(
-                                                        `stages.${i}.matchType` as const,
-                                                    ).onChange({
-                                                        target: {
-                                                            value: "singles",
-                                                            name: `stages.${i}.matchType`,
-                                                        },
-                                                    } as unknown as React.ChangeEvent<HTMLInputElement>)
+                                                    setValueStep2(
+                                                        matchTypePath,
+                                                        "singles",
+                                                        { shouldDirty: true },
+                                                    )
                                                 }
                                             >
                                                 <span className={css.matchTypeRadioOuter}>
@@ -807,24 +813,16 @@ export function CreateTournamentForm({
                                             <button
                                                 type="button"
                                                 className={`${css.matchTypeOption} ${
-                                                    watchStep2(
-                                                        `stages.${i}.matchType`,
-                                                    ) === "doubles" ||
-                                                    !watchStep2(
-                                                        `stages.${i}.matchType`,
-                                                    )
+                                                    doublesMatchTypeSelected
                                                         ? css.matchTypeOptionActive
                                                         : ""
                                                 }`}
                                                 onClick={() =>
-                                                    registerStep2(
-                                                        `stages.${i}.matchType` as const,
-                                                    ).onChange({
-                                                        target: {
-                                                            value: "doubles",
-                                                            name: `stages.${i}.matchType`,
-                                                        },
-                                                    } as unknown as React.ChangeEvent<HTMLInputElement>)
+                                                    setValueStep2(
+                                                        matchTypePath,
+                                                        "doubles",
+                                                        { shouldDirty: true },
+                                                    )
                                                 }
                                             >
                                                 <span className={css.matchTypeRadioOuter}>
@@ -835,7 +833,8 @@ export function CreateTournamentForm({
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <div className={css.actionsRow}>

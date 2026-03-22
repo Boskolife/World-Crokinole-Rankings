@@ -5,14 +5,13 @@ import Image from "next/image";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
 import cn from "classnames";
-import { useUserProfile, useCurrentUserPlayer, useAuth } from "@/shared/hooks";
+import { useUserProfile, useCurrentUserPlayer } from "@/shared/hooks";
 import { isSupabaseConfigured, supabase } from "@/shared/supabase/client";
 import { invalidateProfileCache, notifyProfileUpdated } from "@/shared/hooks/use-user-profile";
 import { useRouter } from "next/navigation";
 
 export const ProfileDetails: React.FC = () => {
-    const { fullName, email, profile } = useUserProfile();
-    const { user, isAuth, isMounted } = useAuth();
+    const { fullName, email, profile, user, isAuth, isMounted } = useUserProfile();
     const { player } = useCurrentUserPlayer();
     const router = useRouter();
     const [mode, setMode] = useState<

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/shared/supabase/client";
 
 const isSessionValid = (session: Session | null): boolean => {
@@ -10,6 +10,43 @@ const isSessionValid = (session: Session | null): boolean => {
     return expiresAt > now;
 };
 
+type AuthStore = {
+    isMounted: boolean;
+    session: Session | null;
+    user: User | null;
+};
+
+const defaultStore: AuthStore = {
+    isMounted: false,
+    session: null,
+    user: null,
+};
+
+let store: AuthStore = { ...defaultStore };
+const listeners = new Set<() => void>();
+
+function emit() {
+    listeners.forEach((fn) => fn());
+}
+
+function setStore(partial: Partial<AuthStore>) {
+    store = { ...store, ...partial };
+    emit();
+}
+
+function subscribe(fn: () => void) {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+}
+
+function getSnapshot(): AuthStore {
+    return store;
+}
+
+function getServerSnapshot(): AuthStore {
+    return defaultStore;
+}
+
 async function resolveUserForSession(session: Session | null): Promise<User | null> {
     if (!session?.user) return null;
     const { data, error } = await supabase.auth.getUser();
@@ -17,91 +54,91 @@ async function resolveUserForSession(session: Session | null): Promise<User | nu
     return data.user ?? session.user;
 }
 
-export const useAuth = () => {
-    const [isMounted, setIsMounted] = useState(false);
-    const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState<User | null>(null);
+function shouldFetchUserFromServer(event: AuthChangeEvent): boolean {
+    if (event === "TOKEN_REFRESHED") return false;
+    return true;
+}
 
-    useEffect(() => {
-        if (!isSupabaseConfigured) {
-            setIsMounted(true);
-            setSession(null);
-            setUser(null);
+let listenerStarted = false;
+
+function startAuthListener() {
+    if (listenerStarted) return;
+    listenerStarted = true;
+
+    if (!isSupabaseConfigured) {
+        setStore({ isMounted: true, session: null, user: null });
+        return;
+    }
+
+    supabase.auth.onAuthStateChange((event, nextSession) => {
+        if (!nextSession) {
+            setStore({ session: null, user: null });
+            if (event === "INITIAL_SESSION") {
+                setStore({ isMounted: true });
+            }
+            return;
+        }
+        if (!isSessionValid(nextSession)) {
+            supabase.auth.signOut().catch(() => {});
+            setStore({ session: null, user: null });
+            if (event === "INITIAL_SESSION") {
+                setStore({ isMounted: true });
+            }
             return;
         }
 
-        let isActive = true;
+        setStore({
+            session: nextSession,
+            user: nextSession.user ?? null,
+        });
 
-        void (async () => {
-            try {
-                const { data } = await supabase.auth.getSession();
-                if (!isActive) return;
-                const currentSession = data.session;
-                if (!currentSession || !isSessionValid(currentSession)) {
-                    setSession(null);
-                    setUser(null);
-                    return;
-                }
-                const resolvedUser = await resolveUserForSession(currentSession);
-                if (!isActive) return;
-                setSession(currentSession);
-                setUser(resolvedUser);
-            } catch {
-                if (!isActive) return;
-                setSession(null);
-                setUser(null);
-            } finally {
-                if (isActive) setIsMounted(true);
-            }
-        })();
+        if (event === "INITIAL_SESSION") {
+            setTimeout(() => {
+                void (async () => {
+                    const resolvedUser = await resolveUserForSession(nextSession);
+                    setStore({ user: resolvedUser, isMounted: true });
+                })();
+            }, 0);
+            return;
+        }
 
-        const { data: listener } = supabase.auth.onAuthStateChange(
-            (_event, nextSession) => {
-                if (!isActive) return;
-                if (!nextSession) {
-                    setSession(null);
-                    setUser(null);
-                    return;
-                }
-                if (!isSessionValid(nextSession)) {
-                    supabase.auth.signOut().catch(() => {});
-                    setSession(null);
-                    setUser(null);
-                    return;
-                }
-                setSession(nextSession);
-                setUser(nextSession.user ?? null);
-                setTimeout(() => {
-                    void (async () => {
-                        if (!isActive) return;
-                        const resolvedUser = await resolveUserForSession(nextSession);
-                        if (!isActive) return;
-                        setUser(resolvedUser);
-                    })();
-                }, 0);
-            }
-        );
+        if (!shouldFetchUserFromServer(event)) {
+            return;
+        }
 
-        return () => {
-            isActive = false;
-            listener.subscription.unsubscribe();
-        };
+        setTimeout(() => {
+            void (async () => {
+                const resolvedUser = await resolveUserForSession(nextSession);
+                setStore({ user: resolvedUser });
+            })();
+        }, 0);
+    });
+}
+
+export const useAuth = () => {
+    const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+    useEffect(() => {
+        startAuthListener();
     }, []);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         if (!isSupabaseConfigured) return;
         await supabase.auth.signOut();
-        setSession(null);
-        setUser(null);
-    };
+        setStore({ session: null, user: null });
+    }, []);
 
-    const isValid = isMounted && !!session && isSessionValid(session) && user !== null;
+    const isValid =
+        state.isMounted &&
+        !!state.session &&
+        isSessionValid(state.session) &&
+        state.user !== null;
 
     return {
         isAuth: isValid,
-        isMounted,
-        session,
-        user,
+        isMounted: state.isMounted,
+        session: state.session,
+        user: state.user,
         logout,
     };
 };

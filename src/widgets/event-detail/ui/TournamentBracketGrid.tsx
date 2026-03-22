@@ -3,6 +3,9 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { IPlayer } from "@/shared/types";
+import { Icon } from "@/shared/ui/icons";
+import { CustomRoundedDropdown } from "@/shared/ui";
+import { stageFormatOptions } from "@/shared/constants/dropdown-options";
 import css from "./TournamentBracketGrid.module.scss";
 
 const BRACKET_ORDER_8 = [0, 7, 3, 4, 1, 6, 2, 5];
@@ -25,8 +28,15 @@ export interface TournamentBracketGridProps {
     winner?: string | null;
 }
 
+interface ParsedStage {
+    stageFormat?: string;
+    seedingMethod?: string;
+    numberOfRounds?: string;
+    matchType?: string;
+}
+
 interface ParsedStructure {
-    stages: Array<{ stageFormat?: string; numberOfRounds?: string }>;
+    stages: ParsedStage[];
 }
 
 function parseStructure(structure: string | undefined): ParsedStructure | null {
@@ -34,7 +44,7 @@ function parseStructure(structure: string | undefined): ParsedStructure | null {
     if (!raw) return null;
     if (raw.startsWith("{")) {
         try {
-            const p = JSON.parse(raw) as { stages?: ParsedStructure["stages"] };
+            const p = JSON.parse(raw) as { stages?: ParsedStage[] };
             return p.stages?.length ? { stages: p.stages } : null;
         } catch {
             return null;
@@ -43,7 +53,7 @@ function parseStructure(structure: string | undefined): ParsedStructure | null {
     const idx = raw.indexOf("{\"stages\":");
     if (idx >= 0) {
         try {
-            const p = JSON.parse(raw.slice(idx)) as { stages?: ParsedStructure["stages"] };
+            const p = JSON.parse(raw.slice(idx)) as { stages?: ParsedStage[] };
             return p.stages?.length ? { stages: p.stages } : null;
         } catch {
             return null;
@@ -52,16 +62,41 @@ function parseStructure(structure: string | undefined): ParsedStructure | null {
     return null;
 }
 
+function normalizeStages(parsed: ParsedStructure | null): ParsedStage[] {
+    if (parsed?.stages?.length) return parsed.stages;
+    return [{ stageFormat: "single_elimination", seedingMethod: "auto_rating" }];
+}
+
 function getRoundsAndSize(
-    parsed: ParsedStructure | null,
-    totalParticipants: number | null | undefined
+    totalParticipants: number | null | undefined,
+    playerCount: number
 ): { rounds: number; size: number } {
     let size = 8;
-    if (totalParticipants != null && totalParticipants > 0) {
-        size = Math.max(4, Math.min(32, 2 ** Math.ceil(Math.log2(totalParticipants))));
+    const n = totalParticipants ?? playerCount;
+    if (n > 0) {
+        size = Math.max(4, Math.min(32, 2 ** Math.ceil(Math.log2(n))));
     }
     const rounds = Math.max(1, Math.ceil(Math.log2(size)));
     return { rounds, size };
+}
+
+function buildBracketRoundFilterOptions(totalRounds: number): { value: string; label: string }[] {
+    if (totalRounds <= 1) {
+        return [{ value: "all", label: "All Rounds" }];
+    }
+    const out: { value: string; label: string }[] = [{ value: "all", label: "All Rounds" }];
+    for (let v = 1; v < totalRounds; v++) {
+        const label = v === 1 ? "Final" : `Top ${2 ** v}`;
+        out.push({ value: String(v), label });
+    }
+    return out;
+}
+
+function parseVisibleRoundsCount(roundFilter: string, totalRounds: number): number {
+    if (roundFilter === "all") return totalRounds;
+    const n = parseInt(roundFilter, 10);
+    if (Number.isNaN(n) || n < 1) return totalRounds;
+    return Math.min(totalRounds, n);
 }
 
 function getRoundLabel(roundIndex: number, roundCount: number, bracketSize: number): string {
@@ -82,6 +117,33 @@ function getRoundLabel(roundIndex: number, roundCount: number, bracketSize: numb
         return "Semifinals";
     }
     return `Round of ${playersAtStart}`;
+}
+
+function stageFormatLabel(value: string | undefined): string {
+    const v = (value ?? "single_elimination").toLowerCase();
+    const found = stageFormatOptions.find((o) => o.value === v);
+    return found?.label ?? "Single Elimination";
+}
+
+function seedingDetailPhrase(method: string | undefined): string {
+    if ((method ?? "").toLowerCase() === "manual") {
+        return "Manual seeding";
+    }
+    return "Seeded by rating";
+}
+
+function buildStageSubtitle(stage: ParsedStage, playerCount: number): string {
+    const parts: string[] = [];
+    parts.push(`${playerCount} players`);
+    const mt = (stage.matchType ?? "").toLowerCase();
+    if (mt === "doubles") parts.push("Doubles");
+    if (mt === "singles") parts.push("Singles");
+    parts.push(seedingDetailPhrase(stage.seedingMethod));
+    const fmt = (stage.stageFormat ?? "single_elimination").toLowerCase();
+    if (fmt === "single_elimination") {
+        parts.push("Single loss elimination", "Winner advances");
+    }
+    return parts.join(" · ");
 }
 
 const getCountryFlagUrl = (countryCode: string) =>
@@ -142,12 +204,10 @@ function SlotRow({
 }
 
 function MatchPair({
-    matchIndex,
     slots,
     playersBySeed,
     setPairEl,
 }: {
-    matchIndex: number;
     slots: [number, number];
     playersBySeed: (IPlayer | null)[];
     setPairEl: (el: HTMLDivElement | null) => void;
@@ -179,22 +239,36 @@ function MatchPair({
     );
 }
 
-export function TournamentBracketGrid({
-    structure,
+type TournamentBracketCoreProps = {
+    players: IPlayer[];
+    totalParticipants: number | null | undefined;
+    winner?: string | null;
+    showChampionColumn: boolean;
+    roundFilter: string;
+};
+
+function TournamentBracketCore({
     players,
     totalParticipants,
     winner,
-}: TournamentBracketGridProps) {
+    showChampionColumn,
+    roundFilter,
+}: TournamentBracketCoreProps) {
     const bracketRef = useRef<HTMLDivElement | null>(null);
     const championRef = useRef<HTMLDivElement | null>(null);
     const pairRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const [connectorPoints, setConnectorPoints] = useState<string[]>([]);
 
-    const parsed = useMemo(() => parseStructure(structure), [structure]);
     const { rounds, size } = useMemo(
-        () => getRoundsAndSize(parsed, totalParticipants ?? players.length),
-        [parsed, totalParticipants, players.length]
+        () => getRoundsAndSize(totalParticipants, players.length),
+        [totalParticipants, players.length]
     );
+
+    const visibleRoundsCount = useMemo(
+        () => parseVisibleRoundsCount(roundFilter, rounds),
+        [roundFilter, rounds]
+    );
+    const sliceStart = Math.max(0, rounds - visibleRoundsCount);
 
     const bracketOrder = useMemo(() => getBracketSlotOrder(size), [size]);
     const seededPlayers = useMemo(() => {
@@ -232,13 +306,41 @@ export function TournamentBracketGrid({
         [rounds, size]
     );
 
-    const bracketGridTemplateColumns = useMemo(() => {
-        const roundCols = `repeat(${rounds}, minmax(0, 1fr))`;
-        if (winner) {
-            return `${roundCols} minmax(200px, auto)`;
-        }
-        return roundCols;
-    }, [rounds, winner]);
+    const visibleRoundColumns = useMemo(
+        () => roundColumns.slice(sliceStart),
+        [roundColumns, sliceStart]
+    );
+    const visibleRoundLabels = useMemo(
+        () => roundLabels.slice(sliceStart),
+        [roundLabels, sliceStart]
+    );
+    const visibleColCount = visibleRoundColumns.length;
+
+    const finalRoundIndex = rounds - 1;
+    const finalRoundInView = visibleRoundColumns.some(
+        (c) => c.roundIndex === finalRoundIndex
+    );
+    const championBannerColumnIndex = useMemo(() => {
+        if (visibleRoundColumns.length === 0) return -1;
+        const finalIdx = visibleRoundColumns.findIndex(
+            (c) => c.roundIndex === finalRoundIndex
+        );
+        return finalIdx >= 0 ? finalIdx : visibleRoundColumns.length - 1;
+    }, [visibleRoundColumns, finalRoundIndex]);
+    const showChampionBanner =
+        showChampionColumn && championBannerColumnIndex >= 0;
+
+    const winnerTrimmed = (winner ?? "").trim();
+    const championDisplayName = winnerTrimmed.length > 0 ? winnerTrimmed : "—";
+    const championWinnerPlayer = useMemo(() => {
+        if (!winnerTrimmed) return null;
+        return players.find((p) => p.name === winnerTrimmed) ?? null;
+    }, [players, winnerTrimmed]);
+
+    const bracketGridTemplateColumns = useMemo(
+        () => `repeat(${visibleColCount}, minmax(0, 1fr))`,
+        [visibleColCount]
+    );
 
     const setPairEl = (roundIndex: number, matchIndex: number) => (el: HTMLDivElement | null) => {
         pairRefs.current[`${roundIndex}-${matchIndex}`] = el;
@@ -252,7 +354,7 @@ export function TournamentBracketGrid({
 
         const lines: string[] = [];
 
-        for (let r = 0; r < Math.max(0, rounds - 1); r++) {
+        for (let r = sliceStart; r < rounds - 1; r++) {
             const matchCount = size / 2 ** (r + 1);
             for (let m = 0; m < matchCount; m++) {
                 const childEl = pairRefs.current[`${r}-${m}`];
@@ -283,83 +385,94 @@ export function TournamentBracketGrid({
             }
         }
 
-        if (winner && rounds >= 1 && championRef.current) {
+        if (
+            showChampionColumn &&
+            finalRoundInView &&
+            rounds >= 1 &&
+            championRef.current
+        ) {
             const lastPairEl = pairRefs.current[`${rounds - 1}-0`];
             if (lastPairEl) {
                 const lastRect = lastPairEl.getBoundingClientRect();
                 const champRect = championRef.current.getBoundingClientRect();
 
-                const yLast = (lastRect.top + lastRect.bottom) / 2 - bracketRect.top;
-                const xStart = lastRect.right - bracketRect.left;
-                const xEnd = champRect.left - bracketRect.left;
-                const yEnd = (champRect.top + champRect.bottom) / 2 - bracketRect.top;
+                const xMatch =
+                    (lastRect.left + lastRect.right) / 2 - bracketRect.left;
+                const yMatchTop = lastRect.top - bracketRect.top;
+                const xChamp =
+                    (champRect.left + champRect.right) / 2 - bracketRect.left;
+                const yChampBottom = champRect.bottom - bracketRect.top;
 
-                const xMid = xStart + (xEnd - xStart) / 2;
-                lines.push(`${xStart},${yLast} ${xMid},${yLast} ${xMid},${yEnd} ${xEnd},${yEnd}`);
+                lines.push(
+                    `${xMatch},${yMatchTop} ${xChamp},${yMatchTop} ${xChamp},${yChampBottom}`,
+                );
             }
         }
 
         setConnectorPoints(lines);
-    }, [rounds, size, winner]);
+    }, [rounds, size, showChampionColumn, finalRoundInView, sliceStart]);
 
     if (rounds < 1 || size < 2) return null;
 
     return (
-        <section className={css.section}>
-            <div className={css.container}>
-                <div className={css.bracketStack}>
-                    <div
-                        className={css.roundHeaderRow}
-                        style={{ gridTemplateColumns: bracketGridTemplateColumns }}
-                    >
-                        {roundLabels.map((label, i) => (
-                            <div key={i} className={css.roundHeaderCell}>
-                                {label}
-                            </div>
-                        ))}
-                        {winner && (
-                            <div
-                                className={css.roundHeaderCellChampion}
-                                aria-hidden
-                            />
-                        )}
+        <div className={css.bracketStack}>
+            <div
+                className={css.roundHeaderRow}
+                style={{ gridTemplateColumns: bracketGridTemplateColumns }}
+            >
+                {visibleRoundLabels.map((label, i) => (
+                    <div key={sliceStart + i} className={css.roundHeaderCell}>
+                        {label}
                     </div>
+                ))}
+            </div>
 
-                    <div
-                        ref={bracketRef}
-                        className={css.bracketWrap}
-                        style={{ gridTemplateColumns: bracketGridTemplateColumns }}
-                    >
-                        <svg className={css.connectorsSvg} aria-hidden>
-                            {connectorPoints.map((pts, i) => (
-                                <polyline
-                                    key={i}
-                                    points={pts}
-                                    fill="none"
-                                    stroke="#dee2e6"
-                                    strokeWidth="2"
-                                    strokeLinecap="square"
-                                    strokeLinejoin="miter"
-                                />
-                            ))}
-                        </svg>
+            <div
+                ref={bracketRef}
+                className={`${css.bracketWrap}${showChampionBanner ? ` ${css.bracketWrapPadChampion}` : ""}`}
+                style={{ gridTemplateColumns: bracketGridTemplateColumns }}
+            >
+                <svg className={css.connectorsSvg} aria-hidden>
+                    {connectorPoints.map((pts, i) => (
+                        <polyline
+                            key={i}
+                            points={pts}
+                            fill="none"
+                            stroke="#dee2e6"
+                            strokeWidth="2"
+                            strokeLinecap="square"
+                            strokeLinejoin="miter"
+                        />
+                    ))}
+                </svg>
 
-                        {roundColumns.map((col) => (
+                {visibleRoundColumns.map((col, i) => {
+                    const showBanner =
+                        showChampionBanner && i === championBannerColumnIndex;
+                    const matchPairs = col.matches.map((slots, mi) => (
+                        <MatchPair
+                            key={`${col.roundIndex}-${mi}`}
+                            slots={slots}
+                            playersBySeed={seededPlayers}
+                            setPairEl={setPairEl(col.roundIndex, mi)}
+                        />
+                    ));
+                    if (!showBanner) {
+                        return (
                             <div key={col.roundIndex} className={css.roundColumn}>
-                                {col.matches.map((slots, mi) => (
-                                    <MatchPair
-                                        key={`${col.roundIndex}-${mi}`}
-                                        matchIndex={mi}
-                                        slots={slots}
-                                        playersBySeed={seededPlayers}
-                                        setPairEl={setPairEl(col.roundIndex, mi)}
-                                    />
-                                ))}
+                                {matchPairs}
                             </div>
-                        ))}
-
-                        {winner && (
-                            <div ref={championRef} className={css.championBanner}>
+                        );
+                    }
+                    return (
+                        <div
+                            key={col.roundIndex}
+                            className={css.roundColumnWithChampion}
+                        >
+                            <div
+                                ref={championRef}
+                                className={css.championBannerCard}
+                            >
                                 <div className={css.championIconWrap}>
                                     <Image
                                         src="/images/logo.png"
@@ -369,11 +482,155 @@ export function TournamentBracketGrid({
                                         className={css.championIcon}
                                     />
                                 </div>
-                                <span className={css.championLabel}>Champion</span>
-                                <span className={css.championName}>{winner}</span>
+                                <span className={css.championLabel}>
+                                    Champion
+                                </span>
+                                <div className={css.championPlayerRow}>
+                                    <span className={css.championPlayerFlag}>
+                                        {championWinnerPlayer?.countryCode ? (
+                                            <Image
+                                                src={getCountryFlagUrl(
+                                                    championWinnerPlayer.countryCode
+                                                )}
+                                                alt=""
+                                                width={24}
+                                                height={24}
+                                                className={css.championFlagImg}
+                                            />
+                                        ) : (
+                                            <span
+                                                className={
+                                                    css.championFlagPlaceholder
+                                                }
+                                            />
+                                        )}
+                                    </span>
+                                    <span
+                                        className={
+                                            winnerTrimmed
+                                                ? css.championPlayerName
+                                                : css.championPlayerNameEmpty
+                                        }
+                                    >
+                                        {championDisplayName}
+                                    </span>
+                                    <span
+                                        className={css.championTrophy}
+                                        aria-hidden
+                                    >
+                                        🏆
+                                    </span>
+                                </div>
                             </div>
-                        )}
-                    </div>
+                            <div className={css.roundColumn}>{matchPairs}</div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+export function TournamentBracketGrid({
+    structure,
+    players,
+    totalParticipants,
+    winner,
+}: TournamentBracketGridProps) {
+    const parsed = useMemo(() => parseStructure(structure), [structure]);
+    const stages = useMemo(() => normalizeStages(parsed), [parsed]);
+    const [expandedByIndex, setExpandedByIndex] = useState<Record<number, boolean>>({});
+    const [roundFilterByStage, setRoundFilterByStage] = useState<Record<number, string>>({});
+
+    const fullBracketRounds = useMemo(
+        () => getRoundsAndSize(totalParticipants, players.length).rounds,
+        [totalParticipants, players.length]
+    );
+    const bracketRoundFilterOptions = useMemo(
+        () => buildBracketRoundFilterOptions(fullBracketRounds),
+        [fullBracketRounds]
+    );
+
+    const displayPlayerCount =
+        totalParticipants != null && totalParticipants > 0
+            ? totalParticipants
+            : players.length > 0
+              ? players.length
+              : 8;
+
+    const isStageExpanded = (index: number) => expandedByIndex[index] !== false;
+
+    const toggleStage = (index: number) => {
+        setExpandedByIndex((prev) => ({
+            ...prev,
+            [index]: !isStageExpanded(index),
+        }));
+    };
+
+    const getSafeRoundFilter = (stageIndex: number) => {
+        const raw = roundFilterByStage[stageIndex] ?? "all";
+        return bracketRoundFilterOptions.some((o) => o.value === raw) ? raw : "all";
+    };
+
+    const setStageRoundFilter = (stageIndex: number, value: string) => {
+        setRoundFilterByStage((prev) => ({ ...prev, [stageIndex]: value }));
+    };
+
+    return (
+        <section className={css.section}>
+            <div className={css.container}>
+                <div className={css.stagesStack}>
+                    {stages.map((stage, index) => {
+                        const title = `Stage ${index + 1} · ${stageFormatLabel(stage.stageFormat)}`;
+                        const subtitle = buildStageSubtitle(stage, displayPlayerCount);
+                        const expanded = isStageExpanded(index);
+                        return (
+                            <div key={index} className={css.stageBlock}>
+                                <button
+                                    type="button"
+                                    className={css.stageHeader}
+                                    aria-expanded={expanded}
+                                    onClick={() => toggleStage(index)}
+                                >
+                                    <div className={css.stageHeaderMain}>
+                                        <h3 className={css.stageTitle}>{title}</h3>
+                                        <p className={css.stageSubtitle}>{subtitle}</p>
+                                    </div>
+                                    <span className={css.stageChevronBtn}>
+                                        <Icon
+                                            name={expanded ? "chevron_up" : "chevron_down"}
+                                            className={css.stageChevronIcon}
+                                        />
+                                    </span>
+                                </button>
+                                {expanded && (
+                                    <div className={css.stageBracketBody}>
+                                        {fullBracketRounds > 1 && (
+                                            <div className={css.roundFilterRow}>
+                                                <CustomRoundedDropdown
+                                                    id={`tournament-stage-${index}-round-filter`}
+                                                    placeholder="All Rounds"
+                                                    options={bracketRoundFilterOptions}
+                                                    value={getSafeRoundFilter(index)}
+                                                    onChange={(v) =>
+                                                        setStageRoundFilter(index, v)
+                                                    }
+                                                    className={css.roundFilterDropdown}
+                                                />
+                                            </div>
+                                        )}
+                                        <TournamentBracketCore
+                                            players={players}
+                                            totalParticipants={totalParticipants}
+                                            winner={winner}
+                                            showChampionColumn={true}
+                                            roundFilter={getSafeRoundFilter(index)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </section>

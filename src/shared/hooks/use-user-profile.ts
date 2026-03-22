@@ -28,7 +28,7 @@ function getFallbackName(email?: string | null) {
 }
 
 export const useUserProfile = () => {
-    const { user, isAuth } = useAuth();
+    const { user, isAuth, isMounted } = useAuth();
     const userId = user?.id ?? null;
 
     const [profile, setProfile] = useState<IProfile | null>(null);
@@ -139,6 +139,9 @@ export const useUserProfile = () => {
         profile,
         fullName,
         email: user?.email ?? null,
+        user,
+        isAuth,
+        isMounted,
         isLoading,
         error,
         refetch,
