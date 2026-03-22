@@ -20,6 +20,11 @@ $border: #d2d2d2;
     gap: 16px;
     margin-bottom: 24px;
     flex-wrap: wrap;
+
+    .page_title {
+        flex: 1;
+        min-width: 0;
+    }
 }
 
 .page_title {
@@ -28,6 +33,45 @@ $border: #d2d2d2;
     margin: 0;
     @include adaptive-value("font-size", 32, 24, 1);
     letter-spacing: -0.02em;
+}
+
+.tournament_status_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 120px;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #00284b;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.tournament_status_badge_dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tournament_status_badge_live {
+    background: #ecf5fd;
+
+    .tournament_status_badge_dot {
+        background: #d90026;
+    }
+}
+
+.tournament_status_badge_draft {
+    background: #eff2f6;
+
+    .tournament_status_badge_dot {
+        background: #8f9eb2;
+    }
 }
 
 .title_actions {

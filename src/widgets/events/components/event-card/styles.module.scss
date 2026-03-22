@@ -83,6 +83,47 @@
         }
     }
 
+    &_visibility_mini {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 120px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.2;
+        color: #00284b;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    &_visibility_mini_live {
+        background: #ecf5fd;
+    }
+
+    &_visibility_mini_draft {
+        background: #eff2f6;
+    }
+
+    &_visibility_mini_dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    &_visibility_mini_dot_live {
+        background: #d90026;
+    }
+
+    &_visibility_mini_dot_draft {
+        background: #8f9eb2;
+    }
+
     &_ranking {
         position: absolute;
         top: 10px;

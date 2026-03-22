@@ -287,6 +287,11 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
         setVisibilityValue(normalizeTournamentVisibility(tournamentVisibility));
     }, [tournamentVisibility]);
 
+    const headerVisibility = normalizeTournamentVisibility(visibilityValue);
+    const showTournamentHeaderBadge =
+        headerVisibility === "live" ||
+        (headerVisibility === "draft" && isCreator);
+
     const handleTournamentVisibilityChange = async (next: string) => {
         if (!eventId) return;
         const prev = visibilityValue;
@@ -361,16 +366,34 @@ export function EventDetailHero({ event }: EventDetailHeroProps) {
             <div className="container">
                 <div className={css.title_row}>
                     <h1 className={css.page_title}>{title}</h1>
-                    {isCreator && !isTournament && (
-                        <div className={css.title_actions}>
-                            <Link
-                                href={`/${locale}/events/${eventId}/edit`}
-                                className={css.edit_button}
+                    {isTournament ? (
+                        showTournamentHeaderBadge ? (
+                            <span
+                                className={cn(
+                                    css.tournament_status_badge,
+                                    headerVisibility === "live"
+                                        ? css.tournament_status_badge_live
+                                        : css.tournament_status_badge_draft
+                                )}
+                                role="status"
                             >
-                                <Icon name="edit" className={css.edit_button_icon} />
-                                Edit
-                            </Link>
-                        </div>
+                                <span className={css.tournament_status_badge_dot} aria-hidden />
+                                {tournamentVisibilityOptions.find((o) => o.value === headerVisibility)
+                                    ?.label ?? headerVisibility}
+                            </span>
+                        ) : null
+                    ) : (
+                        isCreator && (
+                            <div className={css.title_actions}>
+                                <Link
+                                    href={`/${locale}/events/${eventId}/edit`}
+                                    className={css.edit_button}
+                                >
+                                    <Icon name="edit" className={css.edit_button_icon} />
+                                    Edit
+                                </Link>
+                            </div>
+                        )
                     )}
                 </div>
 

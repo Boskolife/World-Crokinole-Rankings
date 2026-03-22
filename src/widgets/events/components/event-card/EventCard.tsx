@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import css from "./styles.module.scss";
 import Image from "next/image";
@@ -6,12 +8,19 @@ import cn from "classnames";
 import { IEventCardProps } from "@/shared/types";
 import { RootLink } from "@/shared/ui";
 import { clientRoutes } from "@/shared/routes/client";
+import { useAuth } from "@/shared/hooks";
 
 const isFreePrice = (p: string | undefined) => {
     if (p == null) return true;
     const s = String(p).trim().toLowerCase();
     return s === "" || s === "free" || s === "0";
 };
+
+function normalizeCardTournamentVisibility(raw: string | null | undefined): string {
+    const t = (raw ?? "draft").toLowerCase().trim();
+    if (t === "live" || t === "public" || t === "draft") return t;
+    return "draft";
+}
 
 export const EventCard: React.FC<IEventCardProps> = ({
     id,
@@ -28,9 +37,18 @@ export const EventCard: React.FC<IEventCardProps> = ({
     currentRank,
     totalParticipants,
     tournamentPointsAvailable,
+    tournamentVisibility,
+    createdBy,
 }) => {
+    const { user } = useAuth();
     const free = isFreePrice(price);
     const isTournament = (format ?? "").toLowerCase() === "tournament";
+    const cardTournamentVis = normalizeCardTournamentVisibility(tournamentVisibility);
+    const showCardLiveMini = isTournament && cardTournamentVis === "live";
+    const showCardDraftMini =
+        isTournament &&
+        cardTournamentVis === "draft" &&
+        Boolean(createdBy && user?.id && createdBy === user.id);
     const registrationText = isRegistrationRequired
         ? (isTournament ? "Tournament registration is required" : "Registration is required")
         : (isTournament ? "No tournament registration required" : "No registration required");
@@ -45,6 +63,28 @@ export const EventCard: React.FC<IEventCardProps> = ({
                 >
                     {registrationText}
                 </span>
+                {(showCardLiveMini || showCardDraftMini) && (
+                    <span
+                        className={cn(
+                            css.event_card_visibility_mini,
+                            showCardLiveMini
+                                ? css.event_card_visibility_mini_live
+                                : css.event_card_visibility_mini_draft
+                        )}
+                        role="status"
+                    >
+                        <span
+                            className={cn(
+                                css.event_card_visibility_mini_dot,
+                                showCardLiveMini
+                                    ? css.event_card_visibility_mini_dot_live
+                                    : css.event_card_visibility_mini_dot_draft
+                            )}
+                            aria-hidden
+                        />
+                        {showCardLiveMini ? "Live" : "Draft"}
+                    </span>
+                )}
                 {isRanked && (
                     <div className={css.event_card_ranking}>
                         <span className={css.event_card_ranking_icon_wrapper}>
