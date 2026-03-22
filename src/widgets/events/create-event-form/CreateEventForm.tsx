@@ -83,6 +83,7 @@ export function CreateEventForm({
         watch,
         setValue,
         setError,
+        clearErrors,
         formState: { errors },
     } = useForm<CreateEventFormValues>({ defaultValues: initialDefaults });
 
@@ -461,6 +462,7 @@ export function CreateEventForm({
                             placeholder="Search for a place or address"
                             value={watchedLocation ?? ""}
                             onChange={async (result) => {
+                                clearErrors("location");
                                 setValue("location", result.address, { shouldValidate: true });
                                 setLocationLatLng({ lat: result.latitude, lng: result.longitude });
                                 const tz = await fetchTimezone(result.latitude, result.longitude);

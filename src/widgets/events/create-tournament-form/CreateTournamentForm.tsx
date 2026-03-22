@@ -139,6 +139,7 @@ export function CreateTournamentForm({
         watch,
         setValue,
         setError,
+        clearErrors,
         formState: { errors },
     } = formStep1;
 
@@ -538,6 +539,7 @@ export function CreateTournamentForm({
                             placeholder="Search for a place or address"
                             value={watchedLocation ?? ""}
                             onChange={async (result) => {
+                                clearErrors("location");
                                 setValue("location", result.address, { shouldValidate: true });
                                 setLocationLatLng({ lat: result.latitude, lng: result.longitude });
                                 const tz = await fetchTimezone(result.latitude, result.longitude);
