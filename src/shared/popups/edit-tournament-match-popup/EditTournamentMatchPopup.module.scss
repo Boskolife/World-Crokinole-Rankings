@@ -193,6 +193,45 @@ $border-light: #e6e6e6;
     white-space: nowrap;
 }
 
+.heroNameSecondary {
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.35;
+    color: $text;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.heroFlagsPair {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+    height: auto;
+}
+
+.playersGridDoubles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 24px;
+    row-gap: 8px;
+    width: 100%;
+}
+
+.teamFormLabel {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.35;
+    color: $grey-blue;
+}
+
 .seedBadge {
     display: flex;
     align-items: center;

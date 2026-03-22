@@ -16,6 +16,8 @@ export type TournamentRoundScorePair = [number, number];
 export interface TournamentMatchResultPayload {
     player1Id: string;
     player2Id: string;
+    player3Id?: string;
+    player4Id?: string;
     setsP1: number;
     setsP2: number;
     roundScores: TournamentRoundScorePair[];

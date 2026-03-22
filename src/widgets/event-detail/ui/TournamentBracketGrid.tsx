@@ -89,6 +89,51 @@ function getRoundsAndSize(
     return { rounds, size };
 }
 
+function getRoundsAndSizeDoubles(
+    totalParticipants: number | null | undefined,
+    playerCount: number
+): { rounds: number; size: number } {
+    let teamCount = Math.floor((totalParticipants ?? playerCount) / 2);
+    if (teamCount < 1) teamCount = Math.max(1, Math.floor(playerCount / 2));
+    if (teamCount < 1) teamCount = 1;
+    let size = 4;
+    if (teamCount > 0) {
+        size = Math.max(4, Math.min(32, 2 ** Math.ceil(Math.log2(teamCount))));
+    }
+    const rounds = Math.max(1, Math.ceil(Math.log2(size)));
+    return { rounds, size };
+}
+
+function buildSeededTeamSlots(
+    isDoubles: boolean,
+    players: IPlayer[],
+    size: number,
+    bracketOrder: number[]
+): (IPlayer | null)[][] {
+    const bySlot: (IPlayer | null)[][] = Array.from({ length: size }, () => []);
+    if (!isDoubles) {
+        const sorted = [...players].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+        bracketOrder.forEach((slotIdx, orderIdx) => {
+            if (orderIdx < sorted.length) {
+                bySlot[slotIdx] = [sorted[orderIdx]];
+            }
+        });
+        return bySlot;
+    }
+    const sorted = [...players].sort(
+        (a, b) =>
+            (b.doublesRating ?? b.rating ?? 0) - (a.doublesRating ?? a.rating ?? 0)
+    );
+    bracketOrder.forEach((slotIdx, orderIdx) => {
+        const i = orderIdx * 2;
+        const pair: (IPlayer | null)[] = [null, null];
+        if (i < sorted.length) pair[0] = sorted[i];
+        if (i + 1 < sorted.length) pair[1] = sorted[i + 1];
+        bySlot[slotIdx] = pair;
+    });
+    return bySlot;
+}
+
 function buildBracketRoundFilterOptions(totalRounds: number): { value: string; label: string }[] {
     if (totalRounds <= 1) {
         return [{ value: "all", label: "All Rounds" }];
@@ -134,23 +179,32 @@ function stageFormatLabel(value: string | undefined): string {
     return found?.label ?? "Single Elimination";
 }
 
-function seedingDetailPhrase(method: string | undefined): string {
+function seedingDetailPhrase(method: string | undefined, isDoublesStage: boolean): string {
     if ((method ?? "").toLowerCase() === "manual") {
         return "Manual seeding";
     }
-    return "Seeded by rating";
+    return isDoublesStage ? "Seeded by doubles rating" : "Seeded by rating";
 }
 
 function buildStageSubtitle(stage: ParsedStage, playerCount: number): string {
     const parts: string[] = [];
-    parts.push(`${playerCount} players`);
     const mt = (stage.matchType ?? "").toLowerCase();
+    const isDoublesStage = mt === "doubles";
+    if (isDoublesStage) {
+        const teams = Math.max(1, Math.floor(playerCount / 2));
+        parts.push(`${teams} teams`, `${playerCount} players`);
+    } else {
+        parts.push(`${playerCount} players`);
+    }
     if (mt === "doubles") parts.push("Doubles");
     if (mt === "singles") parts.push("Singles");
-    parts.push(seedingDetailPhrase(stage.seedingMethod));
+    parts.push(seedingDetailPhrase(stage.seedingMethod, isDoublesStage));
     const fmt = (stage.stageFormat ?? "single_elimination").toLowerCase();
     if (fmt === "single_elimination") {
         parts.push("Single loss elimination", "Winner advances");
+    }
+    if (isDoublesStage) {
+        parts.push("2v2 every round including the final");
     }
     return parts.join(" · ");
 }
@@ -164,52 +218,88 @@ function parseBracketSetsScore(raw: string | null | undefined): number | null {
     return Number.isFinite(n) ? n : null;
 }
 
-function SlotRow({
+function splitTeamWinnerLabel(raw: string): string[] {
+    const t = raw.trim();
+    if (!t) return [];
+    const seps = [" & ", " / ", ", ", " и "];
+    for (const sep of seps) {
+        if (t.includes(sep)) {
+            return t
+                .split(sep)
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .slice(0, 2);
+        }
+    }
+    return [t];
+}
+
+function findPlayerByNameExact(players: IPlayer[], name: string): IPlayer | null {
+    const n = name.trim().toLowerCase();
+    if (!n) return null;
+    return players.find((p) => p.name.trim().toLowerCase() === n) ?? null;
+}
+
+function TeamSlotRow({
     slotRole,
     seed,
-    player,
+    members,
     score,
     isWinner,
 }: {
     slotRole: "upper" | "lower";
     seed: number;
-    player: IPlayer | null;
+    members: (IPlayer | null)[];
     score: string | null;
     isWinner: boolean;
 }) {
-    const isEmpty = !player;
+    const rows =
+        members.length >= 2
+            ? members.slice(0, 2)
+            : [members[0] ?? null];
     const showSeed = seed > 0;
+    const rowClass = isWinner
+        ? `${css.slotRow} ${css.slotRowWinner}`
+        : `${css.slotRow} ${css.slotRowDefault}`;
+    const multi = rows.length > 1;
     return (
         <div
             data-slot-role={slotRole}
-            className={
-                isWinner
-                    ? `${css.slotRow} ${css.slotRowWinner}`
-                    : `${css.slotRow} ${css.slotRowDefault}`
-            }
+            className={cn(rowClass, multi && css.teamSlotRow)}
         >
-            <div className={css.slotLeft}>
-                {showSeed && (
-                    <span className={isWinner ? css.seedBadgeWinner : css.seedBadge}>
-                        #{seed}
-                    </span>
-                )}
-                <span className={css.slotFlag}>
-                    {player?.countryCode ? (
-                        <Image
-                            src={getCountryFlagUrl(player.countryCode)}
-                            alt=""
-                            width={24}
-                            height={24}
-                            className={css.flagImg}
-                        />
-                    ) : (
-                        <span className={css.flagPlaceholder} />
-                    )}
-                </span>
-                <span className={isEmpty ? css.slotNameEmpty : css.slotName}>
-                    {player?.name ?? "—"}
-                </span>
+            <div className={cn(css.slotLeft, multi && css.teamSlotLeftCol)}>
+                {rows.map((player, i) => {
+                    const isEmpty = !player;
+                    return (
+                        <div key={i} className={css.teamMemberRow}>
+                            {i === 0 && showSeed ? (
+                                <span
+                                    className={isWinner ? css.seedBadgeWinner : css.seedBadge}
+                                >
+                                    #{seed}
+                                </span>
+                            ) : (
+                                <span className={css.seedBadgeSpacer} aria-hidden />
+                            )}
+                            <span className={css.slotFlag}>
+                                {player?.countryCode ? (
+                                    <Image
+                                        src={getCountryFlagUrl(player.countryCode)}
+                                        alt=""
+                                        width={24}
+                                        height={24}
+                                        className={css.flagImg}
+                                    />
+                                ) : (
+                                    <span className={css.flagPlaceholder} />
+                                )}
+                            </span>
+                            <span className={isEmpty ? css.slotNameEmpty : css.slotName}>
+                                {player?.name ?? "—"}
+                            </span>
+                        </div>
+                    );
+                })}
             </div>
             {score != null && score !== "" && (
                 <span className={isWinner ? css.slotScoreWinner : css.slotScore}>{score}</span>
@@ -220,7 +310,8 @@ function SlotRow({
 
 function MatchPair({
     slots,
-    playersBySeed,
+    teamsBySeed,
+    isDoubles,
     setPairEl,
     onEditClick,
     onViewDetailsClick,
@@ -228,7 +319,8 @@ function MatchPair({
     savedLowerScore,
 }: {
     slots: [number, number];
-    playersBySeed: (IPlayer | null)[];
+    teamsBySeed: (IPlayer | null)[][];
+    isDoubles: boolean;
     setPairEl: (el: HTMLDivElement | null) => void;
     onEditClick?: () => void;
     onViewDetailsClick?: () => void;
@@ -237,27 +329,23 @@ function MatchPair({
 }) {
     const [seedA, seedB] = slots;
     const isPlaceholder = seedA < 0 || seedB < 0;
-    const playerA = !isPlaceholder ? (playersBySeed[seedA] ?? null) : null;
-    const playerB = !isPlaceholder ? (playersBySeed[seedB] ?? null) : null;
-    const hasA = playerA != null;
-    const hasB = playerB != null;
-    const byeUpperWins = hasA && !hasB;
-    const byeLowerWins = hasB && !hasA;
+    const teamUpper = !isPlaceholder ? (teamsBySeed[seedA] ?? []) : [];
+    const teamLower = !isPlaceholder ? (teamsBySeed[seedB] ?? []) : [];
     const upperSets = parseBracketSetsScore(savedUpperScore);
     const lowerSets = parseBracketSetsScore(savedLowerScore);
-    const bothPresent = hasA && hasB;
-    const hasDecidedSets =
-        bothPresent &&
+    const setsDecisive =
         upperSets !== null &&
         lowerSets !== null &&
         upperSets !== lowerSets;
 
-    let upperWins = byeUpperWins;
-    let lowerWins = byeLowerWins;
-    if (hasDecidedSets && upperSets !== null && lowerSets !== null) {
+    let upperWins = false;
+    let lowerWins = false;
+    if (setsDecisive) {
         upperWins = upperSets > lowerSets;
         lowerWins = lowerSets > upperSets;
     }
+
+    const emptySlotMembers: (IPlayer | null)[] = isDoubles ? [null, null] : [null];
 
     return (
         <div className={css.matchup}>
@@ -271,17 +359,21 @@ function MatchPair({
                 </button>
             ) : null}
             <div className={css.pair} ref={setPairEl}>
-                <SlotRow
+                <TeamSlotRow
                     slotRole="upper"
                     seed={isPlaceholder ? 0 : seedA + 1}
-                    player={playerA}
+                    members={
+                        teamUpper.length > 0 ? teamUpper : emptySlotMembers
+                    }
                     score={savedUpperScore ?? null}
                     isWinner={upperWins}
                 />
-                <SlotRow
+                <TeamSlotRow
                     slotRole="lower"
                     seed={isPlaceholder ? 0 : seedB + 1}
-                    player={playerB}
+                    members={
+                        teamLower.length > 0 ? teamLower : emptySlotMembers
+                    }
                     score={savedLowerScore ?? null}
                     isWinner={lowerWins}
                 />
@@ -290,6 +382,19 @@ function MatchPair({
     );
 }
 
+type MatchSideContext = {
+    roundIndex: number;
+    matchIndex: number;
+    roundTitle: string;
+    playerA: IPlayer | null;
+    playerB: IPlayer | null;
+    teamAPlayers: (IPlayer | null)[];
+    teamBPlayers: (IPlayer | null)[];
+    isDoubles: boolean;
+    seedA1Based: number;
+    seedB1Based: number;
+};
+
 type TournamentBracketCoreProps = {
     players: IPlayer[];
     totalParticipants: number | null | undefined;
@@ -297,25 +402,10 @@ type TournamentBracketCoreProps = {
     showChampionColumn: boolean;
     roundFilter: string;
     stageIndex: number;
+    isDoubles: boolean;
     tournamentBracketResults?: TournamentBracketResultsMap | null;
-    onOpenEditMatch?: (ctx: {
-        roundIndex: number;
-        matchIndex: number;
-        roundTitle: string;
-        playerA: IPlayer | null;
-        playerB: IPlayer | null;
-        seedA1Based: number;
-        seedB1Based: number;
-    }) => void;
-    onViewMatchDetails?: (ctx: {
-        roundIndex: number;
-        matchIndex: number;
-        roundTitle: string;
-        playerA: IPlayer | null;
-        playerB: IPlayer | null;
-        seedA1Based: number;
-        seedB1Based: number;
-    }) => void;
+    onOpenEditMatch?: (ctx: MatchSideContext) => void;
+    onViewMatchDetails?: (ctx: MatchSideContext) => void;
 };
 
 function TournamentBracketCore({
@@ -325,6 +415,7 @@ function TournamentBracketCore({
     showChampionColumn,
     roundFilter,
     stageIndex,
+    isDoubles,
     tournamentBracketResults,
     onOpenEditMatch,
     onViewMatchDetails,
@@ -335,8 +426,11 @@ function TournamentBracketCore({
     const [connectorPoints, setConnectorPoints] = useState<string[]>([]);
 
     const { rounds, size } = useMemo(
-        () => getRoundsAndSize(totalParticipants, players.length),
-        [totalParticipants, players.length]
+        () =>
+            isDoubles
+                ? getRoundsAndSizeDoubles(totalParticipants, players.length)
+                : getRoundsAndSize(totalParticipants, players.length),
+        [isDoubles, totalParticipants, players.length]
     );
 
     const visibleRoundsCount = useMemo(
@@ -346,16 +440,10 @@ function TournamentBracketCore({
     const sliceStart = Math.max(0, rounds - visibleRoundsCount);
 
     const bracketOrder = useMemo(() => getBracketSlotOrder(size), [size]);
-    const seededPlayers = useMemo(() => {
-        const sorted = [...players].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-        const bySeed: (IPlayer | null)[] = Array(size).fill(null);
-        bracketOrder.forEach((slotIdx, orderIdx) => {
-            if (orderIdx < sorted.length) {
-                bySeed[slotIdx] = sorted[orderIdx];
-            }
-        });
-        return bySeed;
-    }, [players, size, bracketOrder]);
+    const seededTeams = useMemo(
+        () => buildSeededTeamSlots(isDoubles, players, size, bracketOrder),
+        [isDoubles, players, size, bracketOrder]
+    );
 
     const roundColumns = useMemo(() => {
         const cols: { roundIndex: number; matches: [number, number][] }[] = [];
@@ -417,11 +505,66 @@ function TournamentBracketCore({
         showChampionColumn && championBannerColumnIndex >= 0;
 
     const winnerTrimmed = (winner ?? "").trim();
-    const championDisplayName = winnerTrimmed.length > 0 ? winnerTrimmed : "—";
+    const winnerMeaningful =
+        winnerTrimmed.length > 0 &&
+        winnerTrimmed !== "—" &&
+        winnerTrimmed.toLowerCase() !== "n/a";
+    const championDisplayName = winnerMeaningful ? winnerTrimmed : "—";
     const championWinnerPlayer = useMemo(() => {
-        if (!winnerTrimmed) return null;
-        return players.find((p) => p.name === winnerTrimmed) ?? null;
-    }, [players, winnerTrimmed]);
+        if (!winnerMeaningful) return null;
+        return (
+            players.find((p) => p.name === winnerTrimmed) ??
+            findPlayerByNameExact(players, winnerTrimmed)
+        );
+    }, [players, winnerTrimmed, winnerMeaningful]);
+
+    const finalMatchKeyForChampion = useMemo(
+        () => buildTournamentMatchKey(stageIndex, finalRoundIndex, 0),
+        [stageIndex, finalRoundIndex]
+    );
+
+    const championDoublesTeam = useMemo((): IPlayer[] => {
+        if (!isDoubles) return [];
+        const finalSaved = tournamentBracketResults?.[finalMatchKeyForChampion];
+        if (
+            finalSaved?.player3Id &&
+            finalSaved?.player4Id &&
+            finalSaved.player1Id &&
+            finalSaved.player2Id
+        ) {
+            const s1 = Number(finalSaved.setsP1 ?? 0);
+            const s2 = Number(finalSaved.setsP2 ?? 0);
+            if (s1 !== s2) {
+                const ids =
+                    s1 > s2
+                        ? [finalSaved.player1Id, finalSaved.player2Id]
+                        : [finalSaved.player3Id, finalSaved.player4Id];
+                const out: IPlayer[] = [];
+                for (const id of ids) {
+                    const pl = players.find((p) => p.id === id);
+                    if (pl) out.push(pl);
+                }
+                if (out.length > 0) return out;
+            }
+        }
+        if (winnerMeaningful) {
+            const names = splitTeamWinnerLabel(winnerTrimmed);
+            const out: IPlayer[] = [];
+            for (const nm of names) {
+                const pl = findPlayerByNameExact(players, nm);
+                if (pl && !out.some((x) => x.id === pl.id)) out.push(pl);
+            }
+            if (out.length > 0) return out;
+        }
+        return [];
+    }, [
+        isDoubles,
+        finalMatchKeyForChampion,
+        tournamentBracketResults,
+        players,
+        winnerTrimmed,
+        winnerMeaningful,
+    ]);
 
     const bracketGridTemplateColumns = useMemo(
         () => `repeat(${visibleColCount}, minmax(0, 1fr))`,
@@ -496,7 +639,15 @@ function TournamentBracketCore({
         }
 
         setConnectorPoints(lines);
-    }, [rounds, size, showChampionColumn, finalRoundInView, sliceStart, bracketWrapPaddingTop]);
+    }, [
+        rounds,
+        size,
+        showChampionColumn,
+        finalRoundInView,
+        sliceStart,
+        bracketWrapPaddingTop,
+        isDoubles,
+    ]);
 
     if (rounds < 1 || size < 2) return null;
 
@@ -545,46 +696,43 @@ function TournamentBracketCore({
                     const matchPairs = col.matches.map((slots, mi) => {
                         const [sa, sb] = slots;
                         const isPh = sa < 0 || sb < 0;
-                        const pa = !isPh ? (seededPlayers[sa] ?? null) : null;
-                        const pb = !isPh ? (seededPlayers[sb] ?? null) : null;
+                        const teamA = !isPh ? (seededTeams[sa] ?? []) : [];
+                        const teamB = !isPh ? (seededTeams[sb] ?? []) : [];
+                        const pa = teamA[0] ?? null;
+                        const pb = teamB[0] ?? null;
                         const mk = buildTournamentMatchKey(
                             stageIndex,
                             col.roundIndex,
                             mi
                         );
                         const saved = tournamentBracketResults?.[mk];
+                        const matchCtx: MatchSideContext = {
+                            roundIndex: col.roundIndex,
+                            matchIndex: mi,
+                            roundTitle,
+                            playerA: pa,
+                            playerB: pb,
+                            teamAPlayers: teamA,
+                            teamBPlayers: teamB,
+                            isDoubles,
+                            seedA1Based: isPh ? 0 : sa + 1,
+                            seedB1Based: isPh ? 0 : sb + 1,
+                        };
                         return (
                             <MatchPair
                                 key={`${col.roundIndex}-${mi}`}
                                 slots={slots}
-                                playersBySeed={seededPlayers}
+                                teamsBySeed={seededTeams}
+                                isDoubles={isDoubles}
                                 setPairEl={setPairEl(col.roundIndex, mi)}
                                 onEditClick={
                                     onOpenEditMatch
-                                        ? () =>
-                                              onOpenEditMatch({
-                                                  roundIndex: col.roundIndex,
-                                                  matchIndex: mi,
-                                                  roundTitle,
-                                                  playerA: pa,
-                                                  playerB: pb,
-                                                  seedA1Based: isPh ? 0 : sa + 1,
-                                                  seedB1Based: isPh ? 0 : sb + 1,
-                                              })
+                                        ? () => onOpenEditMatch(matchCtx)
                                         : undefined
                                 }
                                 onViewDetailsClick={
                                     onViewMatchDetails
-                                        ? () =>
-                                              onViewMatchDetails({
-                                                  roundIndex: col.roundIndex,
-                                                  matchIndex: mi,
-                                                  roundTitle,
-                                                  playerA: pa,
-                                                  playerB: pb,
-                                                  seedA1Based: isPh ? 0 : sa + 1,
-                                                  seedB1Based: isPh ? 0 : sb + 1,
-                                              })
+                                        ? () => onViewMatchDetails(matchCtx)
                                         : undefined
                                 }
                                 savedUpperScore={
@@ -624,42 +772,146 @@ function TournamentBracketCore({
                                 <span className={css.championLabel}>
                                     Champion
                                 </span>
-                                <div className={css.championPlayerRow}>
-                                    <span className={css.championPlayerFlag}>
-                                        {championWinnerPlayer?.countryCode ? (
-                                            <Image
-                                                src={getCountryFlagUrl(
-                                                    championWinnerPlayer.countryCode
+                                {isDoubles && championDoublesTeam.length >= 2 ? (
+                                    <div className={css.championTeamBlock}>
+                                        {championDoublesTeam.map((pl) => (
+                                            <div
+                                                key={pl.id}
+                                                className={css.championPlayerRow}
+                                            >
+                                                <span className={css.championPlayerFlag}>
+                                                    {pl.countryCode ? (
+                                                        <Image
+                                                            src={getCountryFlagUrl(
+                                                                pl.countryCode
+                                                            )}
+                                                            alt=""
+                                                            width={24}
+                                                            height={24}
+                                                            className={css.championFlagImg}
+                                                        />
+                                                    ) : (
+                                                        <span
+                                                            className={
+                                                                css.championFlagPlaceholder
+                                                            }
+                                                        />
+                                                    )}
+                                                </span>
+                                                <span className={css.championPlayerName}>
+                                                    {pl.name}
+                                                </span>
+                                            </div>
+                                        ))}
+                                        <span
+                                            className={css.championTrophy}
+                                            aria-hidden
+                                        >
+                                            🏆
+                                        </span>
+                                    </div>
+                                ) : isDoubles && championDoublesTeam.length === 1 ? (
+                                    <div className={css.championTeamBlock}>
+                                        <div className={css.championPlayerRow}>
+                                            <span className={css.championPlayerFlag}>
+                                                {championDoublesTeam[0]?.countryCode ? (
+                                                    <Image
+                                                        src={getCountryFlagUrl(
+                                                            championDoublesTeam[0]
+                                                                .countryCode
+                                                        )}
+                                                        alt=""
+                                                        width={24}
+                                                        height={24}
+                                                        className={css.championFlagImg}
+                                                    />
+                                                ) : (
+                                                    <span
+                                                        className={
+                                                            css.championFlagPlaceholder
+                                                        }
+                                                    />
                                                 )}
-                                                alt=""
-                                                width={24}
-                                                height={24}
-                                                className={css.championFlagImg}
-                                            />
-                                        ) : (
+                                            </span>
+                                            <span className={css.championPlayerName}>
+                                                {championDoublesTeam[0]?.name ?? "—"}
+                                            </span>
                                             <span
-                                                className={
-                                                    css.championFlagPlaceholder
-                                                }
-                                            />
-                                        )}
-                                    </span>
-                                    <span
-                                        className={
-                                            winnerTrimmed
-                                                ? css.championPlayerName
-                                                : css.championPlayerNameEmpty
-                                        }
-                                    >
-                                        {championDisplayName}
-                                    </span>
-                                    <span
-                                        className={css.championTrophy}
-                                        aria-hidden
-                                    >
-                                        🏆
-                                    </span>
-                                </div>
+                                                className={css.championTrophy}
+                                                aria-hidden
+                                            >
+                                                🏆
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : isDoubles &&
+                                  championDoublesTeam.length === 0 &&
+                                  !winnerMeaningful ? (
+                                    <div className={css.championTeamBlock}>
+                                        {[0, 1].map((i) => (
+                                            <div
+                                                key={i}
+                                                className={css.championPlayerRow}
+                                            >
+                                                <span className={css.championPlayerFlag}>
+                                                    <span
+                                                        className={
+                                                            css.championFlagPlaceholder
+                                                        }
+                                                    />
+                                                </span>
+                                                <span
+                                                    className={css.championPlayerNameEmpty}
+                                                >
+                                                    —
+                                                </span>
+                                            </div>
+                                        ))}
+                                        <span
+                                            className={css.championTrophy}
+                                            aria-hidden
+                                        >
+                                            🏆
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className={css.championPlayerRow}>
+                                        <span className={css.championPlayerFlag}>
+                                            {championWinnerPlayer?.countryCode ? (
+                                                <Image
+                                                    src={getCountryFlagUrl(
+                                                        championWinnerPlayer.countryCode
+                                                    )}
+                                                    alt=""
+                                                    width={24}
+                                                    height={24}
+                                                    className={css.championFlagImg}
+                                                />
+                                            ) : (
+                                                <span
+                                                    className={
+                                                        css.championFlagPlaceholder
+                                                    }
+                                                />
+                                            )}
+                                        </span>
+                                        <span
+                                            className={
+                                                winnerMeaningful
+                                                    ? css.championPlayerName
+                                                    : css.championPlayerNameEmpty
+                                            }
+                                        >
+                                            {championDisplayName}
+                                        </span>
+                                        <span
+                                            className={css.championTrophy}
+                                            aria-hidden
+                                        >
+                                            🏆
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <div className={css.roundColumn}>{matchPairs}</div>
                         </div>
@@ -687,15 +939,6 @@ export function TournamentBracketGrid({
     const [expandedByIndex, setExpandedByIndex] = useState<Record<number, boolean>>({});
     const [roundFilterByStage, setRoundFilterByStage] = useState<Record<number, string>>({});
 
-    const fullBracketRounds = useMemo(
-        () => getRoundsAndSize(totalParticipants, players.length).rounds,
-        [totalParticipants, players.length]
-    );
-    const bracketRoundFilterOptions = useMemo(
-        () => buildBracketRoundFilterOptions(fullBracketRounds),
-        [fullBracketRounds]
-    );
-
     const displayPlayerCount =
         totalParticipants != null && totalParticipants > 0
             ? totalParticipants
@@ -712,9 +955,9 @@ export function TournamentBracketGrid({
         }));
     };
 
-    const getSafeRoundFilter = (stageIndex: number) => {
+    const getSafeRoundFilter = (stageIndex: number, options: { value: string; label: string }[]) => {
         const raw = roundFilterByStage[stageIndex] ?? "all";
-        return bracketRoundFilterOptions.some((o) => o.value === raw) ? raw : "all";
+        return options.some((o) => o.value === raw) ? raw : "all";
     };
 
     const setStageRoundFilter = (stageIndex: number, value: string) => {
@@ -726,6 +969,19 @@ export function TournamentBracketGrid({
             <div className={css.container}>
                 <div className={css.stagesStack}>
                     {stages.map((stage, index) => {
+                        const stageIsDoubles =
+                            (stage.matchType ?? "").toLowerCase() === "doubles";
+                        const { rounds: stageBracketRounds } = stageIsDoubles
+                            ? getRoundsAndSizeDoubles(
+                                  totalParticipants,
+                                  displayPlayerCount
+                              )
+                            : getRoundsAndSize(
+                                  totalParticipants,
+                                  displayPlayerCount
+                              );
+                        const stageRoundFilterOptions =
+                            buildBracketRoundFilterOptions(stageBracketRounds);
                         const title = `Stage ${index + 1} · ${stageFormatLabel(stage.stageFormat)}`;
                         const subtitle = buildStageSubtitle(stage, displayPlayerCount);
                         const expanded = isStageExpanded(index);
@@ -750,13 +1006,16 @@ export function TournamentBracketGrid({
                                 </button>
                                 {expanded && (
                                     <div className={css.stageBracketBody}>
-                                        {fullBracketRounds > 1 && (
+                                        {stageBracketRounds > 1 && (
                                             <div className={css.roundFilterRow}>
                                                 <CustomRoundedDropdown
                                                     id={`tournament-stage-${index}-round-filter`}
                                                     placeholder="All Rounds"
-                                                    options={bracketRoundFilterOptions}
-                                                    value={getSafeRoundFilter(index)}
+                                                    options={stageRoundFilterOptions}
+                                                    value={getSafeRoundFilter(
+                                                        index,
+                                                        stageRoundFilterOptions
+                                                    )}
                                                     onChange={(v) =>
                                                         setStageRoundFilter(index, v)
                                                     }
@@ -769,8 +1028,12 @@ export function TournamentBracketGrid({
                                             totalParticipants={totalParticipants}
                                             winner={winner}
                                             showChampionColumn={true}
-                                            roundFilter={getSafeRoundFilter(index)}
+                                            roundFilter={getSafeRoundFilter(
+                                                index,
+                                                stageRoundFilterOptions
+                                            )}
                                             stageIndex={index}
+                                            isDoubles={stageIsDoubles}
                                             tournamentBracketResults={
                                                 tournamentBracketResults ?? null
                                             }
@@ -795,13 +1058,25 @@ export function TournamentBracketGrid({
                                                                   allPlayers:
                                                                       players,
                                                                   defaultPlayer1Id:
-                                                                      ctx.playerA
+                                                                      ctx
+                                                                          .teamAPlayers[0]
                                                                           ?.id ??
                                                                       null,
-                                                                  defaultPlayer2Id:
-                                                                      ctx.playerB
-                                                                          ?.id ??
-                                                                      null,
+                                                                  defaultPlayer2Id: ctx.isDoubles
+                                                                      ? ctx.teamAPlayers[1]?.id ??
+                                                                        null
+                                                                      : ctx.teamBPlayers[0]?.id ??
+                                                                        null,
+                                                                  defaultPlayer3Id: ctx.isDoubles
+                                                                      ? ctx.teamBPlayers[0]?.id ??
+                                                                        null
+                                                                      : null,
+                                                                  defaultPlayer4Id: ctx.isDoubles
+                                                                      ? ctx.teamBPlayers[1]?.id ??
+                                                                        null
+                                                                      : null,
+                                                                  isDoubles:
+                                                                      ctx.isDoubles,
                                                                   saved:
                                                                       tournamentBracketResults?.[
                                                                           mk
@@ -839,13 +1114,25 @@ export function TournamentBracketGrid({
                                                                   allPlayers:
                                                                       players,
                                                                   defaultPlayer1Id:
-                                                                      ctx.playerA
+                                                                      ctx
+                                                                          .teamAPlayers[0]
                                                                           ?.id ??
                                                                       null,
-                                                                  defaultPlayer2Id:
-                                                                      ctx.playerB
-                                                                          ?.id ??
-                                                                      null,
+                                                                  defaultPlayer2Id: ctx.isDoubles
+                                                                      ? ctx.teamAPlayers[1]?.id ??
+                                                                        null
+                                                                      : ctx.teamBPlayers[0]?.id ??
+                                                                        null,
+                                                                  defaultPlayer3Id: ctx.isDoubles
+                                                                      ? ctx.teamBPlayers[0]?.id ??
+                                                                        null
+                                                                      : null,
+                                                                  defaultPlayer4Id: ctx.isDoubles
+                                                                      ? ctx.teamBPlayers[1]?.id ??
+                                                                        null
+                                                                      : null,
+                                                                  isDoubles:
+                                                                      ctx.isDoubles,
                                                                   saved:
                                                                       tournamentBracketResults?.[
                                                                           mk

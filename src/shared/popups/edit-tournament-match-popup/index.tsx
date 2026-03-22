@@ -22,6 +22,9 @@ export type EditTournamentMatchPopupData = {
     allPlayers: IPlayer[];
     defaultPlayer1Id: string | null;
     defaultPlayer2Id: string | null;
+    defaultPlayer3Id?: string | null;
+    defaultPlayer4Id?: string | null;
+    isDoubles?: boolean;
     saved?: TournamentMatchResultPayload | null;
     eventStartDate?: string | null;
     seedLabel1?: number;
@@ -62,10 +65,17 @@ function MatchDetailsView({
     onClose: () => void;
 }) {
     const s = data.saved;
-    const p1 = s?.player1Id ?? data.defaultPlayer1Id ?? "";
-    const p2 = s?.player2Id ?? data.defaultPlayer2Id ?? "";
+    const isD = Boolean(data.isDoubles);
+    const a1 = s?.player1Id ?? data.defaultPlayer1Id ?? "";
+    const a2 = s?.player2Id ?? data.defaultPlayer2Id ?? "";
+    const b1 = isD ? (s?.player3Id ?? data.defaultPlayer3Id ?? "") : "";
+    const b2 = isD ? (s?.player4Id ?? data.defaultPlayer4Id ?? "") : "";
+    const p1 = a1;
+    const p2 = isD ? a2 : (s?.player2Id ?? data.defaultPlayer2Id ?? "");
     const pl1 = data.allPlayers.find((x) => x.id === p1) ?? null;
     const pl2 = data.allPlayers.find((x) => x.id === p2) ?? null;
+    const pl3 = isD ? (data.allPlayers.find((x) => x.id === b1) ?? null) : null;
+    const pl4 = isD ? (data.allPlayers.find((x) => x.id === b2) ?? null) : null;
     const seed1 = data.seedLabel1 ?? 1;
     const seed2 = data.seedLabel2 ?? 2;
     const setsP1 = s?.setsP1 ?? 0;
@@ -100,15 +110,49 @@ function MatchDetailsView({
                 <div className={css.viewHeroRow}>
                     <div className={css.heroSideLeft}>
                         <div className={css.heroNameCol}>
-                            <span className={p1Ahead ? css.heroName : css.heroNameMuted}>
-                                {pl1?.name ?? "—"}
-                            </span>
+                            {isD ? (
+                                <>
+                                    <span className={p1Ahead ? css.heroName : css.heroNameMuted}>
+                                        {pl1?.name ?? "—"}
+                                    </span>
+                                    <span
+                                        className={p1Ahead ? css.heroNameSecondary : css.heroNameMuted}
+                                    >
+                                        {pl2?.name ?? "—"}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className={p1Ahead ? css.heroName : css.heroNameMuted}>
+                                    {pl1?.name ?? "—"}
+                                </span>
+                            )}
                             <span className={p1Ahead ? css.seedBadge : css.seedBadgeMuted}>
                                 #{seed1}
                             </span>
                         </div>
-                        <div className={p1Ahead ? css.flagWrap : css.flagWrapMuted}>
-                            {pl1?.countryCode ? (
+                        <div className={cn(p1Ahead ? css.flagWrap : css.flagWrapMuted, isD && css.heroFlagsPair)}>
+                            {isD ? (
+                                <>
+                                    {pl1?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl1.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                    {pl2?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl2.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                </>
+                            ) : pl1?.countryCode ? (
                                 <Image
                                     src={getCountryFlagUrl(pl1.countryCode)}
                                     alt=""
@@ -139,8 +183,29 @@ function MatchDetailsView({
                         </span>
                     </div>
                     <div className={css.heroSideRight}>
-                        <div className={p2Ahead ? css.flagWrap : css.flagWrapMuted}>
-                            {pl2?.countryCode ? (
+                        <div className={cn(p2Ahead ? css.flagWrap : css.flagWrapMuted, isD && css.heroFlagsPair)}>
+                            {isD ? (
+                                <>
+                                    {pl3?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl3.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                    {pl4?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl4.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                </>
+                            ) : pl2?.countryCode ? (
                                 <Image
                                     src={getCountryFlagUrl(pl2.countryCode)}
                                     alt=""
@@ -151,9 +216,22 @@ function MatchDetailsView({
                             ) : null}
                         </div>
                         <div className={css.heroNameColRight}>
-                            <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
-                                {pl2?.name ?? "—"}
-                            </span>
+                            {isD ? (
+                                <>
+                                    <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
+                                        {pl3?.name ?? "—"}
+                                    </span>
+                                    <span
+                                        className={p2Ahead ? css.heroNameSecondary : css.heroNameMuted}
+                                    >
+                                        {pl4?.name ?? "—"}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
+                                    {pl2?.name ?? "—"}
+                                </span>
+                            )}
                             <span className={p2Ahead ? css.seedBadge : css.seedBadgeMuted}>
                                 #{seed2}
                             </span>
@@ -236,8 +314,11 @@ function MatchForm({
 }) {
     const router = useRouter();
     const s = data.saved;
+    const isDForm = Boolean(data.isDoubles);
     const [p1, setP1] = useState(() => s?.player1Id ?? data.defaultPlayer1Id ?? "");
     const [p2, setP2] = useState(() => s?.player2Id ?? data.defaultPlayer2Id ?? "");
+    const [p3, setP3] = useState(() => s?.player3Id ?? data.defaultPlayer3Id ?? "");
+    const [p4, setP4] = useState(() => s?.player4Id ?? data.defaultPlayer4Id ?? "");
     const [setsP1, setSetsP1] = useState(() => s?.setsP1 ?? 0);
     const [setsP2, setSetsP2] = useState(() => s?.setsP2 ?? 0);
     const [roundScores, setRoundScores] = useState<[number, number][]>(() =>
@@ -261,6 +342,8 @@ function MatchForm({
 
     const pl1 = data.allPlayers.find((x) => x.id === p1) ?? null;
     const pl2 = data.allPlayers.find((x) => x.id === p2) ?? null;
+    const pl3 = data.allPlayers.find((x) => x.id === p3) ?? null;
+    const pl4 = data.allPlayers.find((x) => x.id === p4) ?? null;
     const seed1 = data.seedLabel1 ?? 1;
     const seed2 = data.seedLabel2 ?? 2;
     const p1Ahead = setsP1 > setsP2;
@@ -280,7 +363,12 @@ function MatchForm({
 
     const handleSave = async () => {
         setError(null);
-        if (!p1 || !p2 || p1 === p2) {
+        if (isDForm) {
+            if (!p1 || !p2 || !p3 || !p4 || new Set([p1, p2, p3, p4]).size !== 4) {
+                setError("Choose four different players for both teams.");
+                return;
+            }
+        } else if (!p1 || !p2 || p1 === p2) {
             setError("Choose two different players.");
             return;
         }
@@ -294,6 +382,13 @@ function MatchForm({
                     matchKey: data.matchKey,
                     player1Id: p1,
                     player2Id: p2,
+                    ...(isDForm
+                        ? {
+                              player3Id: p3,
+                              player4Id: p4,
+                              isDoubles: true,
+                          }
+                        : {}),
                     setsP1,
                     setsP2,
                     roundScores,
@@ -337,34 +432,93 @@ function MatchForm({
             </button>
             <h2 className={css.title}>Edit Details - {data.roundTitle}</h2>
 
-            <div className={css.row2}>
-                <div className={css.fieldCol}>
-                    <span className={css.fieldLabel}>Player 1</span>
-                    <div className={css.dropdownWrap}>
-                        <CustomRoundedDropdown
-                            id={`tm-p1-${data.matchKey}`}
-                            placeholder="Select player"
-                            options={options}
-                            value={p1}
-                            onChange={setP1}
-                            buttonClassName={css.ddBtn}
-                        />
+            {isDForm ? (
+                <div className={css.playersGridDoubles}>
+                    <span className={css.teamFormLabel}>Team 1</span>
+                    <div className={css.fieldCol}>
+                        <span className={css.fieldLabel}>Player</span>
+                        <div className={css.dropdownWrap}>
+                            <CustomRoundedDropdown
+                                id={`tm-p1-${data.matchKey}`}
+                                placeholder="Select player"
+                                options={options}
+                                value={p1}
+                                onChange={setP1}
+                                buttonClassName={css.ddBtn}
+                            />
+                        </div>
+                    </div>
+                    <div className={css.fieldCol}>
+                        <span className={css.fieldLabel}>Player</span>
+                        <div className={css.dropdownWrap}>
+                            <CustomRoundedDropdown
+                                id={`tm-p2-${data.matchKey}`}
+                                placeholder="Select player"
+                                options={options}
+                                value={p2}
+                                onChange={setP2}
+                                buttonClassName={css.ddBtn}
+                            />
+                        </div>
+                    </div>
+                    <span className={css.teamFormLabel}>Team 2</span>
+                    <div className={css.fieldCol}>
+                        <span className={css.fieldLabel}>Player</span>
+                        <div className={css.dropdownWrap}>
+                            <CustomRoundedDropdown
+                                id={`tm-p3-${data.matchKey}`}
+                                placeholder="Select player"
+                                options={options}
+                                value={p3}
+                                onChange={setP3}
+                                buttonClassName={css.ddBtn}
+                            />
+                        </div>
+                    </div>
+                    <div className={css.fieldCol}>
+                        <span className={css.fieldLabel}>Player</span>
+                        <div className={css.dropdownWrap}>
+                            <CustomRoundedDropdown
+                                id={`tm-p4-${data.matchKey}`}
+                                placeholder="Select player"
+                                options={options}
+                                value={p4}
+                                onChange={setP4}
+                                buttonClassName={css.ddBtn}
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className={css.fieldCol}>
-                    <span className={css.fieldLabel}>Player 2</span>
-                    <div className={css.dropdownWrap}>
-                        <CustomRoundedDropdown
-                            id={`tm-p2-${data.matchKey}`}
-                            placeholder="Select player"
-                            options={options}
-                            value={p2}
-                            onChange={setP2}
-                            buttonClassName={css.ddBtn}
-                        />
+            ) : (
+                <div className={css.row2}>
+                    <div className={css.fieldCol}>
+                        <span className={css.fieldLabel}>Player 1</span>
+                        <div className={css.dropdownWrap}>
+                            <CustomRoundedDropdown
+                                id={`tm-p1-${data.matchKey}`}
+                                placeholder="Select player"
+                                options={options}
+                                value={p1}
+                                onChange={setP1}
+                                buttonClassName={css.ddBtn}
+                            />
+                        </div>
+                    </div>
+                    <div className={css.fieldCol}>
+                        <span className={css.fieldLabel}>Player 2</span>
+                        <div className={css.dropdownWrap}>
+                            <CustomRoundedDropdown
+                                id={`tm-p2-${data.matchKey}`}
+                                placeholder="Select player"
+                                options={options}
+                                value={p2}
+                                onChange={setP2}
+                                buttonClassName={css.ddBtn}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <div className={css.dateCenter}>{formatOrdinalDate(data.eventStartDate)}</div>
 
@@ -372,17 +526,60 @@ function MatchForm({
                 <div className={css.heroRow}>
                     <div className={css.heroSideLeft}>
                         <div className={css.heroNameCol}>
-                            <span
-                                className={p1Ahead ? css.heroName : css.heroNameMuted}
-                            >
-                                {pl1?.name ?? "—"}
-                            </span>
+                            {isDForm ? (
+                                <>
+                                    <span
+                                        className={p1Ahead ? css.heroName : css.heroNameMuted}
+                                    >
+                                        {pl1?.name ?? "—"}
+                                    </span>
+                                    <span
+                                        className={
+                                            p1Ahead ? css.heroNameSecondary : css.heroNameMuted
+                                        }
+                                    >
+                                        {pl2?.name ?? "—"}
+                                    </span>
+                                </>
+                            ) : (
+                                <span
+                                    className={p1Ahead ? css.heroName : css.heroNameMuted}
+                                >
+                                    {pl1?.name ?? "—"}
+                                </span>
+                            )}
                             <span className={p1Ahead ? css.seedBadge : css.seedBadgeMuted}>
                                 #{seed1}
                             </span>
                         </div>
-                        <div className={p1Ahead ? css.flagWrap : css.flagWrapMuted}>
-                            {pl1?.countryCode ? (
+                        <div
+                            className={cn(
+                                p1Ahead ? css.flagWrap : css.flagWrapMuted,
+                                isDForm && css.heroFlagsPair
+                            )}
+                        >
+                            {isDForm ? (
+                                <>
+                                    {pl1?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl1.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                    {pl2?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl2.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                </>
+                            ) : pl1?.countryCode ? (
                                 <Image
                                     src={getCountryFlagUrl(pl1.countryCode)}
                                     alt=""
@@ -412,8 +609,34 @@ function MatchForm({
                         />
                     </div>
                     <div className={css.heroSideRight}>
-                        <div className={p2Ahead ? css.flagWrap : css.flagWrapMuted}>
-                            {pl2?.countryCode ? (
+                        <div
+                            className={cn(
+                                p2Ahead ? css.flagWrap : css.flagWrapMuted,
+                                isDForm && css.heroFlagsPair
+                            )}
+                        >
+                            {isDForm ? (
+                                <>
+                                    {pl3?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl3.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                    {pl4?.countryCode ? (
+                                        <Image
+                                            src={getCountryFlagUrl(pl4.countryCode)}
+                                            alt=""
+                                            width={40}
+                                            height={40}
+                                            className={css.flagImg}
+                                        />
+                                    ) : null}
+                                </>
+                            ) : pl2?.countryCode ? (
                                 <Image
                                     src={getCountryFlagUrl(pl2.countryCode)}
                                     alt=""
@@ -424,9 +647,24 @@ function MatchForm({
                             ) : null}
                         </div>
                         <div className={css.heroNameColRight}>
-                            <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
-                                {pl2?.name ?? "—"}
-                            </span>
+                            {isDForm ? (
+                                <>
+                                    <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
+                                        {pl3?.name ?? "—"}
+                                    </span>
+                                    <span
+                                        className={
+                                            p2Ahead ? css.heroNameSecondary : css.heroNameMuted
+                                        }
+                                    >
+                                        {pl4?.name ?? "—"}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className={p2Ahead ? css.heroName : css.heroNameMuted}>
+                                    {pl2?.name ?? "—"}
+                                </span>
+                            )}
                             <span className={p2Ahead ? css.seedBadge : css.seedBadgeMuted}>
                                 #{seed2}
                             </span>

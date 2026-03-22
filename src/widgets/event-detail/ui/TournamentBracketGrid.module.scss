@@ -202,18 +202,19 @@ $border-round: rgba(0, 40, 75, 0.2);
 
 .roundColumnWithChampion {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
     min-width: 0;
     width: 100%;
     z-index: 1;
 }
 
 .championBannerCard {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 100%;
+    position: relative;
     z-index: 2;
-    margin-bottom: 8px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -229,8 +230,17 @@ $border-round: rgba(0, 40, 75, 0.2);
 
     @include media-down(md) {
         padding: 12px;
-        margin-bottom: 10px;
     }
+}
+
+.championTeamBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
 }
 
 .championPlayerRow {
@@ -374,6 +384,31 @@ $border-round: rgba(0, 40, 75, 0.2);
     @include media-down(md) {
         padding: 6px 12px;
     }
+}
+
+.teamSlotRow {
+    align-items: center;
+    gap: 8px;
+    min-height: auto;
+}
+
+.teamSlotLeftCol {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.teamMemberRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.seedBadgeSpacer {
+    flex-shrink: 0;
+    min-width: 38px;
+    height: 24px;
 }
 
 .slotRowWinner {
