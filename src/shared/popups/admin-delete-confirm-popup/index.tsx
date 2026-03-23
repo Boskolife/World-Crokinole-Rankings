@@ -4,12 +4,11 @@ import React, { useState } from "react";
 import css from "../styles.module.scss";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
-import { supabase } from "@/shared/supabase/client";
 import cn from "classnames";
 
 interface AdminDeleteConfirmPopupData {
     tableName: string;
-    id: string | number;
+    match: Record<string, string | number>;
     onConfirm: () => void;
 }
 
@@ -28,13 +27,17 @@ export const AdminDeleteConfirmPopup: React.FC = () => {
         setError(null);
 
         try {
-            const { error: deleteError } = await supabase
-                .from(data.tableName)
-                .delete()
-                .eq("id", data.id);
-
-            if (deleteError) {
-                setError(deleteError.message);
+            const response = await fetch("/api/admin/table", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    table: data.tableName,
+                    match: data.match,
+                }),
+            });
+            const json = await response.json();
+            if (!response.ok) {
+                setError(json?.error || "Delete failed");
                 setIsDeleting(false);
                 return;
             }

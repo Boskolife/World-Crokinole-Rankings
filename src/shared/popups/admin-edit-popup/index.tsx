@@ -24,8 +24,10 @@ async function uploadNewsImage(file: File): Promise<string> {
 
 interface AdminEditPopupData {
     tableName: string;
+    match: Record<string, string | number>;
     item: any;
     columns: string[];
+    columnTypes?: Record<string, string>;
     onSave: () => void;
 }
 
@@ -43,6 +45,10 @@ export const AdminEditPopup: React.FC = () => {
         if (data?.item) {
             const initialData: any = { ...data.item };
             Object.keys(initialData).forEach((key) => {
+                if (initialData[key] && typeof initialData[key] === "object") {
+                    initialData[key] = JSON.stringify(initialData[key], null, 2);
+                    return;
+                }
                 if (typeof initialData[key] === "string" && initialData[key].includes("T") && initialData[key].includes("Z")) {
                     const date = new Date(initialData[key]);
                     initialData[key] = date.toISOString().slice(0, 16);
@@ -83,6 +89,12 @@ export const AdminEditPopup: React.FC = () => {
     };
 
     const getFieldType = (value: any, columnName: string): string => {
+        const explicitType = data.columnTypes?.[columnName];
+        if (explicitType === "jsonb" || explicitType === "json") return "json";
+        if (explicitType === "boolean" || explicitType === "bool") return "checkbox";
+        if (explicitType === "smallint" || explicitType === "int2" || explicitType === "integer" || explicitType === "int4" || explicitType === "bigint" || explicitType === "int8" || explicitType === "numeric" || explicitType === "float4" || explicitType === "float8" || explicitType === "double precision") return "number";
+        if (explicitType === "date") return "date";
+        if (explicitType === "timestamp with time zone" || explicitType === "timestamptz" || explicitType === "timestamp without time zone" || explicitType === "timestamp") return "datetime-local";
         if (isNews && columnName === "created_at") return "date";
         if (value === null || value === undefined) return "text";
         if (typeof value === "boolean") return "checkbox";
@@ -158,14 +170,48 @@ export const AdminEditPopup: React.FC = () => {
             }
             const cleanedForm = { ...formData };
             Object.keys(cleanedForm).forEach((key) => {
+                const explicitType = data.columnTypes?.[key];
                 if (cleanedForm[key] === "" && data.item[key] !== null && data.item[key] !== undefined) {
                     return;
                 }
-                if (typeof data.item[key] === "number" && cleanedForm[key] !== "" && cleanedForm[key] !== null) {
+                if (
+                    explicitType === "smallint" ||
+                    explicitType === "int2" ||
+                    explicitType === "integer" ||
+                    explicitType === "int4" ||
+                    explicitType === "bigint" ||
+                    explicitType === "int8" ||
+                    explicitType === "numeric" ||
+                    explicitType === "float4" ||
+                    explicitType === "float8" ||
+                    explicitType === "double precision" ||
+                    typeof data.item[key] === "number"
+                ) {
                     cleanedForm[key] = Number(cleanedForm[key]);
-                } else if (typeof data.item[key] === "boolean" && cleanedForm[key] !== undefined) {
+                } else if (
+                    explicitType === "boolean" ||
+                    explicitType === "bool" ||
+                    typeof data.item[key] === "boolean"
+                ) {
                     cleanedForm[key] = cleanedForm[key] === "true" || cleanedForm[key] === true;
-                } else if (key.includes("date") || key.includes("_at")) {
+                } else if (
+                    data.columnTypes?.[key] === "jsonb" ||
+                    data.columnTypes?.[key] === "json"
+                ) {
+                    if (typeof cleanedForm[key] === "string" && cleanedForm[key].trim()) {
+                        cleanedForm[key] = JSON.parse(cleanedForm[key]);
+                    } else if (cleanedForm[key] === "") {
+                        cleanedForm[key] = null;
+                    }
+                } else if (
+                    explicitType === "date" ||
+                    explicitType === "timestamp with time zone" ||
+                    explicitType === "timestamptz" ||
+                    explicitType === "timestamp without time zone" ||
+                    explicitType === "timestamp" ||
+                    key.includes("date") ||
+                    key.includes("_at")
+                ) {
                     if (cleanedForm[key]) {
                         cleanedForm[key] = new Date(cleanedForm[key]).toISOString();
                     }
@@ -178,13 +224,19 @@ export const AdminEditPopup: React.FC = () => {
                 }
             }
 
-            const { error: updateError } = await supabase
-                .from(data.tableName)
-                .update(cleanedForm)
-                .eq("id", data.item.id);
-
-            if (updateError) {
-                setError(updateError.message);
+            delete cleanedForm.id;
+            const response = await fetch("/api/admin/table", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    table: data.tableName,
+                    payload: cleanedForm,
+                    match: data.match,
+                }),
+            });
+            const json = await response.json();
+            if (!response.ok) {
+                setError(json?.error || "Update failed");
                 return;
             }
 
@@ -313,6 +365,17 @@ export const AdminEditPopup: React.FC = () => {
                                             }}
                                         />
                                     </div>
+                                ) : fieldType === "json" ? (
+                                    <textarea
+                                        value={formData[col] || ""}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                [col]: e.target.value,
+                                            })
+                                        }
+                                        rows={8}
+                                    />
                                 ) : (
                                     <input
                                         type={fieldType}

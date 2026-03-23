@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth, useUserProfile } from "@/shared/hooks";
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from "@/shared/supabase/client";
 import { Pagination } from "@/shared/modules/pagination";
 import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
@@ -12,16 +11,18 @@ import css from "./styles.module.scss";
 
 const LOADING_TIMEOUT_MS = 15000;
 
-type AdminSection = 
-    | "events" 
-    | "players" 
-    | "clubs" 
-    | "tournaments" 
-    | "rankings" 
-    | "match-history" 
-    | "news"
-    | "profiles" 
-    | "subscriptions";
+type TableSchema = {
+    name: string;
+    columns: Array<{ name: string; dataType: string }>;
+    primaryKeys: string[];
+};
+
+function toSectionLabel(tableName: string) {
+    return tableName
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+}
 
 export default function AdminPage() {
     const { isAuth, user, isMounted, logout } = useAuth();
@@ -29,7 +30,10 @@ export default function AdminPage() {
     const router = useRouter();
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
-    const [activeSection, setActiveSection] = useState<AdminSection>("events");
+    const [tables, setTables] = useState<TableSchema[]>([]);
+    const [schemaLoading, setSchemaLoading] = useState(true);
+    const [schemaError, setSchemaError] = useState<string | null>(null);
+    const [activeSection, setActiveSection] = useState<string>("events");
     const [loadingTimedOut, setLoadingTimedOut] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -57,24 +61,40 @@ export default function AdminPage() {
     }, [isAuth, isMounted, locale, router]);
 
     useEffect(() => {
-        const requestedSection = new URLSearchParams(window.location.search).get("section");
-        if (
-            requestedSection &&
-            [
-                "events",
-                "players",
-                "clubs",
-                "tournaments",
-                "rankings",
-                "match-history",
-                "news",
-                "profiles",
-                "subscriptions",
-            ].includes(requestedSection)
-        ) {
-            setActiveSection(requestedSection as AdminSection);
+        const loadSchema = async () => {
+            setSchemaLoading(true);
+            setSchemaError(null);
+            try {
+                const response = await fetch("/api/admin/schema");
+                const json = await response.json();
+                if (!response.ok) {
+                    setSchemaError(json?.error || "Failed to load schema");
+                    setTables([]);
+                    return;
+                }
+                const nextTables = Array.isArray(json?.tables) ? json.tables : [];
+                setTables(nextTables);
+
+                const requestedSection = new URLSearchParams(window.location.search).get("section");
+                const hasRequested = requestedSection && nextTables.some((t: TableSchema) => t.name === requestedSection);
+                if (hasRequested) {
+                    setActiveSection(requestedSection as string);
+                    return;
+                }
+                if (nextTables.length > 0 && !nextTables.some((t: TableSchema) => t.name === activeSection)) {
+                    setActiveSection(nextTables[0].name);
+                }
+            } catch (err) {
+                setSchemaError(err instanceof Error ? err.message : "Failed to load schema");
+                setTables([]);
+            } finally {
+                setSchemaLoading(false);
+            }
+        };
+        if (isAuth) {
+            loadSchema();
         }
-    }, []);
+    }, [isAuth]);
 
     if (!isMounted) {
         return (
@@ -123,17 +143,21 @@ export default function AdminPage() {
         );
     }
 
-    const sections: Array<{ id: AdminSection; label: string }> = [
-        { id: "events", label: "Events" },
-        { id: "players", label: "Players" },
-        { id: "clubs", label: "Clubs" },
-        { id: "tournaments", label: "Tournaments" },
-        { id: "rankings", label: "Rankings" },
-        { id: "match-history", label: "Match History" },
-        { id: "news", label: "News" },
-        { id: "profiles", label: "Profiles" },
-        { id: "subscriptions", label: "Subscriptions" },
-    ];
+    if (schemaLoading) {
+        return (
+            <div className={css.container}>
+                <div className={css.loading}>Loading schema...</div>
+            </div>
+        );
+    }
+
+    if (schemaError) {
+        return (
+            <div className={css.container}>
+                <div className={css.error}>{schemaError}</div>
+            </div>
+        );
+    }
 
     return (
         <div className={css.container}>
@@ -156,82 +180,30 @@ export default function AdminPage() {
             
             <div className={css.content}>
                 <nav className={css.sidebar}>
-                    {sections.map((section) => (
+                    {tables.map((table) => (
                         <button
-                            key={section.id}
+                            key={table.name}
                             className={`${css.navItem} ${
-                                activeSection === section.id ? css.active : ""
+                                activeSection === table.name ? css.active : ""
                             }`}
-                            onClick={() => setActiveSection(section.id)}
+                            onClick={() => setActiveSection(table.name)}
                         >
-                            {section.label}
+                            {toSectionLabel(table.name)}
                         </button>
                     ))}
                 </nav>
 
                 <div className={css.mainContent}>
-                    {activeSection === "events" && <EventsManager />}
-                    {activeSection === "players" && <PlayersManager />}
-                    {activeSection === "clubs" && <ClubsManager />}
-                    {activeSection === "tournaments" && <TournamentsManager />}
-                    {activeSection === "rankings" && <RankingsManager />}
-                    {activeSection === "match-history" && <MatchHistoryManager />}
-                    {activeSection === "news" && <NewsManager />}
-                    {activeSection === "profiles" && <ProfilesManager />}
-                    {activeSection === "subscriptions" && <SubscriptionsManager />}
+                    {tables
+                        .filter((table) => table.name === activeSection)
+                        .map((table) => (
+                            <TableManager key={table.name} tableName={table.name} schema={table} />
+                        ))}
                 </div>
             </div>
         </div>
     );
 }
-
-function EventsManager() {
-    return <TableManager tableName="events" />;
-}
-
-function PlayersManager() {
-    return <TableManager tableName="players" />;
-}
-
-function ClubsManager() {
-    return <TableManager tableName="clubs" />;
-}
-
-function TournamentsManager() {
-    return <TableManager tableName="tournaments" />;
-}
-
-function RankingsManager() {
-    return <TableManager tableName="rankings" />;
-}
-
-function MatchHistoryManager() {
-    return <TableManager tableName="match_history" />;
-}
-
-function NewsManager() {
-    return <TableManager tableName="news" />;
-}
-
-function ProfilesManager() {
-    return <TableManager tableName="profiles" />;
-}
-
-function SubscriptionsManager() {
-    return <TableManager tableName="subscriptions" />;
-}
-
-const TABLE_ORDER_COLUMN: Record<string, string> = {
-    events: "id",
-    players: "created_at",
-    clubs: "id",
-    tournaments: "created_at",
-    rankings: "id",
-    match_history: "created_at",
-    news: "sort_order",
-    profiles: "created_at",
-    subscriptions: "created_at",
-};
 
 const TABLE_COLUMNS: Record<string, string[]> = {
     news: [
@@ -255,7 +227,7 @@ const TABLE_SAMPLE_ITEM: Record<string, Record<string, any>> = {
     },
 };
 
-function TableManager({ tableName }: { tableName: string }) {
+function TableManager({ tableName, schema }: { tableName: string; schema: TableSchema }) {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -301,26 +273,74 @@ function TableManager({ tableName }: { tableName: string }) {
         return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
     };
 
-    const orderCol = TABLE_ORDER_COLUMN[tableName] ?? "id";
+    const renderStructureValue = (value: unknown) => {
+        let parsed: unknown = value;
+        if (typeof value === "string") {
+            try {
+                parsed = JSON.parse(value);
+            } catch {
+                return <div className={css.structureCell}>{value}</div>;
+            }
+        }
+
+        if (!parsed || typeof parsed !== "object") {
+            return <div className={css.structureCell}>{formatValue(parsed)}</div>;
+        }
+
+        if (Array.isArray(parsed)) {
+            return (
+                <div className={css.structureCell}>
+                    {parsed.map((item, index) => (
+                        <div key={index} className={css.structureLine}>
+                            {formatValue(item)}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        return (
+            <div className={css.structureCell}>
+                {Object.entries(parsed as Record<string, unknown>).map(([key, val]) => (
+                    <div key={key} className={css.structureLine}>
+                        <strong>{key}:</strong> {formatValue(val)}
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const primaryKeys = useMemo(
+        () => (schema.primaryKeys.length > 0 ? schema.primaryKeys : ["id"]),
+        [schema.primaryKeys]
+    );
+    const getRecordMatch = useCallback(
+        (item: Record<string, unknown>) => {
+            const pairs = primaryKeys
+                .map((key) => [key, item[key]] as const)
+                .filter(([, value]) => value !== undefined && value !== null);
+            return Object.fromEntries(pairs);
+        },
+        [primaryKeys]
+    );
 
     const loadData = useCallback(async () => {
         setLoading(true);
         setLoadError(null);
         try {
-            const { data: tableData, error } = await supabase
-                .from(tableName)
-                .select("*")
-                .order(orderCol, { ascending: false });
-
             if (!isMountedRef.current) return;
-            if (error) {
-                console.error("Error loading data:", error);
-                setLoadError(error.message);
+            const response = await fetch(`/api/admin/table?table=${encodeURIComponent(tableName)}`, {
+                method: "GET",
+            });
+            const json = await response.json();
+
+            if (!response.ok) {
+                setLoadError(json?.error || "Failed to load data");
                 setData([]);
                 setLoading(false);
                 return;
             }
-            setData(tableData || []);
+            setData(Array.isArray(json?.data) ? json.data : []);
         } catch (err) {
             if (!isMountedRef.current) return;
             console.error("Error:", err);
@@ -329,7 +349,7 @@ function TableManager({ tableName }: { tableName: string }) {
         } finally {
             if (isMountedRef.current) setLoading(false);
         }
-    }, [tableName, orderCol]);
+    }, [tableName]);
 
     useEffect(() => {
         loadData();
@@ -349,10 +369,14 @@ function TableManager({ tableName }: { tableName: string }) {
         }
     }, [totalPages, currentPage]);
 
-    const handleDelete = (id: string | number) => {
+    const handleDelete = (item: Record<string, unknown>) => {
+        const match = getRecordMatch(item);
+        if (Object.keys(match).length === 0) {
+            return;
+        }
         openPopup("admin-delete-confirm", {
             tableName,
-            id,
+            match,
             onConfirm: async () => {
                 const currentDataLength = data.length;
                 await loadData();
@@ -367,16 +391,25 @@ function TableManager({ tableName }: { tableName: string }) {
         });
     };
 
-    const handleEdit = (item: any) => {
+    const handleEdit = (item: Record<string, unknown>) => {
         if (tableName === "news") {
-            router.push(`/${locale}/admin/news/${item.id}/edit`);
+            router.push(`/${locale}/admin/news/${String(item.id)}/edit`);
             return;
         }
-        const popupColumns = TABLE_COLUMNS[tableName] ?? Object.keys(data[0] || {});
+        const match = getRecordMatch(item);
+        if (Object.keys(match).length === 0) {
+            return;
+        }
+        const popupColumns =
+            TABLE_COLUMNS[tableName] ??
+            (schema.columns.length > 0 ? schema.columns.map((c) => c.name) : Object.keys(item));
+        const columnTypes = Object.fromEntries(schema.columns.map((c) => [c.name, c.dataType]));
         openPopup("admin-edit", {
             tableName,
+            match,
             item,
             columns: popupColumns,
+            columnTypes,
             onSave: loadData,
         });
     };
@@ -386,11 +419,15 @@ function TableManager({ tableName }: { tableName: string }) {
             router.push(`/${locale}/admin/news/new`);
             return;
         }
-        const popupColumns = TABLE_COLUMNS[tableName] ?? Object.keys(data[0] || {});
+        const popupColumns =
+            TABLE_COLUMNS[tableName] ??
+            (schema.columns.length > 0 ? schema.columns.map((c) => c.name) : Object.keys(data[0] || {}));
         const sampleItem = data[0] || TABLE_SAMPLE_ITEM[tableName] || {};
+        const columnTypes = Object.fromEntries(schema.columns.map((c) => [c.name, c.dataType]));
         openPopup("admin-add", {
             tableName,
             columns: popupColumns,
+            columnTypes,
             sampleItem,
             onSave: loadData,
         });
@@ -429,7 +466,9 @@ function TableManager({ tableName }: { tableName: string }) {
         );
     }
 
-    const rawColumns = TABLE_COLUMNS[tableName] ?? Object.keys(data[0] || {});
+    const rawColumns =
+        TABLE_COLUMNS[tableName] ??
+        (schema.columns.length > 0 ? schema.columns.map((c) => c.name) : Object.keys(data[0] || {}));
     const columns =
         tableName === "profiles"
             ? ["avatar", ...rawColumns.filter((c) => c !== "avatar_url")]
@@ -466,6 +505,36 @@ function TableManager({ tableName }: { tableName: string }) {
                 </td>
             );
         }
+        if (tableName === "events" && col === "image") {
+            const url = item.image?.trim();
+            if (!url) return <td key={col} className={css.avatarCell} />;
+            return (
+                <td key={col} className={css.avatarCell}>
+                    <img
+                        src={url}
+                        alt=""
+                        className={css.newsThumb}
+                        width={56}
+                        height={40}
+                    />
+                </td>
+            );
+        }
+        if (tableName === "clubs" && col === "image") {
+            const url = item.image?.trim();
+            if (!url) return <td key={col} className={css.avatarCell} />;
+            return (
+                <td key={col} className={css.avatarCell}>
+                    <img
+                        src={url}
+                        alt=""
+                        className={css.newsThumb}
+                        width={56}
+                        height={40}
+                    />
+                </td>
+            );
+        }
         if (tableName === "news" && col === "title") {
             return (
                 <td key={col}>
@@ -486,6 +555,13 @@ function TableManager({ tableName }: { tableName: string }) {
                     <span className={css.newsBadge}>{formatValue(item[col], col)}</span>
                 </td>
             );
+        }
+        if (
+            col === "structure" ||
+            col === "qualifying_heats" ||
+            col === "tournament_bracket_results"
+        ) {
+            return <td key={col} className={css.jsonCell}>{renderStructureValue(item[col])}</td>;
         }
         return (
             <td key={col}>{formatValue(item[col], col)}</td>
@@ -545,8 +621,8 @@ function TableManager({ tableName }: { tableName: string }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedData.map((item) => (
-                            <tr key={item.id}>
+                        {paginatedData.map((item, idx) => (
+                            <tr key={`${JSON.stringify(getRecordMatch(item as Record<string, unknown>))}-${idx}`}>
                                 {columns.map((col) => renderCell(item, col))}
                                 <td className={css.actionsCell}>
                                     <div className={css.actionButtons}>
@@ -559,7 +635,7 @@ function TableManager({ tableName }: { tableName: string }) {
                                         </button>
                                         <button
                                             className={`${css.iconButton} ${css.deleteIconButton}`}
-                                            onClick={() => handleDelete(item.id)}
+                                            onClick={() => handleDelete(item)}
                                             title="Delete"
                                         >
                                             <Icon name="trash" className={css.iconButtonIcon} />

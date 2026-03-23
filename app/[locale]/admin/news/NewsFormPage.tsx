@@ -76,14 +76,13 @@ export function NewsFormPage({ mode }: NewsFormPageProps) {
                 return;
             }
 
-            const { data, error: loadError } = await supabase
-                .from("news")
-                .select("image, title, description, link_text, sort_order, created_at")
-                .eq("id", id)
-                .single();
+            const response = await fetch("/api/admin/table?table=news", { method: "GET" });
+            const json = await response.json();
+            const rows = Array.isArray(json?.data) ? json.data : [];
+            const data = rows.find((row: { id?: number }) => row.id === id);
 
-            if (loadError || !data) {
-                setError(loadError?.message || "News not found");
+            if (!response.ok || !data) {
+                setError(json?.error || "News not found");
                 setLoading(false);
                 return;
             }
@@ -149,11 +148,10 @@ export function NewsFormPage({ mode }: NewsFormPageProps) {
         return true;
     };
 
-    const buildPayload = (autoLink: string) => ({
+    const buildPayload = () => ({
         image: form.image || null,
         title: form.title.trim(),
         description: form.description,
-        link: autoLink,
         link_text: form.link_text.trim(),
         sort_order: Number(form.sort_order) || 0,
         created_at: form.created_at ? new Date(form.created_at).toISOString() : null,
@@ -170,14 +168,20 @@ export function NewsFormPage({ mode }: NewsFormPageProps) {
         }
 
         if (isEdit) {
-            const payload = buildPayload(`/news/${id}`);
-            const { error: updateError } = await supabase
-                .from("news")
-                .update(payload)
-                .eq("id", id);
+            const payload = buildPayload();
+            const response = await fetch("/api/admin/table", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    table: "news",
+                    payload,
+                    match: { column: "id", value: id },
+                }),
+            });
+            const json = await response.json();
 
-            if (updateError) {
-                setError(updateError.message);
+            if (!response.ok) {
+                setError(json?.error || "Update failed");
                 setSaving(false);
                 return;
             }
@@ -186,22 +190,22 @@ export function NewsFormPage({ mode }: NewsFormPageProps) {
             return;
         }
 
-        const { data: inserted, error: insertError } = await supabase
-            .from("news")
-            .insert([buildPayload("#")])
-            .select("id")
-            .single();
+        const response = await fetch("/api/admin/table", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                table: "news",
+                payload: buildPayload(),
+            }),
+        });
+        const json = await response.json();
+        const inserted = json?.data;
 
-        if (insertError) {
-            setError(insertError.message);
+        if (!response.ok || !inserted?.id) {
+            setError(json?.error || "Create failed");
             setSaving(false);
             return;
         }
-
-        await supabase
-            .from("news")
-            .update({ link: `/news/${inserted.id}` })
-            .eq("id", inserted.id);
 
         setSaving(false);
         router.push(`/${locale}/admin/news/${inserted.id}/edit`);
