@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { Header } from "@/widgets/header";
 import { Footer } from "@/widgets/footer";
 import { localeConfig } from "@/app/localization/config";
-import { ServerProviders } from "@/app/localization/server";
 import "@/app/styles/main.scss";
 
 export function generateStaticParams() {
@@ -52,10 +51,10 @@ export default async function LocaleLayoutWithFooter({
     }
 
     return (
-        <ServerProviders locale={locale}>
+        <>
             <Header />
             <main id="main">{children}</main>
             <Footer />
-        </ServerProviders>
+        </>
     );
 }

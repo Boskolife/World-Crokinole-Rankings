@@ -5,8 +5,6 @@ import { ServerProviders } from "@/app/localization/server";
 import { PopupContainer } from "@/shared/popups/PopupContainer";
 import "@/app/styles/main.scss";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
     title: "World Crokinole Rankings",
     description: "One world. One board. United by play.",
