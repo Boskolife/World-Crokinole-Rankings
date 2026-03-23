@@ -944,13 +944,24 @@ export async function getUniqueClubs(): Promise<
 }
 
 function mapRegsToPlayers(
-    playersData: { user_id?: string; name: string; country_code: string; kingdom: string; club: string; rating: number; profiles?: { avatar_url?: string | null } | null }[]
+    playersData: {
+        id?: string | number;
+        user_id?: string | null;
+        name: string;
+        country_code: string;
+        kingdom: string;
+        club: string;
+        rating: number;
+        profiles?: { avatar_url?: string | null } | null;
+    }[]
 ): IPlayer[] {
     return playersData.map((p) => {
         const profile = p.profiles as { avatar_url?: string | null } | null;
         const avatarUrl = profile?.avatar_url ?? null;
+        const rowId = p.id != null ? String(p.id) : undefined;
         return {
-            id: String(p.user_id ?? ""),
+            id: String(p.user_id ?? p.id ?? ""),
+            rowId,
             name: p.name,
             countryCode: p.country_code,
             kingdom: p.kingdom,

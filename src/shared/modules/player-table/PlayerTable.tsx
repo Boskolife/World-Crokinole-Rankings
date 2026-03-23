@@ -8,15 +8,11 @@ import { RootLink } from "@/shared/ui/links/root-link";
 import Image from "next/image";
 import { useTableSort } from "@/shared/hooks";
 import { clientRoutes } from "@/shared/routes/client";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 
 interface IPlayerTableProps {
     players: IPlayer[];
 }
-
-const getCountryFlagUrl = (countryCode: string) => {
-    // Using a flag icon service - you can replace with your own flag images
-    return `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
-};
 
 export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
     const [brokenFlags, setBrokenFlags] = React.useState<Record<string, boolean>>(
@@ -70,7 +66,7 @@ export const PlayerTable: React.FC<IPlayerTableProps> = ({ players }) => {
 
         return (
             <Image
-                src={getCountryFlagUrl(countryCode)}
+                src={getCountryFlagUrl(countryCode, 160)}
                 alt={countryCode}
                 className={css.player_table_cell_flag}
                 width={36}

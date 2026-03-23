@@ -8,11 +8,9 @@ import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { useAuth } from "@/shared/hooks/use-auth";
 import type { IPlayer } from "@/shared/types";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "../styles.module.scss";
 import modCss from "./ViewHeatParticipantsPopup.module.scss";
-
-const getCountryFlagUrl = (countryCode: string) =>
-    `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
 type ViewHeatParticipantsPopupData = {
     heatLabel?: string;
@@ -109,7 +107,7 @@ export const ViewHeatParticipantsPopup: React.FC = () => {
                                                     <div className={modCss.avatarPlaceholder} />
                                                 )}
                                                 <Image
-                                                    src={getCountryFlagUrl(player.countryCode)}
+                                                    src={getCountryFlagUrl(player.countryCode, 160)}
                                                     alt=""
                                                     width={36}
                                                     height={36}

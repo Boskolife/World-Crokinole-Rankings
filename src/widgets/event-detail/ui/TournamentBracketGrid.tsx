@@ -13,6 +13,7 @@ import { CustomRoundedDropdown } from "@/shared/ui";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { stageFormatOptions } from "@/shared/constants/dropdown-options";
 import cn from "classnames";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "./TournamentBracketGrid.module.scss";
 
 const BRACKET_ORDER_8 = [0, 7, 3, 4, 1, 6, 2, 5];
@@ -212,9 +213,6 @@ function buildStageSubtitle(stage: ParsedStage, playerCount: number): string {
     return parts.join(" · ");
 }
 
-const getCountryFlagUrl = (countryCode: string) =>
-    `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
-
 function parseBracketSetsScore(raw: string | null | undefined): number | null {
     if (raw == null || raw === "") return null;
     const n = parseInt(String(raw), 10);
@@ -295,7 +293,7 @@ function TeamSlotRow({
                             <span className={css.slotFlag}>
                                 {player?.countryCode ? (
                                     <Image
-                                        src={getCountryFlagUrl(player.countryCode)}
+                                        src={getCountryFlagUrl(player.countryCode, 160)}
                                         alt=""
                                         width={24}
                                         height={24}
@@ -830,7 +828,8 @@ function TournamentBracketCore({
                                                     {pl.countryCode ? (
                                                         <Image
                                                             src={getCountryFlagUrl(
-                                                                pl.countryCode
+                                                                pl.countryCode,
+                                                                160
                                                             )}
                                                             alt=""
                                                             width={24}
@@ -865,7 +864,8 @@ function TournamentBracketCore({
                                                     <Image
                                                         src={getCountryFlagUrl(
                                                             championDoublesTeam[0]
-                                                                .countryCode
+                                                                .countryCode,
+                                                            160
                                                         )}
                                                         alt=""
                                                         width={24}
@@ -927,7 +927,8 @@ function TournamentBracketCore({
                                             {championWinnerPlayer?.countryCode ? (
                                                 <Image
                                                     src={getCountryFlagUrl(
-                                                        championWinnerPlayer.countryCode
+                                                        championWinnerPlayer.countryCode,
+                                                        160
                                                     )}
                                                     alt=""
                                                     width={24}

@@ -10,11 +10,44 @@ import { usePopup } from "@/shared/contexts/popup-context";
 import { supabase } from "@/shared/supabase/client";
 import { notifyProfileUpdated } from "@/shared/hooks/use-user-profile";
 import type { IPlayer, TournamentMatchResultPayload } from "@/shared/types";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "./EditTournamentMatchPopup.module.scss";
 import popupBase from "../styles.module.scss";
 
-const getCountryFlagUrl = (countryCode: string) =>
-    `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
+function findPlayerInEventRoster(
+    players: IPlayer[],
+    rawId: string | undefined | null
+): IPlayer | null {
+    const id = (rawId ?? "").trim();
+    if (!id) return null;
+    return (
+        players.find((p) => p.id === id || (p.rowId != null && p.rowId === id)) ??
+        null
+    );
+}
+
+function resolvePlayerInMatchPopup(
+    players: IPlayer[],
+    savedId: string | undefined | null,
+    bracketDefaultId: string | null | undefined
+): IPlayer | null {
+    const s = (savedId ?? "").trim();
+    if (s) {
+        const bySaved = findPlayerInEventRoster(players, s);
+        if (bySaved) return bySaved;
+    }
+    return findPlayerInEventRoster(players, bracketDefaultId ?? "");
+}
+
+function resolvePlayerForMatchDetailsView(
+    players: IPlayer[],
+    bracketSlotId: string | null | undefined,
+    savedId: string | undefined | null
+): IPlayer | null {
+    const fromBracket = findPlayerInEventRoster(players, bracketSlotId ?? "");
+    if (fromBracket) return fromBracket;
+    return findPlayerInEventRoster(players, savedId ?? "");
+}
 
 export type EditTournamentMatchPopupData = {
     eventId: number;
@@ -68,16 +101,30 @@ function MatchDetailsView({
 }) {
     const s = data.saved;
     const isD = Boolean(data.isDoubles);
-    const a1 = s?.player1Id ?? data.defaultPlayer1Id ?? "";
-    const a2 = s?.player2Id ?? data.defaultPlayer2Id ?? "";
-    const b1 = isD ? (s?.player3Id ?? data.defaultPlayer3Id ?? "") : "";
-    const b2 = isD ? (s?.player4Id ?? data.defaultPlayer4Id ?? "") : "";
-    const p1 = a1;
-    const p2 = isD ? a2 : (s?.player2Id ?? data.defaultPlayer2Id ?? "");
-    const pl1 = data.allPlayers.find((x) => x.id === p1) ?? null;
-    const pl2 = data.allPlayers.find((x) => x.id === p2) ?? null;
-    const pl3 = isD ? (data.allPlayers.find((x) => x.id === b1) ?? null) : null;
-    const pl4 = isD ? (data.allPlayers.find((x) => x.id === b2) ?? null) : null;
+    const pl1 = resolvePlayerForMatchDetailsView(
+        data.allPlayers,
+        data.defaultPlayer1Id,
+        s?.player1Id
+    );
+    const pl2 = resolvePlayerForMatchDetailsView(
+        data.allPlayers,
+        data.defaultPlayer2Id,
+        s?.player2Id
+    );
+    const pl3 = isD
+        ? resolvePlayerForMatchDetailsView(
+              data.allPlayers,
+              data.defaultPlayer3Id,
+              s?.player3Id
+          )
+        : null;
+    const pl4 = isD
+        ? resolvePlayerForMatchDetailsView(
+              data.allPlayers,
+              data.defaultPlayer4Id,
+              s?.player4Id
+          )
+        : null;
     const seed1 = data.seedLabel1 ?? 1;
     const seed2 = data.seedLabel2 ?? 2;
     const setsP1 = s?.setsP1 ?? 0;
@@ -137,7 +184,7 @@ function MatchDetailsView({
                                 <>
                                     {pl1?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl1.countryCode)}
+                                            src={getCountryFlagUrl(pl1.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -146,7 +193,7 @@ function MatchDetailsView({
                                     ) : null}
                                     {pl2?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl2.countryCode)}
+                                            src={getCountryFlagUrl(pl2.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -156,7 +203,7 @@ function MatchDetailsView({
                                 </>
                             ) : pl1?.countryCode ? (
                                 <Image
-                                    src={getCountryFlagUrl(pl1.countryCode)}
+                                    src={getCountryFlagUrl(pl1.countryCode, 160)}
                                     alt=""
                                     width={40}
                                     height={40}
@@ -190,7 +237,7 @@ function MatchDetailsView({
                                 <>
                                     {pl3?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl3.countryCode)}
+                                            src={getCountryFlagUrl(pl3.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -199,7 +246,7 @@ function MatchDetailsView({
                                     ) : null}
                                     {pl4?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl4.countryCode)}
+                                            src={getCountryFlagUrl(pl4.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -209,7 +256,7 @@ function MatchDetailsView({
                                 </>
                             ) : pl2?.countryCode ? (
                                 <Image
-                                    src={getCountryFlagUrl(pl2.countryCode)}
+                                    src={getCountryFlagUrl(pl2.countryCode, 160)}
                                     alt=""
                                     width={40}
                                     height={40}
@@ -342,10 +389,10 @@ function MatchForm({
         [data.allPlayers]
     );
 
-    const pl1 = data.allPlayers.find((x) => x.id === p1) ?? null;
-    const pl2 = data.allPlayers.find((x) => x.id === p2) ?? null;
-    const pl3 = data.allPlayers.find((x) => x.id === p3) ?? null;
-    const pl4 = data.allPlayers.find((x) => x.id === p4) ?? null;
+    const pl1 = resolvePlayerInMatchPopup(data.allPlayers, p1, data.defaultPlayer1Id);
+    const pl2 = resolvePlayerInMatchPopup(data.allPlayers, p2, data.defaultPlayer2Id);
+    const pl3 = resolvePlayerInMatchPopup(data.allPlayers, p3, data.defaultPlayer3Id);
+    const pl4 = resolvePlayerInMatchPopup(data.allPlayers, p4, data.defaultPlayer4Id);
     const seed1 = data.seedLabel1 ?? 1;
     const seed2 = data.seedLabel2 ?? 2;
     const p1Ahead = setsP1 > setsP2;
@@ -573,7 +620,7 @@ function MatchForm({
                                 <>
                                     {pl1?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl1.countryCode)}
+                                            src={getCountryFlagUrl(pl1.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -582,7 +629,7 @@ function MatchForm({
                                     ) : null}
                                     {pl2?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl2.countryCode)}
+                                            src={getCountryFlagUrl(pl2.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -592,7 +639,7 @@ function MatchForm({
                                 </>
                             ) : pl1?.countryCode ? (
                                 <Image
-                                    src={getCountryFlagUrl(pl1.countryCode)}
+                                    src={getCountryFlagUrl(pl1.countryCode, 160)}
                                     alt=""
                                     width={40}
                                     height={40}
@@ -630,7 +677,7 @@ function MatchForm({
                                 <>
                                     {pl3?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl3.countryCode)}
+                                            src={getCountryFlagUrl(pl3.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -639,7 +686,7 @@ function MatchForm({
                                     ) : null}
                                     {pl4?.countryCode ? (
                                         <Image
-                                            src={getCountryFlagUrl(pl4.countryCode)}
+                                            src={getCountryFlagUrl(pl4.countryCode, 160)}
                                             alt=""
                                             width={40}
                                             height={40}
@@ -649,7 +696,7 @@ function MatchForm({
                                 </>
                             ) : pl2?.countryCode ? (
                                 <Image
-                                    src={getCountryFlagUrl(pl2.countryCode)}
+                                    src={getCountryFlagUrl(pl2.countryCode, 160)}
                                     alt=""
                                     width={40}
                                     height={40}

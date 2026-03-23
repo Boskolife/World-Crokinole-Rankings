@@ -23,6 +23,34 @@ function normalizeForLookup(s: string): string {
     return s.trim().toLowerCase();
 }
 
+function toTitleCaseWords(s: string): string {
+    return s
+        .trim()
+        .split(/\s+/)
+        .map((w) => {
+            if (!w) return w;
+            const lower = w.toLowerCase();
+            if (lower === "of" || lower === "and" || lower === "the") return lower;
+            return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+        })
+        .join(" ");
+}
+
+function lookupCountryByNameVariants(raw: string): string | null {
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    const variants = [trimmed, toTitleCaseWords(trimmed)];
+    for (const cand of variants) {
+        try {
+            const row = byCountry(cand);
+            if (row) return row.iso2;
+        } catch {
+            /* ignore */
+        }
+    }
+    return null;
+}
+
 export function getCountryCodeFromString(input: string | null | undefined): string | null {
     if (input == null || (input = input.trim()) === "") return null;
     const normalized = normalizeForLookup(input);
@@ -34,14 +62,18 @@ export function getCountryCodeFromString(input: string | null | undefined): stri
             return null;
         }
     }
+    if (normalized.length === 3 && /^[a-z]{3}$/i.test(normalized)) {
+        try {
+            const found = byIso(normalized.toUpperCase());
+            return found ? found.iso2 : null;
+        } catch {
+            /* ignore */
+        }
+    }
     const alias = COUNTRY_ALIASES[normalized];
     if (alias) return alias;
-    try {
-        const byName = byCountry(input.trim());
-        if (byName) return byName.iso2;
-    } catch {
-        // ignore
-    }
+    const byName = lookupCountryByNameVariants(input);
+    if (byName) return byName;
     const lastPart = input.split(",").map((p) => p.trim()).filter(Boolean).pop();
     if (lastPart && lastPart !== input) {
         const lastNorm = normalizeForLookup(lastPart);
@@ -54,12 +86,16 @@ export function getCountryCodeFromString(input: string | null | undefined): stri
                 return null;
             }
         }
-        try {
-            const byName = byCountry(lastPart);
-            if (byName) return byName.iso2;
-        } catch {
-            // ignore
+        if (lastPart.length === 3 && /^[a-z]{3}$/i.test(lastPart)) {
+            try {
+                const found = byIso(lastPart.toUpperCase());
+                return found ? found.iso2 : null;
+            } catch {
+                /* ignore */
+            }
         }
+        const byLast = lookupCountryByNameVariants(lastPart);
+        if (byLast) return byLast;
     }
     return null;
 }

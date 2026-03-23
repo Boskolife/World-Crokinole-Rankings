@@ -5,10 +5,8 @@ import cn from "classnames";
 import { Icon } from "@/shared/ui/icons";
 import type { QualifyingHeatsData, IPlayer } from "@/shared/types";
 import type { EventHeatResultsData } from "@/shared/supabase/data";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "./QualifyingHeatsResultsView.module.scss";
-
-const getCountryFlagUrl = (countryCode: string) =>
-    `https://flagcdn.com/w160/${(countryCode || "xx").toLowerCase()}.png`;
 
 export interface QualifyingHeatsResultsViewProps {
     qualifyingHeats: QualifyingHeatsData;
@@ -204,7 +202,7 @@ export function QualifyingHeatsResultsView({
                                                                                 </span>
                                                                                 {p1?.countryCode && (
                                                                                     <img
-                                                                                        src={getCountryFlagUrl(p1.countryCode)}
+                                                                                        src={getCountryFlagUrl(p1.countryCode, 160)}
                                                                                         alt=""
                                                                                         className={css.matchFlag}
                                                                                     />
@@ -222,7 +220,7 @@ export function QualifyingHeatsResultsView({
                                                                             <div className={css.matchPlayerRight}>
                                                                                 {p2?.countryCode && (
                                                                                     <img
-                                                                                        src={getCountryFlagUrl(p2.countryCode)}
+                                                                                        src={getCountryFlagUrl(p2.countryCode, 160)}
                                                                                         alt=""
                                                                                         className={css.matchFlag}
                                                                                     />

@@ -11,6 +11,7 @@ import { usePopup } from "@/shared/contexts/popup-context";
 import { RootLink } from "@/shared/ui/links/root-link";
 import { clientRoutes } from "@/shared/routes/client";
 import type { IPlayer } from "@/shared/types";
+import { getCountryFlagUrl } from "@/shared/lib/country-flag";
 import css from "./EventRegisteredPlayers.module.scss";
 
 export interface EventRegisteredPlayersProps {
@@ -19,9 +20,6 @@ export interface EventRegisteredPlayersProps {
     createdBy?: string | null;
     isTournament?: boolean;
 }
-
-const getCountryFlagUrl = (countryCode: string) =>
-    `https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`;
 
 export function EventRegisteredPlayers({ players, eventId, createdBy, isTournament = false }: EventRegisteredPlayersProps) {
     const router = useRouter();
@@ -151,7 +149,8 @@ export function EventRegisteredPlayers({ players, eventId, createdBy, isTourname
                                         )}
                                         <Image
                                             src={getCountryFlagUrl(
-                                                player.countryCode
+                                                player.countryCode,
+                                                160
                                             )}
                                             alt=""
                                             width={36}
