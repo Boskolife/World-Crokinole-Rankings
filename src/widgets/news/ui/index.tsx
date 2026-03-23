@@ -6,9 +6,12 @@ import type { INewsItem } from "@/shared/types";
 
 interface NewsProps {
     items: INewsItem[];
+    expectedItemsCount?: number;
 }
 
-export const News: React.FC<NewsProps> = ({ items }) => {
+export const News: React.FC<NewsProps> = ({ items, expectedItemsCount }) => {
+    const placeholdersCount = Math.max(0, (expectedItemsCount ?? items.length) - items.length);
+
     return (
         <div className={css.news}>
             <div className="container">
@@ -29,15 +32,25 @@ export const News: React.FC<NewsProps> = ({ items }) => {
                             </div>
                             <div className={css.news_content_item_text}>
                                 <h3>{item.title}</h3>
-                                <p>{item.description}</p>
+                                <div
+                                    className={css.news_content_item_description}
+                                    dangerouslySetInnerHTML={{ __html: item.description }}
+                                />
                             </div>
                             <RootLink
-                                href={item.link}
+                                href={`/news/${item.id}`}
                                 className={css.news_content_item_link}
                             >
                                 {item.linkText}
                             </RootLink>
                         </div>
+                    ))}
+                    {Array.from({ length: placeholdersCount }).map((_, index) => (
+                        <div
+                            key={`placeholder-${index}`}
+                            className={`${css.news_content_item} ${css.news_content_item_placeholder}`}
+                            aria-hidden="true"
+                        />
                     ))}
                 </div>
             </div>

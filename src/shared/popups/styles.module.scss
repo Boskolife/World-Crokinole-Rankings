@@ -347,7 +347,8 @@
     input[type="number"],
     input[type="email"],
     input[type="url"],
-    input[type="datetime-local"] {
+    input[type="datetime-local"],
+    textarea {
         padding: 8px 12px;
         border: 1px solid #ddd;
         border-radius: 4px;
@@ -358,6 +359,13 @@
             outline: none;
             border-color: #007bff;
         }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 96px;
+        font-family: inherit;
+        line-height: 1.4;
     }
 
     input[type="checkbox"] {
@@ -466,7 +474,8 @@
     input[type="number"],
     input[type="email"],
     input[type="url"],
-    input[type="datetime-local"] {
+    input[type="datetime-local"],
+    textarea {
         padding: 8px 12px;
         border: 1px solid #ddd;
         border-radius: 4px;
@@ -477,6 +486,13 @@
             outline: none;
             border-color: #007bff;
         }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 96px;
+        font-family: inherit;
+        line-height: 1.4;
     }
 
     input[type="checkbox"] {
@@ -540,6 +556,30 @@
     .admin_image_error {
         font-size: 13px;
         color: #dc3545;
+    }
+}
+
+.admin_rte {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    
+    :global(.ql-toolbar.ql-snow) {
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    :global(.ql-container.ql-snow) {
+        border: none;
+        font-size: 14px;
+        min-height: 130px;
+    }
+
+    :global(.ql-editor) {
+        min-height: 130px;
+        line-height: 1.45;
     }
 }
 

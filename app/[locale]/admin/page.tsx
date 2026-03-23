@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth, useUserProfile } from "@/shared/hooks";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { supabase } from "@/shared/supabase/client";
 import { Pagination } from "@/shared/modules/pagination";
 import { Icon } from "@/shared/ui/icons";
@@ -27,6 +27,7 @@ export default function AdminPage() {
     const { isAuth, user, isMounted, logout } = useAuth();
     const { profile, isLoading: profileLoading } = useUserProfile();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
     const [activeSection, setActiveSection] = useState<AdminSection>("events");
@@ -55,6 +56,26 @@ export default function AdminPage() {
             router.push(`/${locale}/admin/sign-in`);
         }
     }, [isAuth, isMounted, locale, router]);
+
+    useEffect(() => {
+        const requestedSection = searchParams.get("section");
+        if (
+            requestedSection &&
+            [
+                "events",
+                "players",
+                "clubs",
+                "tournaments",
+                "rankings",
+                "match-history",
+                "news",
+                "profiles",
+                "subscriptions",
+            ].includes(requestedSection)
+        ) {
+            setActiveSection(requestedSection as AdminSection);
+        }
+    }, [searchParams]);
 
     if (!isMounted) {
         return (
@@ -213,6 +234,28 @@ const TABLE_ORDER_COLUMN: Record<string, string> = {
     subscriptions: "created_at",
 };
 
+const TABLE_COLUMNS: Record<string, string[]> = {
+    news: [
+        "id",
+        "image",
+        "title",
+        "description",
+        "link_text",
+        "sort_order",
+        "created_at",
+    ],
+};
+
+const TABLE_SAMPLE_ITEM: Record<string, Record<string, any>> = {
+    news: {
+        image: "",
+        title: "",
+        description: "",
+        link_text: "",
+        sort_order: 0,
+    },
+};
+
 function TableManager({ tableName }: { tableName: string }) {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -220,6 +263,9 @@ function TableManager({ tableName }: { tableName: string }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
     const { openPopup } = usePopup();
+    const router = useRouter();
+    const params = useParams() as { locale?: string };
+    const locale = params?.locale ?? localeConfig.defaultLocale;
     const isMountedRef = useRef(true);
 
     useEffect(() => {
@@ -229,15 +275,31 @@ function TableManager({ tableName }: { tableName: string }) {
         };
     }, []);
 
-    const formatValue = (value: any): string => {
+    const formatValue = (value: any, columnName?: string): string => {
         if (value === null || value === undefined) return "";
         if (typeof value === "boolean") return value ? "Yes" : "No";
         if (typeof value === "object") return JSON.stringify(value);
-        if (typeof value === "string" && value.includes("T") && value.includes("Z")) {
-            const date = new Date(value);
-            return date.toLocaleString("en-US");
+        if (typeof value === "string") {
+            const isDateColumn =
+                Boolean(columnName) &&
+                (columnName?.includes("date") || columnName?.endsWith("_at"));
+            const looksLikeIsoDate =
+                value.includes("T") ||
+                /^\d{4}-\d{2}-\d{2}/.test(value);
+
+            if (isDateColumn || looksLikeIsoDate) {
+                const date = new Date(value);
+                if (!Number.isNaN(date.getTime())) {
+                    return date.toLocaleString();
+                }
+            }
         }
         return String(value);
+    };
+
+    const stripHtml = (value: unknown): string => {
+        if (typeof value !== "string") return "";
+        return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
     };
 
     const orderCol = TABLE_ORDER_COLUMN[tableName] ?? "id";
@@ -307,19 +369,30 @@ function TableManager({ tableName }: { tableName: string }) {
     };
 
     const handleEdit = (item: any) => {
+        if (tableName === "news") {
+            router.push(`/${locale}/admin/news/${item.id}/edit`);
+            return;
+        }
+        const popupColumns = TABLE_COLUMNS[tableName] ?? Object.keys(data[0] || {});
         openPopup("admin-edit", {
             tableName,
             item,
-            columns: Object.keys(data[0] || {}),
+            columns: popupColumns,
             onSave: loadData,
         });
     };
 
     const handleAdd = () => {
+        if (tableName === "news") {
+            router.push(`/${locale}/admin/news/new`);
+            return;
+        }
+        const popupColumns = TABLE_COLUMNS[tableName] ?? Object.keys(data[0] || {});
+        const sampleItem = data[0] || TABLE_SAMPLE_ITEM[tableName] || {};
         openPopup("admin-add", {
             tableName,
-            columns: Object.keys(data[0] || {}),
-            sampleItem: data[0] || {},
+            columns: popupColumns,
+            sampleItem,
             onSave: loadData,
         });
     };
@@ -357,7 +430,7 @@ function TableManager({ tableName }: { tableName: string }) {
         );
     }
 
-    const rawColumns = Object.keys(data[0] || {});
+    const rawColumns = TABLE_COLUMNS[tableName] ?? Object.keys(data[0] || {});
     const columns =
         tableName === "profiles"
             ? ["avatar", ...rawColumns.filter((c) => c !== "avatar_url")]
@@ -387,15 +460,36 @@ function TableManager({ tableName }: { tableName: string }) {
                     <img
                         src={url}
                         alt=""
-                        className={css.avatarThumb}
-                        width={36}
-                        height={36}
+                        className={css.newsThumb}
+                        width={56}
+                        height={40}
                     />
                 </td>
             );
         }
+        if (tableName === "news" && col === "title") {
+            return (
+                <td key={col}>
+                    <div className={css.newsTitleCell}>{formatValue(item[col], col)}</div>
+                </td>
+            );
+        }
+        if (tableName === "news" && col === "description") {
+            return (
+                <td key={col}>
+                    <div className={css.newsDescriptionCell}>{stripHtml(item[col])}</div>
+                </td>
+            );
+        }
+        if (tableName === "news" && col === "link_text") {
+            return (
+                <td key={col}>
+                    <span className={css.newsBadge}>{formatValue(item[col], col)}</span>
+                </td>
+            );
+        }
         return (
-            <td key={col}>{formatValue(item[col])}</td>
+            <td key={col}>{formatValue(item[col], col)}</td>
         );
     };
 

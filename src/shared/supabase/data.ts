@@ -2217,7 +2217,7 @@ export async function getAllRankings(): Promise<{
 export async function getNews(): Promise<INewsItem[]> {
     const { data, error } = await supabase
         .from("news")
-        .select("id, image, title, description, link, link_text, sort_order, created_at")
+        .select("id, image, title, description, link_text, sort_order, created_at")
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
 
@@ -2227,17 +2227,39 @@ export async function getNews(): Promise<INewsItem[]> {
     }
 
     return (
-        data?.map((row: { id: number; image: string | null; title: string; description: string; link: string; link_text: string; sort_order?: number; created_at?: string }) => ({
+        data?.map((row: { id: number; image: string | null; title: string; description: string; link_text: string; sort_order?: number; created_at?: string }) => ({
             id: row.id,
             image: row.image ?? null,
             title: row.title ?? "",
             description: row.description ?? "",
-            link: row.link ?? "#",
             linkText: row.link_text ?? "Read more",
             sortOrder: row.sort_order,
             createdAt: row.created_at,
         })) ?? []
     );
+}
+
+export async function getNewsById(id: number): Promise<INewsItem | null> {
+    const { data, error } = await supabase
+        .from("news")
+        .select("id, image, title, description, link_text, sort_order, created_at")
+        .eq("id", id)
+        .single();
+
+    if (error || !data) {
+        console.error("Error fetching news by id:", error);
+        return null;
+    }
+
+    return {
+        id: data.id,
+        image: data.image ?? null,
+        title: data.title ?? "",
+        description: data.description ?? "",
+        linkText: data.link_text ?? "Read more",
+        sortOrder: data.sort_order,
+        createdAt: data.created_at,
+    };
 }
 
 export async function getMatchHistory(): Promise<IMatchHistory[]> {

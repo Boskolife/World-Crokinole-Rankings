@@ -4,6 +4,7 @@ import { localeConfig } from "@/app/localization/config";
 import { ServerProviders } from "@/app/localization/server";
 import { PopupContainer } from "@/shared/popups/PopupContainer";
 import "@/app/styles/main.scss";
+import "react-quill-new/dist/quill.snow.css";
 
 export const metadata: Metadata = {
     title: "World Crokinole Rankings",

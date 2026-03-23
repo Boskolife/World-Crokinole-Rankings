@@ -6,10 +6,12 @@ import { Icon } from "@/shared/ui/icons";
 import { usePopup } from "@/shared/contexts/popup-context";
 import { supabase } from "@/shared/supabase/client";
 import cn from "classnames";
+import dynamic from "next/dynamic";
 
 const NEWS_IMAGES_BUCKET = "news-images";
 const IMAGE_MAX_SIZE = 5 * 1024 * 1024;
 const IMAGE_ACCEPT = "image/jpeg,image/png,image/gif,image/webp";
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 async function uploadNewsImage(file: File): Promise<string> {
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -53,8 +55,35 @@ export const AdminEditPopup: React.FC = () => {
     if (!data) {
         return null;
     }
+    const isNews = data.tableName === "news";
+
+    const getNewsLabel = (column: string): string => {
+        const labels: Record<string, string> = {
+            image: "Image",
+            title: "Title",
+            description: "Description",
+            link: "Link URL",
+            link_text: "Button text",
+            sort_order: "Sort order",
+            created_at: "Created at",
+            id: "ID",
+        };
+        return labels[column] ?? column;
+    };
+
+    const getNewsPlaceholder = (column: string): string => {
+        const placeholders: Record<string, string> = {
+            title: "Enter news title",
+            description: "Enter short news description",
+            link: "https://example.com/news",
+            link_text: "Read more",
+            sort_order: "0",
+        };
+        return placeholders[column] ?? "";
+    };
 
     const getFieldType = (value: any, columnName: string): string => {
+        if (isNews && columnName === "created_at") return "date";
         if (value === null || value === undefined) return "text";
         if (typeof value === "boolean") return "checkbox";
         if (typeof value === "number") return "number";
@@ -94,11 +123,39 @@ export const AdminEditPopup: React.FC = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
+    const isRichTextEmpty = (value: string | undefined): boolean => {
+        if (!value) return true;
+        const plainText = value.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+        return plainText.length === 0;
+    };
+
     const handleSave = async () => {
         setIsSaving(true);
         setError(null);
 
         try {
+            if (isNews) {
+                if (!formData.title?.trim()) {
+                    setError("Title is required");
+                    setIsSaving(false);
+                    return;
+                }
+                if (isRichTextEmpty(formData.description)) {
+                    setError("Description is required");
+                    setIsSaving(false);
+                    return;
+                }
+                if (!formData.link?.trim()) {
+                    setError("Link URL is required");
+                    setIsSaving(false);
+                    return;
+                }
+                if (!formData.link_text?.trim()) {
+                    setError("Button text is required");
+                    setIsSaving(false);
+                    return;
+                }
+            }
             const cleanedForm = { ...formData };
             Object.keys(cleanedForm).forEach((key) => {
                 if (cleanedForm[key] === "" && data.item[key] !== null && data.item[key] !== undefined) {
@@ -114,6 +171,12 @@ export const AdminEditPopup: React.FC = () => {
                     }
                 }
             });
+            if (isNews && cleanedForm.link) {
+                cleanedForm.link = String(cleanedForm.link).trim();
+                if (!/^https?:\/\//i.test(cleanedForm.link)) {
+                    cleanedForm.link = `https://${cleanedForm.link}`;
+                }
+            }
 
             const { error: updateError } = await supabase
                 .from(data.tableName)
@@ -153,7 +216,9 @@ export const AdminEditPopup: React.FC = () => {
                 )}
 
                 <div className={css.admin_form}>
-                    {data.columns.map((col) => {
+                    {data.columns
+                        .filter((col) => !(isNews && col === "id"))
+                        .map((col) => {
                         if (data.tableName === "news" && col === "image") {
                             return (
                                 <div key={col} className={css.admin_form_field}>
@@ -211,9 +276,10 @@ export const AdminEditPopup: React.FC = () => {
                             );
                         }
                         const fieldType = getFieldType(data.item[col], col);
+                        const label = isNews ? getNewsLabel(col) : col;
                         return (
                             <div key={col} className={css.admin_form_field}>
-                                <label>{col}</label>
+                                <label>{label}</label>
                                 {fieldType === "checkbox" ? (
                                     <input
                                         type="checkbox"
@@ -225,14 +291,39 @@ export const AdminEditPopup: React.FC = () => {
                                             })
                                         }
                                     />
+                                ) : isNews && col === "description" ? (
+                                    <div className={css.admin_rte}>
+                                        <ReactQuill
+                                            theme="snow"
+                                            value={formData.description || ""}
+                                            onChange={(value) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    description: value,
+                                                })
+                                            }
+                                            placeholder={getNewsPlaceholder(col)}
+                                            modules={{
+                                                toolbar: [
+                                                    ["bold", "italic", "underline"],
+                                                    [{ list: "ordered" }, { list: "bullet" }],
+                                                    ["link"],
+                                                    ["clean"],
+                                                ],
+                                            }}
+                                        />
+                                    </div>
                                 ) : (
                                     <input
                                         type={fieldType}
                                         value={
                                             fieldType === "datetime-local" && formData[col]
                                                 ? new Date(formData[col]).toISOString().slice(0, 16)
+                                                : fieldType === "date" && formData[col]
+                                                    ? new Date(formData[col]).toISOString().slice(0, 10)
                                                 : formData[col] || ""
                                         }
+                                        placeholder={isNews ? getNewsPlaceholder(col) : ""}
                                         onChange={(e) =>
                                             setFormData({
                                                 ...formData,

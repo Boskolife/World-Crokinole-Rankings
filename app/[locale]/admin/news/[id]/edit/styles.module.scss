@@ -1,0 +1,146 @@
+.page {
+    min-height: 100vh;
+    background: #f5f5f5;
+    padding: 20px;
+}
+
+.container {
+    max-width: 980px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+}
+
+.topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.title {
+    margin: 0;
+    font-size: 28px;
+    color: #111827;
+}
+
+.backButton {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.error {
+    padding: 12px;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    margin-bottom: 16px;
+}
+
+.success {
+    padding: 12px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #166534;
+    margin-bottom: 16px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.field label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.field input,
+.field textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.field textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.imagePreview {
+    width: 220px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+}
+
+.imageActions {
+    display: flex;
+    gap: 8px;
+}
+
+.secondaryBtn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    cursor: pointer;
+}
+
+.dangerBtn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    background: #fee2e2;
+    color: #b91c1c;
+    cursor: pointer;
+}
+
+.rte {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rte :global(.ql-toolbar.ql-snow) {
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rte :global(.ql-container.ql-snow) {
+    border: none;
+    min-height: 160px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.saveButton {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+}
