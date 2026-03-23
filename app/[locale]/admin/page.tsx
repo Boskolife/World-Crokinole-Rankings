@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth, useUserProfile } from "@/shared/hooks";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/shared/supabase/client";
 import { Pagination } from "@/shared/modules/pagination";
 import { Icon } from "@/shared/ui/icons";
@@ -27,7 +27,6 @@ export default function AdminPage() {
     const { isAuth, user, isMounted, logout } = useAuth();
     const { profile, isLoading: profileLoading } = useUserProfile();
     const router = useRouter();
-    const searchParams = useSearchParams();
     const params = useParams() as { locale?: string };
     const locale = params?.locale ?? localeConfig.defaultLocale;
     const [activeSection, setActiveSection] = useState<AdminSection>("events");
@@ -58,7 +57,7 @@ export default function AdminPage() {
     }, [isAuth, isMounted, locale, router]);
 
     useEffect(() => {
-        const requestedSection = searchParams.get("section");
+        const requestedSection = new URLSearchParams(window.location.search).get("section");
         if (
             requestedSection &&
             [
@@ -75,7 +74,7 @@ export default function AdminPage() {
         ) {
             setActiveSection(requestedSection as AdminSection);
         }
-    }, [searchParams]);
+    }, []);
 
     if (!isMounted) {
         return (
