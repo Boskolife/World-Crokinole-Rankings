@@ -20,6 +20,7 @@
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 18px;
+    overflow-wrap: anywhere;
 }
 
 .meta {
@@ -44,6 +45,8 @@
     font-size: 18px;
     line-height: 1.6;
     color: var(--black);
+    overflow-wrap: anywhere;
+    word-break: break-word;
 
     p {
         margin: 0 0 14px;
@@ -58,5 +61,26 @@
     a {
         text-decoration: underline;
         color: var(--blue-grey);
+        overflow-wrap: anywhere;
+    }
+
+    img,
+    video,
+    iframe {
+        max-width: 100%;
+        height: auto;
+    }
+
+    pre,
+    code {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
     }
 }
