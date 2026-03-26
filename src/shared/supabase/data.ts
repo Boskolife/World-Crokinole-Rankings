@@ -217,7 +217,7 @@ export async function getFutureEvents(): Promise<IEventCardProps[]> {
     const { data, error } = await supabase
         .from("events")
         .select("*")
-        .gte("start_date", now)
+        .gte("end_date", now)
         .order("start_date", { ascending: true });
 
     if (error) {
